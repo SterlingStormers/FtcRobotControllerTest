@@ -25,6 +25,6 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
-    implementation 'org.openftc:easyopencv:1.7.0'
     implementation 'com.acmerobotics.dashboard:dashboard:2.0.0'
+    implementation 'org.openftc:easyopencv:1.7.0'
 }
