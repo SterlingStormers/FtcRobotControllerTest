@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -7,6 +8,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 
 @TeleOp
 
@@ -29,7 +31,7 @@ public class DriveTrain extends LinearOpMode {
 //        servo2 = hardwareMap.get(Servo.class, "servo2");
 //        servo3 = hardwareMap.get(Servo.class, "servo3");
 //        servo4 = hardwareMap.get(CRServo.class, "servo4");
-
+        FtcDashboard dashboard = FtcDashboard.getInstance();
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
