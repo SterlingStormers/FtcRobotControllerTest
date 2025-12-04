@@ -6,7 +6,6 @@ import android.util.Size;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -15,8 +14,8 @@ import org.firstinspires.ftc.vision.opencv.ImageRegion;
 import org.firstinspires.ftc.vision.opencv.PredominantColorProcessor;
 
 @Disabled
-@Autonomous(name = "Color Sensing", group = "Vision")
-public class ColorSensing extends LinearOpMode
+@Autonomous(name = "Color Sensing Auto", group = "Vision")
+public class ColorSensingAuto extends LinearOpMode
 {
     @Override
     public void runOpMode()
