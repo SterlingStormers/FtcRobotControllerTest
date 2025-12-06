@@ -28,6 +28,7 @@ public class ColorSensingAuto extends LinearOpMode
                 //Change ROI as needed
                 .setSwatches(
                         PredominantColorProcessor.Swatch.ARTIFACT_GREEN,
+                        PredominantColorProcessor.Swatch.BLUE,
                         PredominantColorProcessor.Swatch.ARTIFACT_PURPLE)
 
                 .build();
