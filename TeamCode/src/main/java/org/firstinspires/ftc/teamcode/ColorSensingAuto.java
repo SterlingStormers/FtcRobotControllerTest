@@ -43,8 +43,7 @@ public class ColorSensingAuto extends LinearOpMode
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.MONOSPACE);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
-        dashboard.startCameraStream("Webcam 1",30);
-        //Change webcam name to what it is
+        dashboard.startCameraStream(portal,30);
         // WARNING:  To view the stream preview on the Driver Station, this code runs in INIT mode.
         while (opModeIsActive() || opModeInInit())
         {
