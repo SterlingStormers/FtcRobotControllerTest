@@ -35,7 +35,6 @@ public class ColorSensingAuto extends LinearOpMode
                 .addProcessor(colorSensor)
                 .setCameraResolution(new Size(320, 240))
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-                //Change webcam name to what it is
                 .build();
 
         telemetry.setMsTransmissionInterval(100);  // Speed up telemetry updates, for debugging.
