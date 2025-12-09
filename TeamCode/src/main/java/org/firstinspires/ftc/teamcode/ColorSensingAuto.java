@@ -15,7 +15,7 @@ import org.firstinspires.ftc.vision.opencv.ImageRegion;
 import org.firstinspires.ftc.vision.opencv.PredominantColorProcessor;
 
 
-@Autonomous(name = "Color Sensing Auto", group = "Vision")
+@Autonomous(name= "Color Sensing Auto", group = "Vision")
 public class ColorSensingAuto extends LinearOpMode
 {
     @Override
