@@ -6,7 +6,6 @@ import android.util.Size;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -15,8 +14,12 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.opencv.ImageRegion;
 import org.firstinspires.ftc.vision.opencv.PredominantColorProcessor;
 
-@Disabled
+<<<<<<< HEAD
 @Autonomous(name = "Color Sensing Auto", group = "Vision")
+=======
+
+@Autonomous(name= "Color Sensing Auto", group = "Vision")
+>>>>>>> b46f2903e237e4cf5b27c071978c01fc8cad7206
 public class ColorSensingAuto extends LinearOpMode
 {
     @Override
@@ -28,6 +31,7 @@ public class ColorSensingAuto extends LinearOpMode
                 //Change ROI as needed
                 .setSwatches(
                         PredominantColorProcessor.Swatch.ARTIFACT_GREEN,
+                        PredominantColorProcessor.Swatch.BLUE,
                         PredominantColorProcessor.Swatch.ARTIFACT_PURPLE)
 
                 .build();
@@ -35,7 +39,6 @@ public class ColorSensingAuto extends LinearOpMode
                 .addProcessor(colorSensor)
                 .setCameraResolution(new Size(320, 240))
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-                //Change webcam name to what it is
                 .build();
 
         telemetry.setMsTransmissionInterval(100);  // Speed up telemetry updates, for debugging.
@@ -63,6 +66,7 @@ public class ColorSensingAuto extends LinearOpMode
             TelemetryPacket packet = new TelemetryPacket();
             packet.put("Best Match", result.closestSwatch);
             dashboard.sendTelemetryPacket(packet);
+            
 
 
 
