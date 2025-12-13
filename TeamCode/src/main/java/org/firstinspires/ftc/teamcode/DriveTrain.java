@@ -8,8 +8,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 
 
 @TeleOp
@@ -20,6 +23,9 @@ public class DriveTrain extends LinearOpMode {
     private DcMotor backLeftDrive = null;
     private DcMotor frontRightDrive = null;
     private DcMotor backRightDrive = null;
+    private DcMotor intakeMotor = null;
+    private DcMotor shooterMotor = null;
+    private CRServo spindexer = null;
     private Servo servo0 = null;
     private Servo servo1 = null;
     private Servo servo2 = null;
@@ -38,11 +44,18 @@ public class DriveTrain extends LinearOpMode {
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+        intakeMotor = hardwareMap.get(DcMotor.class, "intake_motor");
+        spindexer = hardwareMap.get(CRServo.class, "spindexer_servo");
+        shooterMotor = hardwareMap.get(DcMotor.class, "shooter_motor");
 
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        shooterMotor.setDirection(DcMotor.Direction.FORWARD);
+        spindexer.setDirection(DcMotorSimple.Direction.FORWARD);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -77,6 +90,26 @@ public class DriveTrain extends LinearOpMode {
                 frontRightPower /= max;
                 backLeftPower /= max;
                 backRightPower /= max;
+            }
+
+            // intake
+            if (gamepad1.x) {
+                intakeMotor.setPower(0.1);
+            } else {
+                intakeMotor.setPower(0);
+            }
+
+            // spindexer (CHANGE LATER)
+            if (gamepad1.y) {
+                spindexer.setPower(0.1);
+            } else {
+                spindexer.setPower(0);
+            }
+
+            if (gamepad1.a) {
+                shooterMotor.setPower(0.05);
+            } else {
+                shooterMotor.setPower(0);
             }
 
             frontLeftDrive.setPower(frontLeftPower * modifier);
