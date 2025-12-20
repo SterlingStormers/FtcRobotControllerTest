@@ -34,11 +34,6 @@ public class DriveTrain extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-//        servo0 = hardwareMap.get(Servo.class, "servo0");
-//        servo1 = hardwareMap.get(Servo.class, "servo1");
-//        servo2 = hardwareMap.get(Servo.class, "servo2");
-//        servo3 = hardwareMap.get(Servo.class, "servo3");
-//        servo4 = hardwareMap.get(CRServo.class, "servo4");
         FtcDashboard dashboard = FtcDashboard.getInstance();
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
@@ -54,11 +49,14 @@ public class DriveTrain extends LinearOpMode {
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
-        shooterMotor.setDirection(DcMotor.Direction.FORWARD);
+        shooterMotor.setDirection(DcMotor.Direction.REVERSE);
         spindexer.setDirection(DcMotorSimple.Direction.FORWARD);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+
+        ElapsedTime shooterTimer = new ElapsedTime();
+        boolean shooterRunning = false;
 
         waitForStart();
         runtime.reset();
@@ -93,21 +91,27 @@ public class DriveTrain extends LinearOpMode {
             }
 
             // intake
-            if (gamepad1.x) {
-                intakeMotor.setPower(0.1);
+            if (gamepad2.x) {
+                intakeMotor.setPower(1);
             } else {
                 intakeMotor.setPower(0);
             }
 
+            double spinPower = 0.35;
+
+            if (gamepad2.left_bumper) {
+                spinPower = -0.35;
+            }
+
             // spindexer (CHANGE LATER)
-            if (gamepad1.y) {
-                spindexer.setPower(0.1);
+            if (gamepad2.y) {
+                spindexer.setPower(spinPower);
             } else {
                 spindexer.setPower(0);
             }
 
-            if (gamepad1.a) {
-                shooterMotor.setPower(0.05);
+            if (gamepad2.a) {
+                shooterMotor.setPower(1);
             } else {
                 shooterMotor.setPower(0);
             }
