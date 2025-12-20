@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Constants;
 
-@Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
+@Autonomous(name = "Auto", group = "Autonomous")
 @Configurable // Panels
 public class Auto extends OpMode {
 
