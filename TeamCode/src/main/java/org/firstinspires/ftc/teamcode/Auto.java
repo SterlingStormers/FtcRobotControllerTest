@@ -139,7 +139,7 @@ public class Auto extends OpMode {
 
             case 1:
                 follower.followPath(paths.Path1, true);
-                
+
 
 
         }
