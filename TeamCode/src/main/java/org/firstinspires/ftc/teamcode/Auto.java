@@ -7,18 +7,15 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.Constants;
-
 @Autonomous(name = "Auto", group = "Autonomous")
 @Configurable // Panels
 public class Auto extends OpMode {
-
+ColorSensingAuto colorSensingAuto = new ColorSensingAuto();
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
     private int pathState; // Current autonomous path state (state machine)
@@ -124,7 +121,12 @@ public class Auto extends OpMode {
                     .build();
         }
     }
-
+    public void setPathState(int newState) {
+        pathState = newState;
+        pathTimer.resetTimer();
+    }
+// This is a very rough state machine without accurate paths, no spindexer/ colorsensing/sorting logic, shooting logic, and no april tag sensing.
+    // This is just an trial run so we can test and know how to code Auton
     public int autonomousPathUpdate() {
         DriveTrain drive = new DriveTrain();
         // Add your state machine Here
@@ -134,14 +136,22 @@ public class Auto extends OpMode {
             case 0:
                 drive.intakeMotor.setPower(0);
                 drive.shooterMotor.setPower(0);
-                pathState = 1;
+                setPathState(1);
                 break;
 
             case 1:
                 follower.followPath(paths.Path1, true);
+                setPathState(2);
+                break;
 
-
-
+            case 2:
+                if(!follower.isBusy()) {
+                    drive.intakeMotor.setPower(1);
+                    pathTimer.resetTimer();
+                    if (pathTimer.getElapsedTimeSeconds() >= 1.2){
+                        follower.followPath(paths.Path2, false);
+                    }
+                }
         }
         return pathState;
     }
