@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -19,18 +20,18 @@ import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCapt
 
 public class DriveTrain extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor frontLeftDrive = null;
-    private DcMotor backLeftDrive = null;
-    private DcMotor frontRightDrive = null;
-    private DcMotor backRightDrive = null;
-    private DcMotor intakeMotor = null;
-    private DcMotor shooterMotor = null;
-    private CRServo spindexer = null;
-    private Servo servo0 = null;
-    private Servo servo1 = null;
-    private Servo servo2 = null;
-    private Servo servo3 = null;
-    private CRServo servo4 = null;
+    public DcMotor frontLeftDrive = null;
+    public DcMotor backLeftDrive = null;
+    public DcMotor frontRightDrive = null;
+    public DcMotor backRightDrive = null;
+    public DcMotor intakeMotor = null;
+    public DcMotor shooterMotor = null;
+    public CRServo spindexer = null;
+    public Servo servo0 = null;
+    public Servo servo1 = null;
+    public Servo servo2 = null;
+    public Servo servo3 = null;
+    public CRServo servo4 = null;
 
     @Override
     public void runOpMode() {

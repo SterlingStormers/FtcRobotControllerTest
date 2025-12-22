@@ -7,7 +7,9 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -21,6 +23,10 @@ public class Auto extends OpMode {
     public Follower follower; // Pedro Pathing follower instance
     private int pathState; // Current autonomous path state (state machine)
     private Paths paths; // Paths defined in the Paths class
+
+    private Timer pathTimer, opmodeTimer;
+
+
 
     @Override
     public void init() {
@@ -46,9 +52,11 @@ public class Auto extends OpMode {
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.update(telemetry);
+
     }
 
-    public static class Paths {
+    public class  Paths {
+
 
         public PathChain Path1;
         public PathChain Path2;
@@ -118,9 +126,23 @@ public class Auto extends OpMode {
     }
 
     public int autonomousPathUpdate() {
+        DriveTrain drive = new DriveTrain();
         // Add your state machine Here
         // Access paths with paths.pathName
         // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
+        switch(pathState) {
+            case 0:
+                drive.intakeMotor.setPower(0);
+                drive.shooterMotor.setPower(0);
+                pathState = 1;
+                break;
+
+            case 1:
+                follower.followPath(paths.Path1, true);
+                
+
+
+        }
         return pathState;
     }
 }
