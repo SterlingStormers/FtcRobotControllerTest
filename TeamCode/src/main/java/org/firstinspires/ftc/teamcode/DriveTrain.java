@@ -33,6 +33,9 @@ public class DriveTrain extends LinearOpMode {
     public Servo servo3 = null;
     public CRServo servo4 = null;
 
+    public DriveTrain(HardwareMap hardwareMap) {
+    }
+
     @Override
     public void runOpMode() {
         FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -43,6 +46,9 @@ public class DriveTrain extends LinearOpMode {
         intakeMotor = hardwareMap.get(DcMotor.class, "intake_motor");
         spindexer = hardwareMap.get(CRServo.class, "spindexer_servo");
         shooterMotor = hardwareMap.get(DcMotor.class, "shooter_motor");
+        kicker = hardwareMap.get(servoX.class, "kicker_servo");
+        hood = hardwareMap.get(servoX.class, "hood_servo");
+        //To be changed
 
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
