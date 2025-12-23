@@ -169,14 +169,15 @@ public class AutoTopBlue9 extends OpMode {
 
             case 1:
                 follower.followPath(paths.Path1, true);
-                setPathState(2);
+                if(!follower.isBusy()) {
+                    setPathState(2);
+                }
                 break;
 
             case 2:
-                if(!follower.isBusy()) {
                    //Tell HuskyLens to scan AprilTag
                     // HuskyLens will then send color pattern to ColorSensingAuto class for logic and this class for telemetry
-                }
+                
                 break;
 
 
