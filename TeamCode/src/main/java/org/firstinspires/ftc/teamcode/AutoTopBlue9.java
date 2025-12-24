@@ -177,7 +177,7 @@ public class AutoTopBlue9 extends OpMode {
             case 2:
                    //Tell HuskyLens to scan AprilTag
                     // HuskyLens will then send color pattern to ColorSensingAuto class for logic and this class for telemetry
-                
+
                 break;
 
 
