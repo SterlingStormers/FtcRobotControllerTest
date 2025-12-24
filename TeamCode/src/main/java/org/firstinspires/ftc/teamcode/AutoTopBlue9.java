@@ -63,7 +63,7 @@ public class AutoTopBlue9 extends OpMode {
         public PathChain Path6;
         public PathChain Path7;
         public PathChain Path8;
-        public PathChain Path12;
+        public PathChain Path9;
 
         public Paths(Follower follower) {
             Path1 = follower
@@ -142,7 +142,7 @@ public class AutoTopBlue9 extends OpMode {
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
                     .build();
 
-            Path12 = follower
+            Path9 = follower
                     .pathBuilder()
                     .addPath(
                             new BezierLine(new Pose(54.609, 89.223), new Pose(60.994, 99.977))
@@ -159,6 +159,8 @@ public class AutoTopBlue9 extends OpMode {
         // Add your state machine Here
         // Access paths with paths.pathName
         // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
+        double t = follower.getCurrentTValue();
+        follower.setMaxPower(1);
 
         switch(pathState) {
             case 0:
@@ -168,19 +170,164 @@ public class AutoTopBlue9 extends OpMode {
                 break;
 
             case 1:
-                follower.followPath(paths.Path1, true);
-                if(!follower.isBusy()) {
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path1, true);
+                }
+                follower.update();
+                if (!follower.isBusy()) {
                     setPathState(2);
                 }
                 break;
 
             case 2:
-                   //Tell HuskyLens to scan AprilTag
-                    // HuskyLens will then send color pattern to ColorSensingAuto class for logic and this class for telemetry
+                //Tell HuskyLens to scan AprilTag
+                // HuskyLens will then send color pattern to ColorSensingAuto class for logic and this class for telemetry
+                // Do not block loop, use HuskyLens polling
+                setPathState(3);
+                break;
+            case 3:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(0.5);
+                    follower.followPath(paths.Path2, true);
+                }
+                follower.update();
+                drive.shooterMotor.setPower(1);
+                //Color Sensing
+                //Spindexer logic
+                //Do not block loop
+                if (!follower.isBusy()) {
+                    setPathState(4);
+                }
+                break;
+            case 4:
+                //Spindexer logic
+                //Shooter logic
+                //Do not block loop
+                setPathState(5);
+                break;
+            case 5:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path3, false);
+                }
 
+                follower.update();
+                if (follower.getCurrentTValue() >= 0.5) {
+                    drive.intakeMotor.setPower(1);
+                    drive.shooterMotor.setPower(0);
+                }
+                if(!follower.isBusy()){
+                    setPathState(6);
+                }
                 break;
 
+            case 6:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path4, false);
+                }
+                follower.update();
+                //Run Color Sensing
+                //Run Spindexer
+                //Do not block loop
+                if ((!follower.isBusy())){
+                    setPathState(7);
+                }
+                break;
+            case 7:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(1);
+                    follower.followPath(paths.Path5, true);
+                }
+                follower.update();
+                if (follower.getCurrentTValue() >= 0.5){
+                    drive.intakeMotor.setPower(0);
+                    drive.shooterMotor.setPower(1);
+                }
+                //Spindexer logic
+                //Do not block loop
+                if(!follower.isBusy()) {
+                    setPathState(8);
+                }
+                break;
+            case 8:
+                //Spindexer logic
+                //Shooter logic
+                //Do not block loop
+                setPathState(9);
+                break;
+            case 9:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(0.5);
+                    follower.followPath(paths.Path6,false);
+                }
+                follower.update();
+                if (follower.getCurrentTValue() >=0.5) {
+                    drive.intakeMotor.setPower(1);
+                    drive.shooterMotor.setPower(0);
+                }
+                if (!follower.isBusy()){
+                    setPathState(10);
+                }
+                break;
+            case 10:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path7,false);
+                }
+                follower.update();
+                //Run Color Sensing
+                //Run Spindexer
+                //Do not block loop
+                if (!follower.isBusy()) {
+                    setPathState(11);
+                }
+                break;
+            case 11:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(1);
+                    follower.followPath(paths.Path8, true);
+                }
+                follower.update();
+                if (follower.getCurrentTValue() >= 0.5){
+                    drive.intakeMotor.setPower(0);
+                    drive.shooterMotor.setPower(1);
+                }
+                //Spindexer logic
+                //Do not block loop
+                if (!follower.isBusy()) {
+                    setPathState(12);
+                }
+                break;
+            case 12:
+                //Run Kicker
+                //Spindexer logic
+                //Shooter logic
+                //Do not block loop
+                setPathState(13);
+                break;
+            case 13:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(0.5);
+                    follower.followPath(paths.Path9, true);
+                }
+                follower.update();
+                if (follower.getCurrentTValue() >= 0.5) {
+                    drive.shooterMotor.setPower(0);
+                }
 
+                if (!follower.isBusy() && pathState != -1) {  // make sure it’s not already finished
+                    telemetry.addLine("Successfully completed 9 ball auto");
+                    telemetry.update();
+                    drive.frontLeftDrive.setPower(0);
+                    drive. backLeftDrive.setPower(0);
+                    drive.frontRightDrive.setPower(0);
+                    drive.backRightDrive.setPower(0);
+                    drive.intakeMotor.setPower(0);
+                    drive.shooterMotor.setPower(0);
+                    drive.spindexer.setPower(0);
+                    drive.kicker.setPower(0);
+                    drive.hood.setPower(0);
+                    //To be changed
+                    pathState = -1;
+                }
         }
         return pathState;
     }

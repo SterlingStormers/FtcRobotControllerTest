@@ -33,5 +33,8 @@ public class DriveTrainHardware {
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
         shooterMotor.setDirection(DcMotor.Direction.REVERSE);
         spindexer.setDirection(DcMotorSimple.Direction.FORWARD);
+        kicker.setDirection(DcMotorSimple.Direction.FORWARD);
+        hood.setDirection(DcMotorSimple.Direction.FORWARD);
+        //To be changed
     }
 }

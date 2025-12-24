@@ -54,10 +54,12 @@ public class DriveTrain extends LinearOpMode {
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
-
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
         shooterMotor.setDirection(DcMotor.Direction.REVERSE);
         spindexer.setDirection(DcMotorSimple.Direction.FORWARD);
+        kicker.setDirection(DcMotorSimple.Direction.FORWARD);
+        hood.setDirection(DcMotorSimple.Direction.FORWARD);
+        //To be changed
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
