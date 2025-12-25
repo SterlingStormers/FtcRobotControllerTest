@@ -1,0 +1,331 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+@Autonomous(name = "Auto Top 9 Red", group = "Autonomous")
+@Configurable // Panels
+public class AutoTop9Red extends OpMode {
+
+    private TelemetryManager panelsTelemetry; // Panels Telemetry instance
+    public Follower follower; // Pedro Pathing follower instance
+    private int pathState; // Current autonomous path state (state machine)
+    private Paths paths; // Paths defined in the Paths class
+    private DriveTrainHardware drive;
+    private Timer pathTimer, opmodeTimer;
+
+    @Override
+    public void init() {
+        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(new Pose(72, 8, Math.toRadians(90)));
+
+        paths = new Paths(follower); // Build paths
+
+        panelsTelemetry.debug("Status", "Initialized");
+        panelsTelemetry.update(telemetry);
+        drive = new DriveTrainHardware();
+        drive.init(hardwareMap);
+        pathTimer = new Timer();
+        opmodeTimer = new Timer();    }
+
+    @Override
+    public void loop() {
+        follower.update(); // Update Pedro Pathing
+        pathState = autonomousPathUpdate(); // Update autonomous state machine
+
+        // Log values to Panels and Driver Station
+        panelsTelemetry.debug("Path State", pathState);
+        panelsTelemetry.debug("X", follower.getPose().getX());
+        panelsTelemetry.debug("Y", follower.getPose().getY());
+        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
+        panelsTelemetry.update(telemetry);
+    }
+
+    public static class Paths {
+
+        public PathChain Path1;
+        public PathChain Path2;
+        public PathChain Path3;
+        public PathChain Path4;
+        public PathChain Path5;
+        public PathChain Path6;
+        public PathChain Path7;
+        public PathChain Path8;
+        public PathChain Path9;
+
+        public Paths(Follower follower) {
+            Path1 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(120.699, 119.634), new Pose(72.000, 72.000))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
+                    .build();
+
+            Path2 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(72.000, 72.000), new Pose(83.908, 83.167))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(42))
+                    .build();
+
+            Path3 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(83.908, 83.167), new Pose(110.210, 83.489))
+                    )
+                    .setTangentHeadingInterpolation()
+                    .build();
+
+            Path4 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(110.210, 83.489), new Pose(129.089, 83.651))
+                    )
+                    .setTangentHeadingInterpolation()
+                    .build();
+
+            Path5 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierCurve(
+                                    new Pose(129.089, 83.651),
+                                    new Pose(99.722, 83.973),
+                                    new Pose(89.879, 89.782)
+                            )
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(360), Math.toRadians(42))
+                    .build();
+
+            Path6 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierCurve(
+                                    new Pose(89.879, 89.782),
+                                    new Pose(87.942, 58.317),
+                                    new Pose(110.210, 59.608)
+                            )
+                    )
+                    .setTangentHeadingInterpolation()
+                    .build();
+
+            Path7 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(110.210, 59.608), new Pose(128.283, 59.446))
+                    )
+                    .setTangentHeadingInterpolation()
+                    .build();
+
+            Path8 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierCurve(
+                                    new Pose(128.283, 59.446),
+                                    new Pose(101.012, 64.933),
+                                    new Pose(89.879, 89.944)
+                            )
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(360), Math.toRadians(42))
+                    .build();
+
+            Path9 = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(89.879, 89.944), new Pose(80.035, 99.626))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(42), Math.toRadians(42))
+                    .build();
+        }
+    }
+    public void setPathState(int newState) {
+        pathState = newState;
+        pathTimer.resetTimer();
+}   public int autonomousPathUpdate() {
+        // Add your state machine Here
+        // Access paths with paths.pathName
+        // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
+        double t = follower.getCurrentTValue();
+        follower.setMaxPower(1);
+
+        switch(pathState) {
+            case 0:
+                drive.intakeMotor.setPower(0);
+                drive.shooterMotor.setPower(0);
+                drive.kicker.setDirection(0);
+                drive.hood.setDirection(0);
+                setPathState(1);
+                break;
+
+            case 1:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path1, true);
+                }
+                follower.update();
+                if (!follower.isBusy()) {
+                    setPathState(2);
+                }
+                break;
+
+            case 2:
+                //Tell HuskyLens to scan AprilTag
+                // HuskyLens will then send color pattern to ColorSensingAuto class for logic and this class for telemetry
+                // Do not block loop, use HuskyLens polling
+                setPathState(3);
+                break;
+            case 3:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path2, true);
+                }
+                follower.update();
+                drive.shooterMotor.setPower(1);
+                //Color Sensing
+                //Spindexer logic
+                //Do not block loop
+                if (!follower.isBusy()) {
+                    setPathState(4);
+                }
+                break;
+            case 4:
+                //Spindexer logic
+                //Shooter logic
+                //Do not block loop
+                setPathState(5);
+                break;
+            case 5:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path3, false);
+                }
+
+                follower.update();
+                if (follower.getCurrentTValue() >= 0.5) {
+                    drive.intakeMotor.setPower(1);
+                    drive.shooterMotor.setPower(0);
+                }
+                if(!follower.isBusy()){
+                    setPathState(6);
+                }
+                break;
+
+            case 6:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(0.5);
+                    follower.followPath(paths.Path4, false);
+                }
+                follower.update();
+                //Run Color Sensing
+                //Run Spindexer
+                //Do not block loop
+                if ((!follower.isBusy())){
+                    setPathState(7);
+                }
+                break;
+            case 7:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(1);
+                    follower.followPath(paths.Path5, true);
+                }
+                follower.update();
+                if (follower.getCurrentTValue() >= 0.5){
+                    drive.intakeMotor.setPower(0);
+                    drive.shooterMotor.setPower(1);
+                }
+                //Spindexer logic
+                //Do not block loop
+                if(!follower.isBusy()) {
+                    setPathState(8);
+                }
+                break;
+            case 8:
+                //Spindexer logic
+                //Shooter logic
+                //Do not block loop
+                setPathState(9);
+                break;
+            case 9:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path6,false);
+                }
+                follower.update();
+                if (follower.getCurrentTValue() >=0.5) {
+                    drive.intakeMotor.setPower(1);
+                    drive.shooterMotor.setPower(0);
+                }
+                if (!follower.isBusy()){
+                    setPathState(10);
+                }
+                break;
+            case 10:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(0.5);
+                    follower.followPath(paths.Path7,false);
+                }
+                follower.update();
+                //Run Color Sensing
+                //Run Spindexer
+                //Do not block loop
+                if (!follower.isBusy()) {
+                    setPathState(11);
+                }
+                break;
+            case 11:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(1);
+                    follower.followPath(paths.Path8, true);
+                }
+                follower.update();
+                if (follower.getCurrentTValue() >= 0.5){
+                    drive.intakeMotor.setPower(0);
+                    drive.shooterMotor.setPower(1);
+                }
+                //Spindexer logic
+                //Do not block loop
+                if (!follower.isBusy()) {
+                    setPathState(12);
+                }
+                break;
+            case 12:
+                //Spindexer logic
+                //Shooter logic
+                //Do not block loop
+                setPathState(13);
+                break;
+            case 13:
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path9, true);
+                }
+                follower.update();
+                if (follower.getCurrentTValue() >= 0.5) {
+                    drive.shooterMotor.setPower(0);
+                }
+
+                if (!follower.isBusy() && pathState != -1) {
+                    telemetry.addLine("Successfully completed 9 ball auto");
+                    telemetry.update();
+                    drive.frontLeftDrive.setPower(0);
+                    drive. backLeftDrive.setPower(0);
+                    drive.frontRightDrive.setPower(0);
+                    drive.backRightDrive.setPower(0);
+                    drive.intakeMotor.setPower(0);
+                    drive.shooterMotor.setPower(0);
+                    drive.spindexer.setPower(0);
+                    drive.kicker.setDirection(0);
+                    drive.hood.setDirection(0);
+                    //To be changed
+                    pathState = -1;
+                }
+        }        return pathState;
+    }
+}
