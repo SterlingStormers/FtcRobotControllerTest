@@ -12,7 +12,7 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.pedropathing.util.Timer;
-@Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
+@Autonomous(name = "Auto Top Blue 9", group = "Autonomous")
 @Configurable // Panels
 public class AutoTopBlue9 extends OpMode {
 
@@ -166,6 +166,8 @@ public class AutoTopBlue9 extends OpMode {
             case 0:
                 drive.intakeMotor.setPower(0);
                 drive.shooterMotor.setPower(0);
+                drive.kicker.setDirection(0);
+                drive.hood.setDirection(0);
                 setPathState(1);
                 break;
 
@@ -297,7 +299,6 @@ public class AutoTopBlue9 extends OpMode {
                 }
                 break;
             case 12:
-                //Run Kicker
                 //Spindexer logic
                 //Shooter logic
                 //Do not block loop

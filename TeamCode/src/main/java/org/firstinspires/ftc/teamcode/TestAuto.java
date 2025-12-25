@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 @Autonomous(name = "Auto", group = "Autonomous")
 @Configurable // Panels
-public class Auto extends OpMode {
+public class TestAuto extends OpMode {
 ColorSensingAuto colorSensingAuto = new ColorSensingAuto();
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance

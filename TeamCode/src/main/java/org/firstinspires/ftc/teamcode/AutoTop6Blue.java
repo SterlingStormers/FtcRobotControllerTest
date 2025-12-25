@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.pedropathing.util.Timer;
 
-@Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
+@Autonomous(name = "Auto Top 6 Blue", group = "Autonomous")
 @Configurable // Panels
 public class AutoTop6Blue extends OpMode {
 
@@ -35,6 +35,10 @@ public class AutoTop6Blue extends OpMode {
 
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
+        drive = new DriveTrainHardware();
+        drive.init(hardwareMap);
+        pathTimer = new Timer();
+        opmodeTimer = new Timer();
     }
 
     @Override
@@ -48,10 +52,7 @@ public class AutoTop6Blue extends OpMode {
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.update(telemetry);
-        drive = new DriveTrainHardware();
-        drive.init(hardwareMap);
-        pathTimer = new Timer();
-        opmodeTimer = new Timer();
+
     }
 
     public static class Paths {
@@ -133,6 +134,8 @@ public class AutoTop6Blue extends OpMode {
             case 0:
                 drive.intakeMotor.setPower(0);
                 drive.shooterMotor.setPower(0);
+                drive.kicker.setDirection(0);
+                drive.hood.setDirection(0);
                 setPathState(1);
                 break;
             case 1:

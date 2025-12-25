@@ -12,10 +12,9 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-
-@Autonomous(name = "Auto Top 12 Blue", group = "Autonomous")
+@Autonomous(name = "Auto Bottom 6 Blue", group = "Autonomous")
 @Configurable // Panels
-public class AutoTop12Blue extends OpMode {
+public class AutoBottom6Blue extends OpMode {
 
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
@@ -62,18 +61,12 @@ public class AutoTop12Blue extends OpMode {
         public PathChain Path4;
         public PathChain Path5;
         public PathChain Path6;
-        public PathChain Path7;
-        public PathChain Path8;
-        public PathChain Path9;
-        public PathChain Path10;
-        public PathChain Path11;
-        public PathChain Path12;
 
         public Paths(Follower follower) {
             Path1 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(22.684, 120.140), new Pose(72.000, 72.000))
+                            new BezierLine(new Pose(56.154, 7.488), new Pose(72.000, 72.000))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
                     .build();
@@ -81,7 +74,7 @@ public class AutoTop12Blue extends OpMode {
             Path2 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(72.000, 72.000), new Pose(59.818, 84.350))
+                            new BezierLine(new Pose(72.000, 72.000), new Pose(59.220, 84.296))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(142))
                     .build();
@@ -89,7 +82,7 @@ public class AutoTop12Blue extends OpMode {
             Path3 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(59.818, 84.350), new Pose(36.294, 84.182))
+                            new BezierLine(new Pose(59.220, 84.296), new Pose(34.854, 84.135))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -97,7 +90,7 @@ public class AutoTop12Blue extends OpMode {
             Path4 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(36.294, 84.182), new Pose(15.795, 83.846))
+                            new BezierLine(new Pose(34.854, 84.135), new Pose(16.459, 84.296))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -106,9 +99,9 @@ public class AutoTop12Blue extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(15.795, 83.846),
-                                    new Pose(49.904, 85.694),
-                                    new Pose(54.777, 89.055)
+                                    new Pose(16.459, 84.296),
+                                    new Pose(39.372, 85.587),
+                                    new Pose(53.411, 90.105)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
@@ -117,71 +110,7 @@ public class AutoTop12Blue extends OpMode {
             Path6 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierCurve(
-                                    new Pose(54.777, 89.055),
-                                    new Pose(61.498, 59.818),
-                                    new Pose(35.790, 59.650)
-                            )
-                    )
-                    .setTangentHeadingInterpolation()
-                    .build();
-
-            Path7 = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierLine(new Pose(35.790, 59.650), new Pose(16.131, 59.482))
-                    )
-                    .setTangentHeadingInterpolation()
-                    .build();
-
-            Path8 = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierCurve(
-                                    new Pose(16.131, 59.482),
-                                    new Pose(42.847, 67.547),
-                                    new Pose(54.609, 89.223)
-                            )
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
-                    .build();
-
-            Path9 = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierCurve(
-                                    new Pose(54.609, 89.223),
-                                    new Pose(65.363, 35.790),
-                                    new Pose(35.622, 35.790)
-                            )
-                    )
-                    .setTangentHeadingInterpolation()
-                    .build();
-
-            Path10 = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierLine(new Pose(35.622, 35.790), new Pose(16.299, 35.958))
-                    )
-                    .setTangentHeadingInterpolation()
-                    .build();
-
-            Path11 = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierCurve(
-                                    new Pose(16.299, 35.958),
-                                    new Pose(51.921, 50.072),
-                                    new Pose(54.609, 89.391)
-                            )
-                    )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
-                    .build();
-
-            Path12 = follower
-                    .pathBuilder()
-                    .addPath(
-                            new BezierLine(new Pose(54.609, 89.391), new Pose(65.027, 100.481))
+                            new BezierLine(new Pose(53.411, 90.105), new Pose(65.029, 98.819))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(142))
                     .build();
@@ -206,17 +135,15 @@ public class AutoTop12Blue extends OpMode {
                 drive.hood.setDirection(0);
                 setPathState(1);
                 break;
-
             case 1:
                 if (!follower.isBusy()) {
-                    follower.followPath(paths.Path1, true);
+                    follower.followPath(paths.Path1);
                 }
                 follower.update();
-                if (!follower.isBusy()) {
+                if(!follower.isBusy()) {
                     setPathState(2);
                 }
                 break;
-
             case 2:
                 //Tell HuskyLens to scan AprilTag
                 // HuskyLens will then send color pattern to ColorSensingAuto class for logic and this class for telemetry
@@ -252,7 +179,7 @@ public class AutoTop12Blue extends OpMode {
                     drive.intakeMotor.setPower(1);
                     drive.shooterMotor.setPower(0);
                 }
-                if (!follower.isBusy()) {
+                if(!follower.isBusy()){
                     setPathState(6);
                 }
                 break;
@@ -266,7 +193,7 @@ public class AutoTop12Blue extends OpMode {
                 //Run Color Sensing
                 //Run Spindexer
                 //Do not block loop
-                if ((!follower.isBusy())) {
+                if ((!follower.isBusy())){
                     setPathState(7);
                 }
                 break;
@@ -276,13 +203,13 @@ public class AutoTop12Blue extends OpMode {
                     follower.followPath(paths.Path5, true);
                 }
                 follower.update();
-                if (follower.getCurrentTValue() >= 0.5) {
+                if (follower.getCurrentTValue() >= 0.5){
                     drive.intakeMotor.setPower(0);
                     drive.shooterMotor.setPower(1);
                 }
                 //Spindexer logic
                 //Do not block loop
-                if (!follower.isBusy()) {
+                if(!follower.isBusy()) {
                     setPathState(8);
                 }
                 break;
@@ -294,110 +221,14 @@ public class AutoTop12Blue extends OpMode {
                 break;
             case 9:
                 if (!follower.isBusy()) {
-                    follower.followPath(paths.Path6, false);
-                }
-                follower.update();
-                if (follower.getCurrentTValue() >= 0.5) {
-                    drive.intakeMotor.setPower(1);
-                    drive.shooterMotor.setPower(0);
-                }
-                if (!follower.isBusy()) {
-                    setPathState(10);
-                }
-                break;
-            case 10:
-                if (!follower.isBusy()) {
-                    follower.setMaxPower(0.5);
-                    follower.followPath(paths.Path7, false);
-                }
-                follower.update();
-                //Run Color Sensing
-                //Run Spindexer
-                //Do not block loop
-                if (!follower.isBusy()) {
-                    setPathState(11);
-                }
-                break;
-            case 11:
-                if (!follower.isBusy()) {
-                    follower.setMaxPower(1);
-                    follower.followPath(paths.Path8, true);
-                }
-                follower.update();
-                if (follower.getCurrentTValue() >= 0.5) {
-                    drive.intakeMotor.setPower(0);
-                    drive.shooterMotor.setPower(1);
-                }
-                //Spindexer logic
-                //Do not block loop
-                if (!follower.isBusy()) {
-                    setPathState(12);
-                }
-                break;
-            case 12:
-                //Spindexer logic
-                //Shooter logic
-                //Do not block loop
-                setPathState(13);
-                break;
-            case 13:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path9, false);
-                }
-                follower.update();
-                if (follower.getCurrentTValue() >= 0.5) {
-                    drive.intakeMotor.setPower(1);
-                    drive.shooterMotor.setPower(0);
-                }
-                if (!follower.isBusy()) {
-                    setPathState(14);
-                }
-                break;
-            case 14:
-                if (!follower.isBusy()) {
-                    follower.setMaxPower(0.5);
-                    follower.followPath(paths.Path10, false);
-                }
-                follower.update();
-                //Run Color Sensing
-                //Run Spindexer
-                //Do not block loop
-                if ((!follower.isBusy())) {
-                    setPathState(15);
-                }
-                break;
-            case 15:
-                if (!follower.isBusy()) {
-                    follower.setMaxPower(1);
-                    follower.followPath(paths.Path11, true);
-                }
-                follower.update();
-                if (follower.getCurrentTValue() >= 0.5) {
-                    drive.intakeMotor.setPower(0);
-                    drive.shooterMotor.setPower(1);
-                }
-                //Spindexer logic
-                //Do not block loop
-                if (!follower.isBusy()) {
-                    setPathState(16);
-                }
-                break;
-            case 16:
-                //Spindexer logic
-                //Shooter logic
-                //Do not block loop
-                setPathState(17);
-                break;
-            case 17:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path12, true);
+                    follower.followPath(paths.Path6, true);
                 }
                 follower.update();
                 if (follower.getCurrentTValue() >= 0.5) {
                     drive.shooterMotor.setPower(0);
                 }
                 if (!follower.isBusy() && pathState != -1) {
-                    telemetry.addLine("Successfully completed 12 ball auto");
+                    telemetry.addLine("Successfully completed 6 ball auto");
                     telemetry.update();
                     drive.frontLeftDrive.setPower(0);
                     drive. backLeftDrive.setPower(0);
@@ -411,8 +242,6 @@ public class AutoTop12Blue extends OpMode {
                     //To be changed
                     pathState = -1;
                 }
-
-
         }
         return pathState;
     }

@@ -12,10 +12,9 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-
-@Autonomous(name = "Auto Top 12 Blue", group = "Autonomous")
+@Autonomous(name = "Auto Bottom 12 Blue", group = "Autonomous")
 @Configurable // Panels
-public class AutoTop12Blue extends OpMode {
+public class AutoBottom12Blue extends OpMode {
 
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
@@ -23,6 +22,7 @@ public class AutoTop12Blue extends OpMode {
     private Paths paths; // Paths defined in the Paths class
     private DriveTrainHardware drive;
     private Timer pathTimer, opmodeTimer;
+
 
     @Override
     public void init() {
@@ -73,7 +73,7 @@ public class AutoTop12Blue extends OpMode {
             Path1 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(22.684, 120.140), new Pose(72.000, 72.000))
+                            new BezierLine(new Pose(56.154, 7.488), new Pose(72.000, 72.000))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
                     .build();
@@ -81,7 +81,7 @@ public class AutoTop12Blue extends OpMode {
             Path2 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(72.000, 72.000), new Pose(59.818, 84.350))
+                            new BezierLine(new Pose(72.000, 72.000), new Pose(59.220, 84.296))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(142))
                     .build();
@@ -89,7 +89,7 @@ public class AutoTop12Blue extends OpMode {
             Path3 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(59.818, 84.350), new Pose(36.294, 84.182))
+                            new BezierLine(new Pose(59.220, 84.296), new Pose(34.854, 84.135))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -97,7 +97,7 @@ public class AutoTop12Blue extends OpMode {
             Path4 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(36.294, 84.182), new Pose(15.795, 83.846))
+                            new BezierLine(new Pose(34.854, 84.135), new Pose(16.459, 84.296))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -106,9 +106,9 @@ public class AutoTop12Blue extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(15.795, 83.846),
-                                    new Pose(49.904, 85.694),
-                                    new Pose(54.777, 89.055)
+                                    new Pose(16.459, 84.296),
+                                    new Pose(39.372, 85.587),
+                                    new Pose(53.411, 90.105)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
@@ -118,9 +118,9 @@ public class AutoTop12Blue extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(54.777, 89.055),
-                                    new Pose(61.498, 59.818),
-                                    new Pose(35.790, 59.650)
+                                    new Pose(53.411, 90.105),
+                                    new Pose(56.315, 60.576),
+                                    new Pose(34.531, 59.931)
                             )
                     )
                     .setTangentHeadingInterpolation()
@@ -129,7 +129,7 @@ public class AutoTop12Blue extends OpMode {
             Path7 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(35.790, 59.650), new Pose(16.131, 59.482))
+                            new BezierLine(new Pose(34.531, 59.931), new Pose(16.459, 59.608))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -138,9 +138,9 @@ public class AutoTop12Blue extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(16.131, 59.482),
-                                    new Pose(42.847, 67.547),
-                                    new Pose(54.609, 89.223)
+                                    new Pose(16.459, 59.608),
+                                    new Pose(45.988, 65.417),
+                                    new Pose(53.249, 90.105)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
@@ -150,9 +150,9 @@ public class AutoTop12Blue extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(54.609, 89.223),
-                                    new Pose(65.363, 35.790),
-                                    new Pose(35.622, 35.790)
+                                    new Pose(53.249, 90.105),
+                                    new Pose(62.608, 36.049),
+                                    new Pose(33.886, 35.565)
                             )
                     )
                     .setTangentHeadingInterpolation()
@@ -161,7 +161,7 @@ public class AutoTop12Blue extends OpMode {
             Path10 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(35.622, 35.790), new Pose(16.299, 35.958))
+                            new BezierLine(new Pose(33.886, 35.565), new Pose(16.620, 35.404))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -170,9 +170,9 @@ public class AutoTop12Blue extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(16.299, 35.958),
-                                    new Pose(51.921, 50.072),
-                                    new Pose(54.609, 89.391)
+                                    new Pose(16.620, 35.404),
+                                    new Pose(54.863, 46.053),
+                                    new Pose(53.249, 90.267)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
@@ -181,7 +181,7 @@ public class AutoTop12Blue extends OpMode {
             Path12 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(54.609, 89.391), new Pose(65.027, 100.481))
+                            new BezierLine(new Pose(53.249, 90.267), new Pose(65.836, 101.239))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(142))
                     .build();
