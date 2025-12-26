@@ -131,8 +131,6 @@ public class AutoBottom6Red extends OpMode {
             case 0:
                 drive.intakeMotor.setPower(0);
                 drive.shooterMotor.setPower(0);
-                drive.kicker.setDirection(0);
-                drive.hood.setDirection(0);
                 setPathState(1);
                 break;
             case 1:
@@ -237,8 +235,6 @@ public class AutoBottom6Red extends OpMode {
                     drive.intakeMotor.setPower(0);
                     drive.shooterMotor.setPower(0);
                     drive.spindexer.setPower(0);
-                    drive.kicker.setDirection(0);
-                    drive.hood.setDirection(0);
                     //To be changed
                     pathState = -1;
                 }

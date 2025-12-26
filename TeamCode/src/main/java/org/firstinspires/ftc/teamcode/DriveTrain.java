@@ -47,8 +47,6 @@ public class DriveTrain extends LinearOpMode {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intake_motor");
         spindexer = hardwareMap.get(CRServo.class, "spindexer_servo");
         shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter_motor");
-        kicker = hardwareMap.get(servoX.class, "kicker_servo");
-        hood = hardwareMap.get(servoX.class, "hood_servo");
         //To be changed
 
         frontLeftDrive.setDirection(DcMotorEx.Direction.REVERSE);
@@ -58,8 +56,7 @@ public class DriveTrain extends LinearOpMode {
         intakeMotor.setDirection(DcMotorEx.Direction.FORWARD);
         shooterMotor.setDirection(DcMotorEx.Direction.REVERSE);
         spindexer.setDirection(DcMotorSimple.Direction.FORWARD);
-        kicker.setDirection(DcMotorSimple.Direction.FORWARD);
-        hood.setDirection(DcMotorSimple.Direction.FORWARD);
+
         //To be changed
 
         telemetry.addData("Status", "Initialized");
