@@ -127,7 +127,6 @@ ColorSensingAuto colorSensingAuto = new ColorSensingAuto();
 // This is a very rough state machine without accurate paths, no spindexer/ colorsensing/sorting logic, shooting logic, and no april tag sensing.
     // This is just an trial run so we can test and know how to code Auton
     public int autonomousPathUpdate() {
-        DriveTrain drive = new DriveTrain();
         // Add your state machine Here
         // Access paths with paths.pathName
         // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
