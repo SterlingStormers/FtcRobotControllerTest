@@ -236,7 +236,7 @@ public class AutoBottom6Blue extends OpMode {
                     drive.intakeMotor.setPower(0);
                     drive.shooterMotor.setPower(0);
                     drive.spindexer.setPower(0);
-                    
+
                     //To be changed
                     pathState = -1;
                 }
