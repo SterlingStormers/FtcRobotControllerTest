@@ -23,8 +23,7 @@ public class DriveTrainHardware {
         intakeMotor = hw.get(DcMotorEx.class, "intake_motor");
         shooterMotor = hw.get(DcMotorEx.class, "shooter_motor");
         spindexer = hw.get(CRServo.class, "spindexer_servo");
-        kicker = hw.get(servoX.class, "kicker_servo");
-        hood = hw.get(servoX.class, "hood_servo");
+
         //To be changed
 
         frontLeftDrive.setDirection(DcMotorEx.Direction.REVERSE);
@@ -34,8 +33,7 @@ public class DriveTrainHardware {
         intakeMotor.setDirection(DcMotorEx.Direction.FORWARD);
         shooterMotor.setDirection(DcMotorEx.Direction.REVERSE);
         spindexer.setDirection(DcMotorSimple.Direction.FORWARD);
-        kicker.setDirection(DcMotorSimple.Direction.FORWARD);
-        hood.setDirection(DcMotorSimple.Direction.FORWARD);
+
         //To be changed
     }
 }
