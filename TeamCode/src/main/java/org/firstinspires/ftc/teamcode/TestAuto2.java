@@ -118,7 +118,6 @@ public class TestAuto2 extends OpMode {
                     follower.followPath(paths.Path2, true);
                 }
                 follower.update();
-                drive.shooterMotor.setPower(1);
                 //Color Sensing
                 //Spindexer logic
                 //Do not block loop
