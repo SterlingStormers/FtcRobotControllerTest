@@ -122,7 +122,7 @@ public class TestAuto2 extends OpMode {
                 //Spindexer logic
                 //Do not block loop
                 if (!follower.isBusy()) {
-                    setPathState(4);
+                    setPathState(-1);
                 }
                 break;
         }

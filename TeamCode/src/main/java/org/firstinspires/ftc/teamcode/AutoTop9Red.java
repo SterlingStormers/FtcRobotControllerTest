@@ -25,6 +25,7 @@ public class AutoTop9Red extends OpMode {
 
     @Override
     public void init() {
+
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);

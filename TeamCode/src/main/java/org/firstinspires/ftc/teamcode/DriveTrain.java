@@ -40,21 +40,21 @@ public class DriveTrain extends LinearOpMode {
     @Override
     public void runOpMode() {
         FtcDashboard dashboard = FtcDashboard.getInstance();
-        frontLeftDrive = hardwareMap.get(DcMotorEx.class, "front_left_drive");
-        backLeftDrive = hardwareMap.get(DcMotorEx.class, "back_left_drive");
-        frontRightDrive = hardwareMap.get(DcMotorEx.class, "front_right_drive");
-        backRightDrive = hardwareMap.get(DcMotorEx.class, "back_right_drive");
-        intakeMotor = hardwareMap.get(DcMotorEx.class, "intake_motor");
+        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
+        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+        intakeMotor = hardwareMap.get(DcMotor.class, "intake_motor");
         spindexer = hardwareMap.get(CRServo.class, "spindexer_servo");
-        shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter_motor");
+        shooterMotor = hardwareMap.get(DcMotor.class, "shooter_motor");
         //To be changed
 
-        frontLeftDrive.setDirection(DcMotorEx.Direction.REVERSE);
-        backLeftDrive.setDirection(DcMotorEx.Direction.REVERSE);
-        frontRightDrive.setDirection(DcMotorEx.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotorEx.Direction.FORWARD);
-        intakeMotor.setDirection(DcMotorEx.Direction.FORWARD);
-        shooterMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        shooterMotor.setDirection(DcMotor.Direction.REVERSE);
         spindexer.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //To be changed
