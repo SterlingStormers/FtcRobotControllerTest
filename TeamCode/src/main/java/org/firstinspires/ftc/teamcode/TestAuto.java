@@ -4,7 +4,6 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
@@ -13,9 +12,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 
-@Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
+@Autonomous(name = "Test Auto", group = "Autonomous")
 @Configurable // Panels
-public class TestAuto2 extends OpMode {
+public class TestAuto extends OpMode {
 
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
@@ -122,7 +121,7 @@ public class TestAuto2 extends OpMode {
                 //Spindexer logic
                 //Do not block loop
                 if (!follower.isBusy()) {
-                    setPathState(4);
+                    setPathState(-1);
                 }
                 break;
         }
