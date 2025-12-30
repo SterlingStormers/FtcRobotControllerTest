@@ -99,7 +99,7 @@ public class DriveTrain extends LinearOpMode {
 
             // intake
             if (gamepad2.x) {
-                intakeMotor.setPower(1);
+                intakaMotor.setPower(1);
             } else {
                 intakeMotor.setPower(0);
             }
