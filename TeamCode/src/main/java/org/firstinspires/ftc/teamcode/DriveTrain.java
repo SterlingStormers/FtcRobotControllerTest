@@ -20,6 +20,9 @@ import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCapt
 
 public class DriveTrain extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
+    private boolean kickerUp = false;
+    private double kickerStartTime = 0.0;
+
     public DcMotor frontLeftDrive = null;
     public DcMotor backLeftDrive = null;
     public DcMotor frontRightDrive = null;
@@ -27,6 +30,7 @@ public class DriveTrain extends LinearOpMode {
     public DcMotor intakeMotor = null;
     public DcMotor shooterMotor = null;
     public CRServo spindexer = null;
+    public Servo kicker = null;
     public Servo servo0 = null;
     public Servo servo1 = null;
     public Servo servo2 = null;
@@ -46,6 +50,7 @@ public class DriveTrain extends LinearOpMode {
         intakeMotor = hardwareMap.get(DcMotor.class, "intake_motor");
         spindexer = hardwareMap.get(CRServo.class, "spindexer_servo");
         shooterMotor = hardwareMap.get(DcMotor.class, "shooter_motor");
+        kicker = hardwareMap.get(Servo.class, "kicker_servo");
         //To be changed
 
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -72,6 +77,9 @@ public class DriveTrain extends LinearOpMode {
 
             if (gamepad1.left_bumper) {
                 modifier = 0.5;
+            }
+            if (gamepad1.right_bumper) {
+                modifier = 1.5;
             }
 
             double max;
@@ -114,6 +122,17 @@ public class DriveTrain extends LinearOpMode {
                 spindexer.setPower(spinPower);
             } else {
                 spindexer.setPower(0);
+            }
+
+            if (gamepad2.a && !kickerUp) {
+                kicker.setPosition(0.5);
+                kickerUp = true;
+                kickerStartTime = runtime.seconds();
+            }
+
+            if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                kicker.setPosition(0.0);
+                kickerUp = false;
             }
 
             if (gamepad2.a) {

@@ -205,6 +205,7 @@ public class AutoBottom6Blue extends OpMode {
                 if (follower.getCurrentTValue() >= 0.5){
                     drive.intakeMotor.setPower(0);
                     drive.shooterMotor.setPower(1);
+                    drive.kicker.setPosition(0.5);
                 }
                 //Spindexer logic
                 //Do not block loop
@@ -224,6 +225,7 @@ public class AutoBottom6Blue extends OpMode {
                 }
                 follower.update();
                 if (follower.getCurrentTValue() >= 0.5) {
+                    drive.kicker.setPosition(0);
                     drive.shooterMotor.setPower(0);
                 }
                 if (!follower.isBusy() && pathState != -1) {
