@@ -11,12 +11,13 @@ import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCapt
 @TeleOp
 
 public class test extends LinearOpMode {
-    private Servo servoTest;
+    public Servo kicker = null;
     double tgtPower = 0;
 
     @Override
     public void runOpMode() {
-        servoTest = hardwareMap.get(Servo.class, "servoTest");
+        kicker = hardwareMap.get(Servo.class, "kicker_servo");
+        kicker.setDirection(Servo.Direction.REVERSE);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -30,9 +31,9 @@ public class test extends LinearOpMode {
             telemetry.addData("power", tgtPower);
 
             if (gamepad1.x) {
-                servoTest.setPosition(0);
+                kicker.setPosition(0);
             } else if (gamepad1.y) {
-                servoTest.setPosition(1);
+                kicker.setPosition(1);
             }
         }
     }

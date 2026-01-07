@@ -31,14 +31,15 @@ public class DriveTrain extends LinearOpMode {
     public DcMotor shooterMotor = null;
     public CRServo spindexer = null;
     public Servo kicker = null;
+    private double kickerPos = 0;
     public Servo servo0 = null;
     public Servo servo1 = null;
     public Servo servo2 = null;
     public Servo servo3 = null;
     public CRServo servo4 = null;
 
-    public DriveTrain(HardwareMap hardwareMap) {
-    }
+//    public DriveTrain(HardwareMap hardwareMap) {
+//    }
 
     @Override
     public void runOpMode() {
@@ -59,12 +60,15 @@ public class DriveTrain extends LinearOpMode {
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
         shooterMotor.setDirection(DcMotor.Direction.REVERSE);
-        spindexer.setDirection(DcMotorSimple.Direction.FORWARD);
+        spindexer.setDirection(CRServo.Direction.FORWARD);
+        kicker.setDirection(Servo.Direction.REVERSE);
 
         //To be changed
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+
+        kickerPos = kicker.getPosition();
 
         ElapsedTime shooterTimer = new ElapsedTime();
         boolean shooterRunning = false;
@@ -125,13 +129,13 @@ public class DriveTrain extends LinearOpMode {
             }
 
             if (gamepad2.a && !kickerUp) {
-                kicker.setPosition(0.5);
+                kicker.setPosition(kickerPos + 1);
                 kickerUp = true;
                 kickerStartTime = runtime.seconds();
             }
 
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
-                kicker.setPosition(0.0);
+                kicker.setPosition(kickerPos);
                 kickerUp = false;
             }
 
