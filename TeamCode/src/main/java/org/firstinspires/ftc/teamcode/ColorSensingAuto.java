@@ -27,7 +27,14 @@ public class ColorSensingAuto extends LinearOpMode
                 .setSwatches(
                         PredominantColorProcessor.Swatch.ARTIFACT_GREEN,
                         PredominantColorProcessor.Swatch.BLUE,
-                        PredominantColorProcessor.Swatch.ARTIFACT_PURPLE)
+                        PredominantColorProcessor.Swatch.ARTIFACT_PURPLE,
+                        PredominantColorProcessor.Swatch.RED,
+                        PredominantColorProcessor.Swatch.YELLOW,
+                        PredominantColorProcessor.Swatch.BLACK,
+                        PredominantColorProcessor.Swatch.WHITE,
+                        PredominantColorProcessor.Swatch.MAGENTA,
+                        PredominantColorProcessor.Swatch.CYAN
+                )
 
                 .build();
         VisionPortal portal = new VisionPortal.Builder()
