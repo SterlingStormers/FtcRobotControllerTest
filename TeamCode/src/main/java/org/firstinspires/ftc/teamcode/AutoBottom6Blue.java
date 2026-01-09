@@ -126,28 +126,25 @@ public class AutoBottom6Blue extends OpMode {
         // Access paths with paths.pathName
         // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
         double t = follower.getCurrentTValue();
-        follower.setMaxPower(1);
+        follower.update();
         switch(pathState) {
             case 0:
                 drive.intakeMotor.setPower(0);
                 drive.shooterMotor.setPower(0);
-
+                follower.setMaxPower(1);
                 setPathState(1);
                 break;
             case 1:
-                if (!follower.isBusy()) {
                     follower.followPath(paths.Path1);
-                }
-                follower.update();
-                if(!follower.isBusy()) {
                     setPathState(2);
-                }
                 break;
             case 2:
-                //Tell HuskyLens to scan AprilTag
-                // HuskyLens will then send color pattern to ColorSensingAuto class for logic and this class for telemetry
-                // Do not block loop, use HuskyLens polling
-                setPathState(3);
+                if(!follower.isBusy()) {
+                    //Tell HuskyLens to scan AprilTag
+                    // HuskyLens will then send color pattern to ColorSensingAuto class for logic and this class for telemetry
+                    // Do not block loop, use HuskyLens polling
+                    setPathState(3);
+                }
                 break;
             case 3:
                 if (!follower.isBusy()) {
