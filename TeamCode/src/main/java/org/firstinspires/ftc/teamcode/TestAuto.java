@@ -12,14 +12,17 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.acmerobotics.dashboard.FtcDashboard;
 
 
 @Autonomous(name = "Test Auto", group = "Autonomous")
-@Configurable // Panels
+@Configurable
 public class TestAuto extends OpMode {
     private DriveTrainHardware drive;
     private Timer pathTimer, opmodeTimer;
     private int pathState;
+    FtcDashboard dashboard = FtcDashboard.getInstance();
+    public static double waitTime = 0.5;
 
 
     @Override
