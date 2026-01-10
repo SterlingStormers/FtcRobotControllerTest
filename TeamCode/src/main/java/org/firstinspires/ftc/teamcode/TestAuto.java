@@ -13,6 +13,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
 @Autonomous(name = "Test Auto", group = "Autonomous")
@@ -41,6 +42,7 @@ public class TestAuto extends OpMode {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
 
+
     }
 
     @Override
@@ -59,7 +61,19 @@ public class TestAuto extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if (pathTimer.seconds() > 2.0)
+                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                    //move spindexer and trigger camera
+
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                    //move spindexer and trigger camera
+                    setPathState(3);
+                }
+                break;
+
 
 
         }
