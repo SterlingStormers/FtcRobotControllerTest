@@ -13,6 +13,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
@@ -41,6 +42,7 @@ public class TestAuto extends OpMode {
         drive.init(hardwareMap);
         pathTimer = new Timer();
         opmodeTimer = new Timer();
+        drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
     }
@@ -56,13 +58,13 @@ public class TestAuto extends OpMode {
         public int autonomousPathUpdate() {
         switch(pathState) {
             case 0:
-                //Set spindexer to 90
                 drive.intakeMotor.setPower(1);
                 setPathState(1);
                 break;
             case 1:
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    //move spindexer and trigger camera
+                    
+                    //trigger camera
 
                     setPathState(2);
                 }
