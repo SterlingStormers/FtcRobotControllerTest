@@ -68,6 +68,7 @@ public class DriveTrain extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
+        kicker.setPosition(0.1);
         kickerPos = kicker.getPosition();
 
         ElapsedTime shooterTimer = new ElapsedTime();
@@ -143,6 +144,14 @@ public class DriveTrain extends LinearOpMode {
                 shooterMotor.setPower(1);
             } else {
                 shooterMotor.setPower(0);
+            }
+
+            if (gamepad1.x) {
+                telemetry.addData("moves?", gamepad1.x);
+                kicker.setPosition(0.1);
+            } else if (gamepad1.y) {
+                telemetry.addData("moves?", gamepad1.x);
+                kicker.setPosition(0.75);
             }
 
             frontLeftDrive.setPower(frontLeftPower * modifier);

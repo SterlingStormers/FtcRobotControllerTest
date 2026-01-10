@@ -31,8 +31,6 @@ public class ColorSensingAuto extends LinearOpMode
                         PredominantColorProcessor.Swatch.RED,
                         PredominantColorProcessor.Swatch.YELLOW,
                         PredominantColorProcessor.Swatch.BLACK,
-                        PredominantColorProcessor.Swatch.WHITE,
-                        PredominantColorProcessor.Swatch.MAGENTA,
                         PredominantColorProcessor.Swatch.CYAN
                 )
 
