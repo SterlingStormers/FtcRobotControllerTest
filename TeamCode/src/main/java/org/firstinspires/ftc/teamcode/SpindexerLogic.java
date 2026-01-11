@@ -8,7 +8,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@Autonomous(name = "Test Auto", group = "Autonomous")
+@Autonomous(name = "Spindexer Logic", group = "Autonomous")
 @Configurable
 public class SpindexerLogic extends OpMode {
     private DriveTrainHardware drive;
@@ -105,7 +105,7 @@ public class SpindexerLogic extends OpMode {
 
             break;
             case 5:
-                
+
 
 
 
