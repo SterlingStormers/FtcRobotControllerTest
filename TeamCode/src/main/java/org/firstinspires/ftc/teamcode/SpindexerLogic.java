@@ -58,7 +58,7 @@ public class SpindexerLogic extends OpMode {
             case 1:
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     if (drive.intakeMotor.getCurrentPosition() < 2731 - 150) {
-                        drive.spindexer.setPower(0.5);
+                        drive.spindexer.setPower(1);
                     } else if (drive.intakeMotor.getCurrentPosition() < 2731) {
                         drive.spindexer.setPower(0.18);
                     } else {
@@ -72,7 +72,7 @@ public class SpindexerLogic extends OpMode {
             case 2:
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     if (drive.intakeMotor.getCurrentPosition() < 5462 - 150) {
-                        drive.spindexer.setPower(0.5);
+                        drive.spindexer.setPower(1);
                     } else if (drive.intakeMotor.getCurrentPosition() < 5462) {
                         drive.spindexer.setPower(0.18);
                     } else {
@@ -87,7 +87,7 @@ public class SpindexerLogic extends OpMode {
                 // 360° target = 8192 counts
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     if (drive.intakeMotor.getCurrentPosition() < 8192 - 150) {
-                        drive.spindexer.setPower(0.5);
+                        drive.spindexer.setPower(1);
                     } else if (drive.intakeMotor.getCurrentPosition() < 8192) {
                         drive.spindexer.setPower(0.18);
                     } else {
