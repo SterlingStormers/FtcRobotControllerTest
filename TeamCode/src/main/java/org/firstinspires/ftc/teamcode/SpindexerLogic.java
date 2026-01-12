@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 @Autonomous(name = "Spindexer Logic", group = "Autonomous")
@@ -26,17 +27,24 @@ public class SpindexerLogic extends OpMode {
     private boolean slot1 = false;
     private boolean slot2 = false;
     private DcMotor motor;
+    private boolean kickerUp = false;
+    private double kickerPos = 0;
+    private double kickerStartTime = 0.0;
+    private ElapsedTime runtime = new ElapsedTime();
 
 
     @Override
     public void init() {
         drive = new DriveTrainHardware();
+        drive.kicker.setPosition(0.1);
+        kickerPos = drive.kicker.getPosition();
         drive.init(hardwareMap);
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         motor = hardwareMap.dcMotor.get("intake_motor");
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // Reset the motor encoder
-        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Makes sure intake motor does not rely on 
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Makes sure intake motor does not rely on
+
     }
 
 
@@ -110,8 +118,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        slot2 = false;
-                        setPathState(6);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot2 = false;
+                            setPathState(6);
+                        }
                     }
                 } else if (detectedBall2 == ball1) { //detectedBall2 is at slot1
                     if (drive.intakeMotor.getCurrentPosition() < 12288 - 150) {
@@ -120,8 +137,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(-0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        slot1 = false;
-                        setPathState(6);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot1 = false;
+                            setPathState(6);
+                        }
                     }
                 } else if (detectedBall1 == ball1) { //detectedBall1 is at slot0
                     if (drive.intakeMotor.getCurrentPosition() < 12288 - 150) {
@@ -130,9 +156,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        //kicker
-                        slot0 = false;
-                        setPathState(6);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot0 = false;
+                            setPathState(6);
+                        }
                     }
                 } else {
                     telemetry.addLine("There has been an error with the amount of balls expected. Continuing auto");
@@ -148,8 +182,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        slot2 = false;
-                        setPathState(7);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot2 = false;
+                            setPathState(7);
+                        }
                     }
                 } else if (detectedBall2 == ball2 && slot1) { //detectedBall2 is at slot1
                     if (drive.intakeMotor.getCurrentPosition() < 12288 - 150) {
@@ -158,8 +201,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(-0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        slot1 = false;
-                        setPathState(7);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot1 = false;
+                            setPathState(7);
+                        }
                     }
                 } else if (detectedBall1 == ball2 && slot0) { //detectedBall1 is at slot0
                     if (drive.intakeMotor.getCurrentPosition() < 12288 - 150) {
@@ -168,9 +220,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        //kicker
-                        slot0 = false;
-                        setPathState(7);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot0 = false;
+                            setPathState(7);
+                        }
                     }
                 } else {
                     telemetry.addLine("There has been an error with the amount of balls expected. Continuing auto");
@@ -186,8 +246,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        slot2 = false;
-                        setPathState(8);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot2 = false;
+                            setPathState(8);
+                        }
                     }
                 } else if (detectedBall2 == ball3 && slot1) { //detectedBall2 is at slot1
                     if (drive.intakeMotor.getCurrentPosition() < 12288 - 150) {
@@ -196,8 +265,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(-0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        slot1 = false;
-                        setPathState(8);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot1 = false;
+                            setPathState(8);
+                        }
                     }
                 } else if (detectedBall1 == ball3 && slot0) { //detectedBall1 is at slot0
                     if (drive.intakeMotor.getCurrentPosition() < 12288 - 150) {
@@ -206,9 +284,17 @@ public class SpindexerLogic extends OpMode {
                         drive.spindexer.setPower(0.18);
                     } else {
                         drive.spindexer.setPower(0);
-                        //kicker
-                        slot0 = false;
-                        setPathState(8);
+                        if (!kickerUp) {
+                            drive.kicker.setPosition(kickerPos + 1);
+                            kickerUp = true;
+                            kickerStartTime = runtime.seconds();
+                        }
+                        if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
+                            drive.kicker.setPosition(kickerPos);
+                            kickerUp = false;
+                            slot0 = false;
+                            setPathState(8);
+                        }
                     }
                 } else {
                     telemetry.addLine("There has been an error with the amount of balls expected. Continuing auto");
