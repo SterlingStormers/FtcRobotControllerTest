@@ -30,6 +30,8 @@ public class SpindexerLogic extends OpMode {
     private boolean kickerUp = false;
     private double kickerPos = 0;
     private double kickerStartTime = 0.0;
+    public int cwORcww = 1;
+    public boolean has180Occured = false;
     private ElapsedTime runtime = new ElapsedTime();
 
 
@@ -52,6 +54,9 @@ public class SpindexerLogic extends OpMode {
     @Override
     public void loop() {
         pathState = autonomousPathUpdate();
+        if (has180Occured == true);{
+         cwORcww = -1;
+        }
     }
         public void setPathState(int newState) {
             pathState = newState;
@@ -164,6 +169,7 @@ public class SpindexerLogic extends OpMode {
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
                             drive.kicker.setPosition(kickerPos);
                             kickerUp = false;
+                            has180Occured = true;
                             slot0 = false;
                             setPathState(6);
                         }
@@ -177,9 +183,9 @@ public class SpindexerLogic extends OpMode {
             case 6:
                 if (detectedBall3 == ball2 && slot2) { // detectedBall3 is at slot2
                     if (drive.intakeMotor.getCurrentPosition() < 10923 - 150) {
-                        drive.spindexer.setPower(1);
+                        drive.spindexer.setPower(cwORcww * 1);
                     } else if (drive.intakeMotor.getCurrentPosition() < 10923 ) {
-                        drive.spindexer.setPower(0.18);
+                        drive.spindexer.setPower(cwORcww * 0.18);
                     } else {
                         drive.spindexer.setPower(0);
                         if (!kickerUp) {
@@ -190,15 +196,16 @@ public class SpindexerLogic extends OpMode {
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
                             drive.kicker.setPosition(kickerPos);
                             kickerUp = false;
+                            has180Occured = false;
                             slot2 = false;
                             setPathState(7);
                         }
                     }
                 } else if (detectedBall2 == ball2 && slot1) { //detectedBall2 is at slot1
                     if (drive.intakeMotor.getCurrentPosition() < 5462 - 150) {
-                        drive.spindexer.setPower(-1);
+                        drive.spindexer.setPower(cwORcww * -1);
                     } else if (drive.intakeMotor.getCurrentPosition() < 5462) {
-                        drive.spindexer.setPower(-0.18);
+                        drive.spindexer.setPower(cwORcww * -0.18);
                     } else {
                         drive.spindexer.setPower(0);
                         if (!kickerUp) {
@@ -209,6 +216,7 @@ public class SpindexerLogic extends OpMode {
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
                             drive.kicker.setPosition(kickerPos);
                             kickerUp = false;
+                            has180Occured = false;
                             slot1 = false;
                             setPathState(7);
                         }
@@ -228,6 +236,7 @@ public class SpindexerLogic extends OpMode {
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
                             drive.kicker.setPosition(kickerPos);
                             kickerUp = false;
+                            has180Occured = true;
                             slot0 = false;
                             setPathState(7);
                         }
@@ -241,9 +250,9 @@ public class SpindexerLogic extends OpMode {
             case 7:
                 if (detectedBall3 == ball3 && slot2) { // detectedBall3 is at slot2
                     if (drive.intakeMotor.getCurrentPosition() < 10923 - 150) {
-                        drive.spindexer.setPower(1);
+                        drive.spindexer.setPower(cwORcww * 1);
                     } else if (drive.intakeMotor.getCurrentPosition() < 10923) {
-                        drive.spindexer.setPower(0.18);
+                        drive.spindexer.setPower(cwORcww * 0.18);
                     } else {
                         drive.spindexer.setPower(0);
                         if (!kickerUp) {
@@ -254,15 +263,16 @@ public class SpindexerLogic extends OpMode {
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
                             drive.kicker.setPosition(kickerPos);
                             kickerUp = false;
+                            has180Occured = false;
                             slot2 = false;
                             setPathState(8);
                         }
                     }
                 } else if (detectedBall2 == ball3 && slot1) { //detectedBall2 is at slot1
                     if (drive.intakeMotor.getCurrentPosition() < 5462 - 150) {
-                        drive.spindexer.setPower(-1);
+                        drive.spindexer.setPower(cwORcww * -1);
                     } else if (drive.intakeMotor.getCurrentPosition() < 5462) {
-                        drive.spindexer.setPower(-0.18);
+                        drive.spindexer.setPower(cwORcww * -0.18);
                     } else {
                         drive.spindexer.setPower(0);
                         if (!kickerUp) {
@@ -273,6 +283,7 @@ public class SpindexerLogic extends OpMode {
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
                             drive.kicker.setPosition(kickerPos);
                             kickerUp = false;
+                            has180Occured = false;
                             slot1 = false;
                             setPathState(8);
                         }
