@@ -1,40 +1,33 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.BasicOmniOpMode_Linear;
-import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 
-@TeleOp
-
-public class test extends LinearOpMode {
-    public Servo kicker = null;
-    double tgtPower = 0;
+@TeleOp (name = "test", group = "TeleOp")
+@Configurable
+public class test extends OpMode {
+    private DriveTrainHardware drive;
+    private DcMotor motor;
 
     @Override
-    public void runOpMode() {
-        kicker = hardwareMap.get(Servo.class, "kicker_servo");
-        kicker.setDirection(Servo.Direction.REVERSE);
-
-        telemetry.addData("Status", "Initialized");
+    public void init() {
+        drive = new DriveTrainHardware();
+        drive.init(hardwareMap);
+        motor = hardwareMap.dcMotor.get("intake_motor");
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+    @Override
+    public void loop() {
+        int position = motor.getCurrentPosition();
+        telemetry.addData("Encoder Position", position);
+        telemetry.addLine("Rotate the encoder shaft by hand");
+        telemetry.addLine("If CCW increases → CCW = positive");
+        telemetry.addLine("If CCW decreases → CCW = negative");
         telemetry.update();
-        waitForStart();
-
-        while (opModeIsActive()) {
-            telemetry.addData("Status", "Running");
-            telemetry.update();
-
-            tgtPower = -gamepad1.left_stick_y;
-            telemetry.addData("power", tgtPower);
-
-            if (gamepad1.x) {
-                kicker.setPosition(0);
-            } else if (gamepad1.y) {
-                kicker.setPosition(1);
-            }
-        }
     }
 }
