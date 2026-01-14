@@ -153,6 +153,9 @@ public class DriveTrain extends LinearOpMode {
                         if (currentPos >= targetPosition) {
                             spindexer.setPower(0);
                             spindexerMoving = false;
+                        } else if (currentPos >= targetPosition - 100) {
+                            spindexer.setPower(0.18);
+                            spindexerMoving = true;
                         }
                     } else {
                         if (currentPos <= targetPosition) {
