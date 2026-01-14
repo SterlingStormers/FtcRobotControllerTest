@@ -21,7 +21,14 @@ import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCapt
 public class DriveTrain extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private boolean kickerUp = false;
+    private boolean kickerStart = false;
     private double kickerStartTime = 0.0;
+    private boolean yWasPressed = false;
+    private boolean spindexerMoving = false;
+    private int targetPosition = 0;
+    private final int COUNTS = 1365;
+    private double SPIN_POWER = 0.15;
+    private double currentSpin = 0;
 
     public DcMotor frontLeftDrive = null;
     public DcMotor backLeftDrive = null;
@@ -68,7 +75,7 @@ public class DriveTrain extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        kicker.setPosition(0.1);
+        kicker.setPosition(1);
         kickerPos = kicker.getPosition();
 
         ElapsedTime shooterTimer = new ElapsedTime();
@@ -78,6 +85,7 @@ public class DriveTrain extends LinearOpMode {
         runtime.reset();
 
         while (opModeIsActive()) {
+            int currentPos = intakeMotor.getCurrentPosition();
             double modifier = 1;
 
             if (gamepad1.left_bumper) {
@@ -116,27 +124,59 @@ public class DriveTrain extends LinearOpMode {
                 intakeMotor.setPower(0);
             }
 
-            double spinPower = 0.35;
-
             if (gamepad2.left_bumper) {
-                spinPower = -0.35;
-            }
-
-            // spindexer (CHANGE LATER)
-            if (gamepad2.y) {
-                spindexer.setPower(spinPower);
+                if (gamepad2.y) {
+                    spindexer.setPower(SPIN_POWER);
+                } else {
+                    spindexer.setPower(0);
+                }
             } else {
-                spindexer.setPower(0);
+                if (gamepad2.y && !yWasPressed) {
+                    int startPos = currentPos;
+                    if (SPIN_POWER > 0) {
+                        targetPosition = startPos + COUNTS;
+                    } else {
+                        targetPosition = startPos - COUNTS;
+                    }
+                    currentSpin += 1;
+                    if (currentSpin >= 8) {
+                        currentSpin = 0;
+                    }
+                    spindexer.setPower(SPIN_POWER);
+                    spindexerMoving = true;
+                }
+
+                yWasPressed = gamepad2.y;
+
+                if (spindexerMoving) {
+                    if (SPIN_POWER > 0) {
+                        if (currentPos >= targetPosition) {
+                            spindexer.setPower(0);
+                            spindexerMoving = false;
+                        }
+                    } else {
+                        if (currentPos <= targetPosition) {
+                            spindexer.setPower(0);
+                            spindexerMoving = false;
+                        }
+                    }
+                }
             }
 
-            if (gamepad2.a && !kickerUp) {
-                kicker.setPosition(kickerPos + 1);
+            if (gamepad2.a && !kickerUp && !kickerStart) {
+                kickerStartTime = runtime.seconds();
+                kickerStart = true;
+            }
+
+            if (kickerStart && (runtime.seconds() - kickerStartTime >= 1.0)) {
+                kicker.setPosition(0.4);
                 kickerUp = true;
+                kickerStart = false;
                 kickerStartTime = runtime.seconds();
             }
 
-            if (kickerUp && (runtime.seconds() - kickerStartTime) >= 2.0) {
-                kicker.setPosition(kickerPos);
+            if (kickerUp && (runtime.seconds() - kickerStartTime >= 1.5)) {
+                kicker.setPosition(1);
                 kickerUp = false;
             }
 
@@ -144,14 +184,6 @@ public class DriveTrain extends LinearOpMode {
                 shooterMotor.setPower(1);
             } else {
                 shooterMotor.setPower(0);
-            }
-
-            if (gamepad1.x) {
-                telemetry.addData("moves?", gamepad1.x);
-                kicker.setPosition(0.1);
-            } else if (gamepad1.y) {
-                telemetry.addData("moves?", gamepad1.x);
-                kicker.setPosition(0.75);
             }
 
             frontLeftDrive.setPower(frontLeftPower * modifier);
