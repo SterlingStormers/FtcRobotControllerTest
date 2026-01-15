@@ -33,6 +33,7 @@ public class SpindexerLogic extends OpMode {
     public int cwORcww = 1;
     public boolean has180Occured = false;
     private ElapsedTime runtime = new ElapsedTime();
+    private boolean braking = false;
 
 
     @Override
@@ -140,14 +141,19 @@ public class SpindexerLogic extends OpMode {
                             slot2 = false;
                             setPathState(6);
                         }
-                    }
+                    } // Make every scenario like the one below, but switch some >= or <= or + or -
                 } else if (detectedBall2 == ball1) { //detectedBall2 is at slot1
-                    if (drive.intakeMotor.getCurrentPosition() >= 6827 + 200) { //300
-                        drive.spindexer.setPower(-1);
-                    } else if ((drive.intakeMotor.getCurrentPosition() <= (6827 + 200)) && (drive.intakeMotor.getCurrentPosition() > 6827)) {
-                        drive.spindexer.setPower(-0.18);
-                    } else if (drive.intakeMotor.getCurrentPosition() <= 6827) {
+                    if (drive.intakeMotor.getCurrentPosition() >= 6827 + 200) { //300 // reversable
+                        drive.spindexer.setPower(-1); // reversable
+                    } else if ((drive.intakeMotor.getCurrentPosition() <= (6827 + 200)) && (drive.intakeMotor.getCurrentPosition() >= 6857)) { // reversable
+                        drive.spindexer.setPower(-0.18); // reversable
+                    } else if (drive.intakeMotor.getCurrentPosition() > 6827 && (drive.intakeMotor.getCurrentPosition() < 6857) && braking == false) { //reversable
+                        drive.spindexer.setPower(-0.1);
+                        braking = true;
+                        pathTimer.resetTimer();
+                    } if (pathTimer.getElapsedTimeSeconds() >= 0.05 && braking == true) { // reversable
                         drive.spindexer.setPower(0);
+                        braking = false;
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp2", true);
@@ -159,7 +165,7 @@ public class SpindexerLogic extends OpMode {
                             kickerUp = false;
                             slot1 = false;
                             setPathState(6);
-                        }
+                        } // Make every scenario like the one above, but switch some >= or <= or + or - and numbers increase in cww
                     }
                 } else if (detectedBall1 == ball1) { //detectedBall1 is at slot0
                     if (drive.intakeMotor.getCurrentPosition() < 12288 - 200) { //540
