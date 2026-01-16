@@ -63,7 +63,7 @@ public class TestAuto extends OpMode {
                 break;
             case 1:
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    
+
                     //trigger camera
 
                     setPathState(2);
