@@ -121,11 +121,16 @@ public class SpindexerLogic extends OpMode {
                 setPathState(5);
                 telemetry.addData("case", 4);
                 break;
-            case 5:
-                if (detectedBall3 == ball1) { // detectedBall3 is at slot2
-                    if (drive.intakeMotor.getCurrentPosition() < 9557 - 200) {
+            case 5: {
+                telemetry.addData("case", 5);
+                int pos = drive.intakeMotor.getCurrentPosition();
+                telemetry.addData("intakePos", pos);
+
+                // --- slot2 at goal (original branch) ---
+                if (detectedBall3 == ball1) {
+                    if (pos < 9557 - 200) {
                         drive.spindexer.setPower(1);
-                    } else if (drive.intakeMotor.getCurrentPosition() < 9557) { //420
+                    } else if (pos < 9557) {
                         drive.spindexer.setPower(0.18);
                     } else {
                         drive.spindexer.setPower(0);
@@ -141,19 +146,36 @@ public class SpindexerLogic extends OpMode {
                             slot2 = false;
                             setPathState(6);
                         }
-                    } // Make every scenario like the one below, but switch some >= or <= or + or -
-                } else if (detectedBall2 == ball1) { //detectedBall2 is at slot1
-                    if (drive.intakeMotor.getCurrentPosition() >= 6827 + 200) { //300 // reversable
-                        drive.spindexer.setPower(-1); // reversable
-                    } else if ((drive.intakeMotor.getCurrentPosition() <= (6827 + 200)) && (drive.intakeMotor.getCurrentPosition() >= 6857)) { // reversable
-                        drive.spindexer.setPower(-0.18); // reversable
-                    } else if (drive.intakeMotor.getCurrentPosition() > 6827 && (drive.intakeMotor.getCurrentPosition() < 6857) && braking == false) { //reversable
-                        drive.spindexer.setPower(-0.1);
+                    }
+
+                    // --- slot1 needs to be moved backwards (detectedBall2) ---
+                } else if (detectedBall2 == ball1) {
+                    // Approach region / coarse movement
+                    if (pos >= 6827 + 200) {                // far past target -> spin fast reverse
+                        drive.spindexer.setPower(-1);
+                    } else if (pos >= 6827 + 50 && pos < 6827 + 250) { // approaching target -> slow reverse
+                        drive.spindexer.setPower(-0.18);
+                    } else if (!braking && pos >= 6827) {
+                        drive.spindexer.setPower(0.1);      // small hold/brake power
+                        telemetry.addData("braking", true);
                         braking = true;
                         pathTimer.resetTimer();
-                    } if (pathTimer.getElapsedTimeSeconds() >= 0.05 && braking == true) { // reversable
+                    }
+
+                    // Separate braking/state handling (not nested in the else-if)
+                    // Trigger braking when in the braking window and not already braking
+//                    if (!braking && pos >= 6827 && pos <= 6897) {
+//                        drive.spindexer.setPower(0.1);      // small hold/brake power
+//                        telemetry.addData("braking", true);
+//                        braking = true;
+//                        pathTimer.resetTimer();            // start braking timer now
+//                    }
+
+                    // When braking has elapsed, stop and run kicker sequence
+                    if (braking && pathTimer.getElapsedTimeSeconds() >= 0.05) {
                         drive.spindexer.setPower(0);
                         braking = false;
+
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp2", true);
@@ -165,12 +187,13 @@ public class SpindexerLogic extends OpMode {
                             kickerUp = false;
                             slot1 = false;
                             setPathState(6);
-                        } // Make every scenario like the one above, but switch some >= or <= or + or - and numbers increase in cww
+                        }
                     }
-                } else if (detectedBall1 == ball1) { //detectedBall1 is at slot0
-                    if (drive.intakeMotor.getCurrentPosition() < 12288 - 200) { //540
+                    // --- slot0 at goal (original branch) ---
+                } else if (detectedBall1 == ball1) {
+                    if (pos < 12288 - 200) {
                         drive.spindexer.setPower(1);
-                    } else if (drive.intakeMotor.getCurrentPosition() < 12288) {
+                    } else if (pos < 12288) {
                         drive.spindexer.setPower(0.18);
                     } else {
                         drive.spindexer.setPower(0);
@@ -193,7 +216,9 @@ public class SpindexerLogic extends OpMode {
                     telemetry.update();
                     setPathState(6);
                 }
+
                 break;
+            }
             case 6:
                 if (detectedBall3 == ball2 && slot2) { // detectedBall3 is at slot2
                     if (drive.intakeMotor.getCurrentPosition() < 10923 - 200) {

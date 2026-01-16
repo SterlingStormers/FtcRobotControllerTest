@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorGoBildaPinpoint;
 import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 
 
@@ -37,6 +38,7 @@ public class DriveTrain extends LinearOpMode {
     public DcMotor intakeMotor = null;
     public DcMotor shooterMotor = null;
     public CRServo spindexer = null;
+    public SensorGoBildaPinpoint odom = null;
     public Servo kicker = null;
     private double kickerPos = 0;
     public Servo servo0 = null;
@@ -59,6 +61,8 @@ public class DriveTrain extends LinearOpMode {
         spindexer = hardwareMap.get(CRServo.class, "spindexer_servo");
         shooterMotor = hardwareMap.get(DcMotor.class, "shooter_motor");
         kicker = hardwareMap.get(Servo.class, "kicker_servo");
+        odom = hardwareMap.get(SensorGoBildaPinpoint.class, "Odom");
+
         //To be changed
 
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
