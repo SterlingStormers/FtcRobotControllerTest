@@ -1,76 +1,94 @@
 package org.firstinspires.ftc.teamcode;
 
-
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.opencv.ImageRegion;
 import org.firstinspires.ftc.vision.opencv.PredominantColorProcessor;
 
-@Autonomous(name = "Color Sensing Auto", group = "Vision")
-public class ColorSensingAuto extends LinearOpMode
-{
-    @Override
-    public void runOpMode()
-    {
+public class ColorSensingAuto {
 
-        PredominantColorProcessor colorSensor = new PredominantColorProcessor.Builder()
+    private PredominantColorProcessor colorSensor;
+    private VisionPortal portal;
+    private FtcDashboard dashboard;
+
+    // State variables
+    public volatile boolean colorReady = false;         // True when color scan is complete
+    public volatile PredominantColorProcessor.Swatch detectedColor = null;
+    public volatile boolean scanning = false;          // True while scan is in progress
+    private long scanStartTime = 0;                     // For timing the 50ms scan
+
+    public ColorSensingAuto(OpMode opMode, String webcamName) {
+        WebcamName webcam = opMode.hardwareMap.get(WebcamName.class, webcamName);
+
+        colorSensor = new PredominantColorProcessor.Builder()
                 .setRoi(ImageRegion.asUnityCenterCoordinates(-0.1, 0.1, 0.1, -0.1))
-                //Change ROI as needed
                 .setSwatches(
                         PredominantColorProcessor.Swatch.ARTIFACT_GREEN,
-                        PredominantColorProcessor.Swatch.BLUE,
                         PredominantColorProcessor.Swatch.ARTIFACT_PURPLE,
+                        PredominantColorProcessor.Swatch.BLUE,
                         PredominantColorProcessor.Swatch.RED,
                         PredominantColorProcessor.Swatch.YELLOW,
                         PredominantColorProcessor.Swatch.BLACK,
                         PredominantColorProcessor.Swatch.CYAN
                 )
-
                 .build();
-        VisionPortal portal = new VisionPortal.Builder()
+
+        portal = new VisionPortal.Builder()
                 .addProcessor(colorSensor)
                 .setCameraResolution(new Size(320, 240))
-                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .setCamera(webcam)
                 .build();
 
-        telemetry.setMsTransmissionInterval(100);  // Speed up telemetry updates, for debugging.
-        telemetry.setDisplayFormat(Telemetry.DisplayFormat.MONOSPACE);
+        dashboard = FtcDashboard.getInstance();
+        dashboard.startCameraStream(portal, 30);
+    }
 
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-        dashboard.startCameraStream(portal,30);
-        // WARNING:  To view the stream preview on the Driver Station, this code runs in INIT mode.
-        while (opModeIsActive() || opModeInInit())
-        {
-            telemetry.addLine("Preview on/off: 3 dots, Camera Stream\n");
+    // Call this once to start a 50ms scan
+    public void startScan() {
+        scanning = true;
+        colorReady = false;
+        scanStartTime = System.currentTimeMillis();
+    }
 
-            PredominantColorProcessor.Result result = colorSensor.getAnalysis();
+    // Call this repeatedly in your auto loop/state machine
+    public void update() {
+        if (scanning) {
+            // Check if 50ms have elapsed
+            if (System.currentTimeMillis() - scanStartTime >= 50) {
+                PredominantColorProcessor.Result result = colorSensor.getAnalysis();
+                detectedColor = result.closestSwatch;
+                colorReady = true;   // scan is done
+                scanning = false;
 
-            // Display the Color Sensor result.
-            telemetry.addData("Best Match", result.closestSwatch);
-            telemetry.addLine(String.format("RGB   (%3d, %3d, %3d)",
-                    result.RGB[0], result.RGB[1], result.RGB[2]));
-            telemetry.addLine(String.format("HSV   (%3d, %3d, %3d)",
-                    result.HSV[0], result.HSV[1], result.HSV[2]));
-            telemetry.addLine(String.format("YCrCb (%3d, %3d, %3d)",
-                    result.YCrCb[0], result.YCrCb[1], result.YCrCb[2]));
-            telemetry.update();
-
-            TelemetryPacket packet = new TelemetryPacket();
-            packet.put("Best Match", result.closestSwatch);
-            dashboard.sendTelemetryPacket(packet);
-            
-
-
-
-            sleep(20);
+                // Optional telemetry to dashboard
+                TelemetryPacket packet = new TelemetryPacket();
+                packet.put("Best Match", detectedColor);
+                dashboard.sendTelemetryPacket(packet);
+            }
         }
     }
+
+    // Reset for the next scan
+    public void reset() {
+        colorReady = false;
+        detectedColor = null;
+        scanning = false;
+    }
+
+    // Converts a Swatch to the corresponding ball character
+    public static char toBallChar(PredominantColorProcessor.Swatch swatch) {
+        if (swatch == null) return ' ';
+        switch (swatch) {
+            case ARTIFACT_PURPLE: return 'P';
+            case ARTIFACT_GREEN: return 'G';
+            default: return ' ';  // unknown
+        }
+    }
+
 }
