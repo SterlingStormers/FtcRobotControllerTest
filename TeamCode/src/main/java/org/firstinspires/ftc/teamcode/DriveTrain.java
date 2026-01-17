@@ -61,7 +61,6 @@ public class DriveTrain extends LinearOpMode {
         spindexer = hardwareMap.get(CRServo.class, "spindexer_servo");
         shooterMotor = hardwareMap.get(DcMotor.class, "shooter_motor");
         kicker = hardwareMap.get(Servo.class, "kicker_servo");
-//        odom = hardwareMap.get(SensorGoBildaPinpoint.class, "Odom");
 
         //To be changed
 

@@ -153,18 +153,25 @@ public class SpindexerLogic extends OpMode {
 
                 } else if (detectedBall2 == ball1) {
                     int remaining = pos - 6827;
-                    if (remaining >= 500) {
-                        drive.spindexer.setPower(-1);
-                    } else if (remaining >= 50) {
-                        drive.spindexer.setPower(-0.18);
+                    double power = 0;
+
+                    power = (-0.0005 * remaining);
+
+                    power = Math.max(power, -1);
+                    power = Math.min(power, 1);
+
+                    if (Math.abs(remaining) <= 35) {
+                        power = 0;
                     }
-                     if (!braking && remaining <= 50) {
-                        drive.spindexer.setPower(0.1);
-                        telemetry.addData("braking", true);
-                        braking = true;
+                    if (Math.abs(remaining) >= 100) {
                         pathTimer.resetTimer();
                     }
-                     if (braking && pathTimer.getElapsedTimeSeconds() >= 0.020) {
+
+                    telemetry.addData("timer", pathTimer.getElapsedTimeSeconds());
+
+                    drive.spindexer.setPower(power);
+
+                     if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                         drive.spindexer.setPower(0);
 
                         if (!kickerUp) {
@@ -176,7 +183,6 @@ public class SpindexerLogic extends OpMode {
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
                             kickerUp = false;
-                            braking = false;
                             slot1 = false;
                             setPathState(6);
                         }
