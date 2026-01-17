@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -16,11 +17,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorGoBildaPinpoint;
 import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 
-
 @TeleOp
 
 public class DriveTrain extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
+    private Timer pathTimer, opmodeTimer;
     private boolean kickerUp = false;
     private boolean kickerStart = false;
     private double kickerStartTime = 0.0;
@@ -81,6 +82,9 @@ public class DriveTrain extends LinearOpMode {
         kicker.setPosition(1);
         kickerPos = kicker.getPosition();
 
+        pathTimer = new Timer();
+        opmodeTimer = new Timer();
+
         ElapsedTime shooterTimer = new ElapsedTime();
         boolean shooterRunning = false;
 
@@ -133,39 +137,43 @@ public class DriveTrain extends LinearOpMode {
                 } else {
                     spindexer.setPower(0);
                 }
-            } else {
-                if (gamepad2.y && !yWasPressed) {
-                    int startPos = currentPos;
-                    if (SPIN_POWER > 0) {
-                        targetPosition = startPos + COUNTS;
-                    } else {
-                        targetPosition = startPos - COUNTS;
-                    }
-                    currentSpin += 1;
-                    if (currentSpin >= 8) {
-                        currentSpin = 0;
-                    }
-                    spindexer.setPower(SPIN_POWER);
-                    spindexerMoving = true;
+            }
+            if (gamepad2.y && !yWasPressed && !spindexerMoving && !gamepad2.left_bumper) {
+                int startPos = intakeMotor.getCurrentPosition();
+                if (SPIN_POWER > 0) {
+                    targetPosition = startPos + COUNTS;
+                } else {
+                    targetPosition = startPos - COUNTS;
                 }
+                spindexer.setPower(SPIN_POWER);
+                spindexerMoving = true;
+                pathTimer.resetTimer();
+            }
 
-                yWasPressed = gamepad2.y;
+            yWasPressed = gamepad2.y;
 
-                if (spindexerMoving) {
-                    if (SPIN_POWER > 0) {
-                        if (currentPos >= targetPosition) {
-                            spindexer.setPower(0);
-                            spindexerMoving = false;
-                        } else if (currentPos >= targetPosition - 100) {
-                            spindexer.setPower(0.18);
-                            spindexerMoving = true;
-                        }
-                    } else {
-                        if (currentPos <= targetPosition) {
-                            spindexer.setPower(0);
-                            spindexerMoving = false;
-                        }
-                    }
+            if (spindexerMoving) {
+                int remaining = targetPosition - intakeMotor.getCurrentPosition(); //ccw
+                telemetry.addData("remaining: ", remaining);
+                double power = 0;
+                power = (0.0005 * remaining);
+                power = Math.max(power, -1);
+                power = Math.min(power, 1);
+
+                int tolerance = 65;
+
+                if (Math.abs(remaining) <= tolerance) {
+                    power = 0;
+                }
+                if (Math.abs(remaining) >= tolerance) {
+                    pathTimer.resetTimer();
+                }
+                spindexer.setPower(power);
+
+                double timeoutSec = 0.5;
+                if (Math.abs(remaining) <= tolerance || pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+                    spindexer.setPower(0);
+                    spindexerMoving = false;
                 }
             }
 

@@ -69,7 +69,7 @@ public class SpindexerLogic extends OpMode {
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 2731 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -86,7 +86,7 @@ public class SpindexerLogic extends OpMode {
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 5462 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -103,21 +103,24 @@ public class SpindexerLogic extends OpMode {
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 8192 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * Math.abs(remaining));
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
+                        telemetry.addData("caseReached", 4);
                         power = 0;
+                        drive.spindexer.setPower(power);
                         slot2 = true;
                         setPathState(4);
                     }
+                    telemetry.addData("remaining: ", remaining);
                     drive.spindexer.setPower(power);
                 }
                 break;
             case 4:
+                telemetry.addData("case", 4);
                 drive.intakeMotor.setPower(0);
                 drive.shooterMotor.setPower(1);
-                telemetry.addData("case", 4);
                 setPathState(5);
                 break;
             case 5: {
@@ -126,7 +129,7 @@ public class SpindexerLogic extends OpMode {
                 if (detectedBall3 == ball1) { // detectedBall3 is at slot2
                     int remaining = 9557 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -142,8 +145,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -152,12 +157,25 @@ public class SpindexerLogic extends OpMode {
                             setPathState(6);
                         }
                     }
+
+//--------------------------------USE FOR TIMER-----------------------------------
+//                    if (Math.abs(remaining) <= 35) {
+//                        power = 0;
+//                    }
+//                    if (Math.abs(remaining) >= 100) {
+//                        pathTimer.resetTimer();
+//                    }
+//                    telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
+//
+//                    if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
+
                 } else if (detectedBall2 == ball1) { // detectedBall2 is at slot1
                     int remaining = pos - 6827; //cw
                     double power = 0;
                     power = (-0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
+
                     if (Math.abs(remaining) <= 35) {
                         power = 0;
                     }
@@ -166,13 +184,16 @@ public class SpindexerLogic extends OpMode {
                     }
                     telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
                     drive.spindexer.setPower(power);
+
                      if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                         drive.spindexer.setPower(0);
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -184,7 +205,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall1 == ball1) { //detectedBall1 is at slot0
                     int remaining = 12288 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -200,8 +221,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -240,8 +263,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -254,7 +279,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall3 == ball2 && slot2 && !has180Occured) { // detectedBall3 is at slot2
                     int remaining = 9557 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -270,8 +295,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -283,7 +310,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall2 == ball2 && slot1 && has180Occured) { //detectedBall2 is at slot1
                     int remaining = 15019 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -299,8 +326,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -313,7 +342,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall2 == ball2 && slot1 && !has180Occured) { //detectedBall2 is at slot1
                     int remaining = 6827 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -329,8 +358,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -342,7 +373,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall1 == ball2 && slot0) { //detectedBall1 is at slot0
                     int remaining = 12288 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -358,8 +389,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -397,8 +430,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -411,7 +446,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall3 == ball3 && slot2 && !has180Occured) { // detectedBall3 is at slot2
                     int remaining = 9557 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -427,8 +462,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -440,7 +477,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall2 == ball3 && slot1 && has180Occured) { //detectedBall2 is at slot1
                     int remaining = 15019 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -456,8 +493,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -470,7 +509,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall2 == ball3 && slot1 && !has180Occured) { //detectedBall2 is at slot1
                     int remaining = 6827 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -486,8 +525,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
@@ -499,7 +540,7 @@ public class SpindexerLogic extends OpMode {
                 } else if (detectedBall1 == ball3 && slot0) { //detectedBall1 is at slot0
                     int remaining = 12288 - pos; //ccw
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
                     if (Math.abs(remaining) <= 35) {
@@ -515,8 +556,10 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
+                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                                kickerUp = true;
+                                kickerStartTime = runtime.seconds();
+                            }
                         }
                         if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                             drive.kicker.setPosition(kickerPos);
