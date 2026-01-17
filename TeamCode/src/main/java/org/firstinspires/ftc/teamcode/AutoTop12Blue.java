@@ -69,7 +69,7 @@ public class AutoTop12Blue extends OpMode {
         kickerPos = drive.kicker.getPosition();
         pathTimer = new Timer();
         opmodeTimer = new Timer();
-        ColorSensingAuto colorScanner = new ColorSensingAuto(this, "Webcam 1");
+        colorScanner = new ColorSensingAuto(this, "Webcam 1");
 //        motor = hardwareMap.get(DcMotor.class, "intake_motor");
         drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // Reset the motor encoder
         drive.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Makes sure intake motor does not rely on
@@ -292,12 +292,16 @@ public class AutoTop12Blue extends OpMode {
                     colorScanner.startScan();
                 }
                 if (colorScanner.colorReady) {
-                    detectedBall1 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
-                    colorScanner.reset();
+                    if (colorScanner.detectedColor != null) {
+                        detectedBall1 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
+                    } else {
+                        detectedBall1 = 'U';
+                    }
                     setPathState(4);
                 }
             break;
             case 4:
+                pos = drive.intakeMotor.getCurrentPosition();
                 remaining = 5462 - pos;
                 power = 0;
                 power = (-0.0005 * remaining);
@@ -306,7 +310,7 @@ public class AutoTop12Blue extends OpMode {
                 if (Math.abs(remaining) <= 35) {
                     power = 0;
                     slot1 = true;
-                    setPathState(3);
+                    setPathState(5);
                 }
                 drive.spindexer.setPower(power);
                 break;
@@ -325,7 +329,7 @@ public class AutoTop12Blue extends OpMode {
 
 
 
-        }
+
         return pathState;
     }
 }

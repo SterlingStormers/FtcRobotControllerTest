@@ -82,6 +82,7 @@ public class SpindexerLogic extends OpMode {
                 break;
             case 2:
                 telemetry.addData("case", 2);
+                pos = drive.intakeMotor.getCurrentPosition();
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 5462 - pos; //ccw
                     double power = 0;
@@ -98,6 +99,7 @@ public class SpindexerLogic extends OpMode {
                 break;
             case 3:
                 telemetry.addData("case", 3);
+                pos = drive.intakeMotor.getCurrentPosition();
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 8192 - pos; //ccw
                     double power = 0;
