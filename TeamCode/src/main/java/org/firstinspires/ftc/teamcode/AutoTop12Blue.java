@@ -81,7 +81,6 @@ public class AutoTop12Blue extends OpMode {
         follower.update(); // Update Pedro Pathing
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
-        pos = drive.intakeMotor.getCurrentPosition();
         // Log values to Panels and Driver Station
         panelsTelemetry.debug("Path State", pathState);
         panelsTelemetry.debug("X", follower.getPose().getX());
@@ -275,6 +274,7 @@ public class AutoTop12Blue extends OpMode {
                 setPathState(2);
                 break;
             case 2:
+                pos = drive.intakeMotor.getCurrentPosition();
                     int remaining = 2731 - pos; //ccw
                     double power = 0;
                     power = (-0.0005 * remaining);
@@ -302,6 +302,7 @@ public class AutoTop12Blue extends OpMode {
                 }
             break;
             case 4:
+                pos = drive.intakeMotor.getCurrentPosition();
                 remaining = 5462 - pos;
                 power = 0;
                 power = (-0.0005 * remaining);
