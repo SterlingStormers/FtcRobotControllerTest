@@ -29,7 +29,7 @@ public class DriveTrain extends LinearOpMode {
     private boolean spindexerMoving = false;
     private int targetPosition = 0;
     private final int COUNTS = 1365;
-    private double SPIN_POWER = 0.15;
+    private double SPIN_POWER = 0.2;
     private double currentSpin = 0;
 
     public DcMotor frontLeftDrive = null;
@@ -145,7 +145,6 @@ public class DriveTrain extends LinearOpMode {
                 } else {
                     targetPosition = startPos - COUNTS;
                 }
-                spindexer.setPower(SPIN_POWER);
                 spindexerMoving = true;
                 pathTimer.resetTimer();
             }
@@ -154,7 +153,6 @@ public class DriveTrain extends LinearOpMode {
 
             if (spindexerMoving) {
                 int remaining = targetPosition - intakeMotor.getCurrentPosition(); //ccw
-                telemetry.addData("remaining: ", remaining);
                 double power = 0;
                 power = (0.0005 * remaining);
                 power = Math.max(power, -1);
@@ -168,10 +166,13 @@ public class DriveTrain extends LinearOpMode {
                 if (Math.abs(remaining) >= tolerance) {
                     pathTimer.resetTimer();
                 }
-                spindexer.setPower(power);
 
-                double timeoutSec = 0.5;
-                if (Math.abs(remaining) <= tolerance || pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+                spindexer.setPower(power);
+                telemetry.addData("remaining: ", remaining);
+
+                double timeoutSec = 2.5;
+                if (Math.abs(remaining) <= tolerance && pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+                    telemetry.addData("timeout: ", true);
                     spindexer.setPower(0);
                     spindexerMoving = false;
                 }
@@ -195,7 +196,7 @@ public class DriveTrain extends LinearOpMode {
             }
 
             if (gamepad2.a) {
-                shooterMotor.setPower(1);
+                shooterMotor.setPower(0.9);
             } else {
                 shooterMotor.setPower(0);
             }
