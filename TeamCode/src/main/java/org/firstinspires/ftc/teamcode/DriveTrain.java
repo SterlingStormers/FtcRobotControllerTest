@@ -27,11 +27,10 @@ public class DriveTrain extends LinearOpMode {
     private double kickerStartTime = 0.0;
     private boolean yWasPressed = false;
     private boolean spindexerMoving = false;
-    private int targetPosition = 0;
-    private final int COUNTS = 1365;
+    private int COUNTS = 1365;
     private int offsetCounts = 0;
     private int comparableThreshold = 0;
-    private double SPIN_POWER = 0.2;
+    private double SPIN_POWER = -0.2;
     private int currentSpin = 0;
 
     public DcMotor frontLeftDrive = null;
@@ -49,9 +48,6 @@ public class DriveTrain extends LinearOpMode {
     public Servo servo2 = null;
     public Servo servo3 = null;
     public CRServo servo4 = null;
-
-//    public DriveTrain(HardwareMap hardwareMap) {
-//    }
 
     @Override
     public void runOpMode() {
@@ -87,6 +83,9 @@ public class DriveTrain extends LinearOpMode {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
 
+        intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
         ElapsedTime shooterTimer = new ElapsedTime();
         boolean shooterRunning = false;
 
@@ -94,7 +93,6 @@ public class DriveTrain extends LinearOpMode {
         runtime.reset();
 
         while (opModeIsActive()) {
-            int currentPos = intakeMotor.getCurrentPosition();
             double modifier = 1;
 
             if (gamepad1.left_bumper) {
@@ -134,17 +132,14 @@ public class DriveTrain extends LinearOpMode {
             }
 
             if (gamepad2.left_bumper) {
-                SPIN_POWER = -0.2;
+                COUNTS *= 2729;
             } else {
-                SPIN_POWER = 0.2;
+                COUNTS = 1365;
             }
             if (gamepad2.y && !yWasPressed && !spindexerMoving && !gamepad2.left_bumper) {
-                int startPos = intakeMotor.getCurrentPosition();
                 if (SPIN_POWER > 0) {
-                    targetPosition = startPos + (COUNTS + offsetCounts);
                     currentSpin += COUNTS;
                 } else {
-                    targetPosition = startPos - (COUNTS + offsetCounts);
                     currentSpin -= COUNTS;
                 }
                 spindexerMoving = true;
@@ -178,11 +173,11 @@ public class DriveTrain extends LinearOpMode {
 
                 double timeoutSec = 0.85;
                 if (Math.abs(remaining) <= tolerance && pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
-//                    offsetCounts = remaining;
-                    telemetry.addData("timeout: ", true);
+//                    offsetCounts = remaining
                     spindexer.setPower(0);
                     spindexerMoving = false;
                 } else if (pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+                    telemetry.addData("timed out: ", true);
 //                    offsetCounts = remaining;
                     spindexer.setPower(0);
                     spindexerMoving = false;
@@ -194,7 +189,7 @@ public class DriveTrain extends LinearOpMode {
                 kickerStart = true;
             }
 
-            if (kickerStart && (runtime.seconds() - kickerStartTime >= 2)) {
+            if (kickerStart && (runtime.seconds() - kickerStartTime >= 2) && (shooterMotor.getPower() >= 0.5)) {
                 kicker.setPosition(0.4);
                 kickerUp = true;
                 kickerStart = false;
