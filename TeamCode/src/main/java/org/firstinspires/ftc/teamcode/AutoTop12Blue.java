@@ -18,7 +18,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.ColorSensingAuto;
 import org.firstinspires.ftc.vision.opencv.PredominantColorProcessor;
 
-@Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
+@Autonomous(name = "AutoTop12Blue", group = "Autonomous")
 @Configurable // Panels
 public class AutoTop12Blue extends OpMode {
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
@@ -1257,7 +1257,7 @@ public class AutoTop12Blue extends OpMode {
                     pathTimer.resetTimer();
                     if (pathTimer.getElapsedTimeSeconds() >= 2) {
                         follower.setMaxPower(1);
-                        follower.followPath(paths.Path10);
+                        follower.followPath(paths.Path10, true);
                         setPathState(41);
                     }
                 }
@@ -1431,18 +1431,19 @@ public class AutoTop12Blue extends OpMode {
                 }
                 break;
             case 59:
-                    if (!follower.isBusy() && pathState != -1) {
-                        telemetry.addLine("Successfully (or not) completed 12 ball auto");
-                        telemetry.update();
-                        drive.frontLeftDrive.setPower(0);
-                        drive.backLeftDrive.setPower(0);
-                        drive.frontRightDrive.setPower(0);
-                        drive.backRightDrive.setPower(0);
-                        drive.intakeMotor.setPower(0);
-                        drive.shooterMotor.setPower(0);
-                        drive.spindexer.setPower(0);
-                        setPathState(-1);
+                if (!follower.isBusy() && pathState != -1) {
+                    telemetry.addLine("Successfully (or not) completed 12 ball auto");
+                    telemetry.update();
+                    drive.frontLeftDrive.setPower(0);
+                    drive.backLeftDrive.setPower(0);
+                    drive.frontRightDrive.setPower(0);
+                    drive.backRightDrive.setPower(0);
+                    drive.intakeMotor.setPower(0);
+                    drive.shooterMotor.setPower(0);
+                    drive.spindexer.setPower(0);
+                    setPathState(-1);
                     }
+                    break;
         }
         return pathState;
     }

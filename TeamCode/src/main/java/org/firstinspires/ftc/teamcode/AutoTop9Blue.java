@@ -1,22 +1,24 @@
 
 package org.firstinspires.ftc.teamcode;
-import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+
 @Autonomous(name = "AutoTop6Blue", group = "Autonomous")
 @Configurable // Panels
-public class AutoTop6Blue extends OpMode {
+public class AutoTop9Blue extends OpMode {
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
     private int pathState; // Current autonomous path state (state machine)
@@ -44,6 +46,8 @@ public class AutoTop6Blue extends OpMode {
     public boolean ShooterSpinup = false;
     public double EncoderZero;
     public boolean Spindexer1Special = false;
+
+
 
     @Override
     public void init() {
@@ -98,6 +102,9 @@ public class AutoTop6Blue extends OpMode {
         public PathChain Path4;
         public PathChain Path5;
         public PathChain Path6;
+        public PathChain Path7;
+        public PathChain Path8;
+        public PathChain Path9;
 
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
@@ -151,16 +158,47 @@ public class AutoTop6Blue extends OpMode {
                     .build();
 
             Path6 = follower.pathBuilder().addPath(
-                            new BezierLine(
+                            new BezierCurve(
                                     new Pose(49.377, 93.816),
+                                    new Pose(55.024, 60.092),
+                                    new Pose(34.854, 60.253)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(180))
 
-                                    new Pose(61.149, 103.919)
+                    .build();
+
+            Path7 = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(34.854, 60.253),
+
+                                    new Pose(9.359, 59.931)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+
+                    .build();
+
+            Path8 = follower.pathBuilder().addPath(
+                            new BezierCurve(
+                                    new Pose(9.359, 59.931),
+                                    new Pose(44.697, 76.712),
+                                    new Pose(49.538, 93.655)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
+
+                    .build();
+
+            Path9 = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(49.538, 93.655),
+
+                                    new Pose(62.506, 105.522)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(142))
 
                     .build();
         }
     }
+
     public void setPathState(int newState) {
         pathState = newState;
         pathTimer.resetTimer();
@@ -732,8 +770,6 @@ public class AutoTop6Blue extends OpMode {
         }
 
     }
-
-
     public int autonomousPathUpdate() {
         // Add your state machine Here
         // Access paths with paths.pathName
@@ -1017,16 +1053,166 @@ public class AutoTop6Blue extends OpMode {
             case 27:
                 SpindexerLogic3();
                 break;
+
             case 28:
                 drive.shooterMotor.setPower(0);
                 if (!follower.isBusy()) {
-                    follower.followPath(paths.Path6, true);
+                    follower.followPath(paths.Path6, false);
                     setPathState(29);
                 }
                 break;
             case 29:
+                if (follower.getCurrentTValue() >= 0.5 && follower.isBusy()) {
+                    drive. intakeMotor.setPower(1);
+                    setPathState(30);
+                }
+                break;
+            case 30:
+                pos = drive.intakeMotor.getCurrentPosition();
+                if (pathTimer.getElapsedTimeSeconds() >= 0) {
+                    int remaining = pos - 0; //ccw remember ccw if larger num before smaller num if pos is larger then switch them and ccw
+                    double power = 0;
+                    power = (0.0005 * remaining);
+                    power = Math.max(power, -1);
+                    power = Math.min(power, 1);
+                    if (Math.abs(remaining) <= 35) {
+                        power = 0;
+                        setPathState(31);
+                    }
+
+                    drive.spindexer.setPower(power);
+                }
+
+                break;
+            case 31:
+                if (!follower.isBusy()) {
+                    follower.setMaxPower(0.8);
+                    follower.followPath(paths.Path7, false);
+                    setPathState(32);
+                }
+                break;
+            case 32:
+                pos = drive.intakeMotor.getCurrentPosition();
+                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                    int remaining = 2731 - pos; //ccw
+                    double power = 0;
+                    power = (0.0005 * remaining);
+                    power = Math.max(power, -1);
+                    power = Math.min(power, 1);
+                    if (Math.abs(remaining) <= 35) {
+                        power = 0;
+                        slot0 = true;
+                        setPathState(33);
+                    }
+                    drive.spindexer.setPower(power);
+                }
+                break;
+            case 33:
+                if (!colorScanner.scanning && !colorScanner.colorReady) {
+                    colorScanner.startScan();
+                }
+                if (colorScanner.colorReady) {
+                    if (colorScanner.detectedColor != null) {
+                        detectedBall1 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
+                    } else {
+                        detectedBall1 = 'U';
+                    }
+                    colorScanner.reset();
+                    setPathState(34);
+                }
+                break;
+            case 34:
+                pos = drive.intakeMotor.getCurrentPosition();
+                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                    int remaining = 5462 - pos;// ccw
+                    double power = 0;
+                    power = (-0.0005 * remaining);
+                    power = Math.max(power, -1);
+                    power = Math.min(power, 1);
+                    if (Math.abs(remaining) <= 35) {
+                        power = 0;
+                        slot1 = true;
+                        setPathState(35);
+                    }
+                    drive.spindexer.setPower(power);
+                }
+                break;
+            case 35:
+                if (!colorScanner.scanning && !colorScanner.colorReady) {
+                    colorScanner.startScan();
+                }
+                if (colorScanner.colorReady) {
+                    if (colorScanner.detectedColor != null) {
+                        detectedBall2 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
+                    } else {
+                        detectedBall2 = 'U';
+                    }
+                    colorScanner.reset();
+                    setPathState(36);
+                }
+                break;
+            case 36:
+                pos = drive.intakeMotor.getCurrentPosition();
+                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                    int remaining = 8192 - pos;
+                    double  power = 0;
+                    power = (-0.0005 * remaining);
+                    power = Math.max(power, -1);
+                    power = Math.min(power, 1);
+                    if (Math.abs(remaining) <= 35) {
+                        power = 0;
+                        slot2 = true;
+                        setPathState(37);
+                    }
+                    drive.spindexer.setPower(power);
+                }
+                break;
+            case 37:
+                if (!colorScanner.scanning && !colorScanner.colorReady) {
+                    colorScanner.startScan();
+                }
+                if (colorScanner.colorReady) {
+                    if (colorScanner.detectedColor != null) {
+                        detectedBall3 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
+                    } else {
+                        detectedBall3 = 'U';
+                    }
+                    colorScanner.reset();
+                    setPathState(38);
+                }
+                break;
+            case 38:
+            case 40:
+                if (!follower.isBusy()) {
+                        follower.setMaxPower(1);
+                        follower.followPath(paths.Path8, true);
+                        setPathState(41);
+
+                }
+                break;
+            case 41:
+                Spindexer1Special = true;
+                ShooterSpinup = true;
+                setPathState(42);
+                break;
+            case 42:
+                if (Spindexer1Special == false) {
+                    SpindexerLogic2();
+                }
+                break;
+            case 43:
+                SpindexerLogic3();
+                break;
+            case 44:
+                drive.shooterMotor.setPower(0);
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path9, true);
+                    setPathState(45);
+                }
+                break;
+            case 45:
                 if (!follower.isBusy() && pathState != -1) {
-                    telemetry.addLine("Successfully (or not) completed 6 ball auto");
+                    telemetry.addLine("Successfully (or not) completed 9 ball auto");
                     telemetry.update();
                     drive.frontLeftDrive.setPower(0);
                     drive.backLeftDrive.setPower(0);
@@ -1041,4 +1227,5 @@ public class AutoTop6Blue extends OpMode {
         }
         return pathState;
     }
+
 }
