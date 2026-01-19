@@ -29,7 +29,9 @@ public class DriveTrain extends LinearOpMode {
     private boolean spindexerMoving = false;
     private int targetPosition = 0;
     private final int COUNTS = 1365;
-    private double SPIN_POWER = 0.2;
+    private int offsetCounts = 0;
+    private int comparableThreshold = 0;
+    private double SPIN_POWER = 0.02;
     private double currentSpin = 0;
 
     public DcMotor frontLeftDrive = null;
@@ -141,9 +143,9 @@ public class DriveTrain extends LinearOpMode {
             if (gamepad2.y && !yWasPressed && !spindexerMoving && !gamepad2.left_bumper) {
                 int startPos = intakeMotor.getCurrentPosition();
                 if (SPIN_POWER > 0) {
-                    targetPosition = startPos + COUNTS;
+                    targetPosition = startPos + COUNTS + offsetCounts;
                 } else {
-                    targetPosition = startPos - COUNTS;
+                    targetPosition = startPos - COUNTS + offsetCounts;
                 }
                 spindexerMoving = true;
                 pathTimer.resetTimer();
@@ -158,21 +160,29 @@ public class DriveTrain extends LinearOpMode {
                 power = Math.max(power, -1);
                 power = Math.min(power, 1);
 
-                int tolerance = 65;
+                int tolerance = 40;
+                if (comparableThreshold > 0) {
+                    tolerance = comparableThreshold;
+                }
 
-                if (Math.abs(remaining) <= tolerance) {
-                    power = 0;
-                }
-                if (Math.abs(remaining) >= tolerance) {
-                    pathTimer.resetTimer();
-                }
+//                if (Math.abs(remaining) <= tolerance) {
+//                    power = 0;
+//                }
+//                if (Math.abs(remaining) >= tolerance) {
+//                    pathTimer.resetTimer();
+//                }
 
                 spindexer.setPower(power);
                 telemetry.addData("remaining: ", remaining);
 
-                double timeoutSec = 2.5;
+                double timeoutSec = 4.5;
                 if (Math.abs(remaining) <= tolerance && pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+                    offsetCounts = 0;
                     telemetry.addData("timeout: ", true);
+                    spindexer.setPower(0);
+                    spindexerMoving = false;
+                } else if (pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+                    offsetCounts = remaining;
                     spindexer.setPower(0);
                     spindexerMoving = false;
                 }
