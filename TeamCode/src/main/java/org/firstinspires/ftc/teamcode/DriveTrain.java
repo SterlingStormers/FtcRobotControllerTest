@@ -31,8 +31,8 @@ public class DriveTrain extends LinearOpMode {
     private final int COUNTS = 1365;
     private int offsetCounts = 0;
     private int comparableThreshold = 0;
-    private double SPIN_POWER = 0.02;
-    private double currentSpin = 0;
+    private double SPIN_POWER = 0.2;
+    private int currentSpin = 0;
 
     public DcMotor frontLeftDrive = null;
     public DcMotor backLeftDrive = null;
@@ -134,18 +134,18 @@ public class DriveTrain extends LinearOpMode {
             }
 
             if (gamepad2.left_bumper) {
-                if (gamepad2.y) {
-                    spindexer.setPower(SPIN_POWER);
-                } else {
-                    spindexer.setPower(0);
-                }
+                SPIN_POWER = -0.2;
+            } else {
+                SPIN_POWER = 0.2;
             }
             if (gamepad2.y && !yWasPressed && !spindexerMoving && !gamepad2.left_bumper) {
                 int startPos = intakeMotor.getCurrentPosition();
                 if (SPIN_POWER > 0) {
-                    targetPosition = startPos + COUNTS + offsetCounts;
+                    targetPosition = startPos + (COUNTS + offsetCounts);
+                    currentSpin += COUNTS;
                 } else {
-                    targetPosition = startPos - COUNTS + offsetCounts;
+                    targetPosition = startPos - (COUNTS + offsetCounts);
+                    currentSpin -= COUNTS;
                 }
                 spindexerMoving = true;
                 pathTimer.resetTimer();
@@ -154,13 +154,14 @@ public class DriveTrain extends LinearOpMode {
             yWasPressed = gamepad2.y;
 
             if (spindexerMoving) {
-                int remaining = targetPosition - intakeMotor.getCurrentPosition(); //ccw
+               // int remaining = targetPosition - intakeMotor.getCurrentPosition(); //ccw
+                int remaining = currentSpin - intakeMotor.getCurrentPosition();
                 double power = 0;
                 power = (0.0005 * remaining);
                 power = Math.max(power, -1);
                 power = Math.min(power, 1);
 
-                int tolerance = 40;
+                int tolerance = 30;
                 if (comparableThreshold > 0) {
                     tolerance = comparableThreshold;
                 }
@@ -175,14 +176,14 @@ public class DriveTrain extends LinearOpMode {
                 spindexer.setPower(power);
                 telemetry.addData("remaining: ", remaining);
 
-                double timeoutSec = 4.5;
+                double timeoutSec = 0.85;
                 if (Math.abs(remaining) <= tolerance && pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
-                    offsetCounts = 0;
+//                    offsetCounts = remaining;
                     telemetry.addData("timeout: ", true);
                     spindexer.setPower(0);
                     spindexerMoving = false;
                 } else if (pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
-                    offsetCounts = remaining;
+//                    offsetCounts = remaining;
                     spindexer.setPower(0);
                     spindexerMoving = false;
                 }
@@ -193,14 +194,14 @@ public class DriveTrain extends LinearOpMode {
                 kickerStart = true;
             }
 
-            if (kickerStart && (runtime.seconds() - kickerStartTime >= 1.0)) {
+            if (kickerStart && (runtime.seconds() - kickerStartTime >= 2)) {
                 kicker.setPosition(0.4);
                 kickerUp = true;
                 kickerStart = false;
                 kickerStartTime = runtime.seconds();
             }
 
-            if (kickerUp && (runtime.seconds() - kickerStartTime >= 1.5)) {
+            if (kickerUp && (runtime.seconds() - kickerStartTime >= 0.75)) {
                 kicker.setPosition(1);
                 kickerUp = false;
             }

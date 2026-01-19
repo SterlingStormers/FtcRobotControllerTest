@@ -86,7 +86,7 @@ public class AutoTop12Blue extends OpMode {
         follower.update(); // Update Pedro Pathing
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
-        if (ShooterSpinup == true && follower.getCurrentTValue() >= 0.5 && follower.isBusy()) {
+        if (ShooterSpinup && follower.getCurrentTValue() >= 0.5 && follower.isBusy()) {
                 drive.shooterMotor.setPower(1);
                 ShooterSpinup = false;
         }
