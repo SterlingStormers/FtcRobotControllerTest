@@ -14,9 +14,9 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "AutoTop6Blue", group = "Autonomous")
+@Autonomous(name = "AutoTop3Blue", group = "Autonomous")
 @Configurable // Panels
-public class AutoTop6Blue extends OpMode {
+public class AutoTop3Blue extends OpMode {
     private TelemetryManager panelsTelemetry; // Panels Telemetry instance
     public Follower follower; // Pedro Pathing follower instance
     private int pathState; // Current autonomous path state (state machine)
@@ -44,6 +44,7 @@ public class AutoTop6Blue extends OpMode {
     public boolean ShooterSpinup = false;
     public double EncoderZero;
     public boolean Spindexer1Special = false;
+
 
     @Override
     public void init() {
@@ -95,9 +96,6 @@ public class AutoTop6Blue extends OpMode {
         public PathChain Path1;
         public PathChain Path2;
         public PathChain Path3;
-        public PathChain Path4;
-        public PathChain Path5;
-        public PathChain Path6;
 
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
@@ -123,38 +121,8 @@ public class AutoTop6Blue extends OpMode {
             Path3 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(72.000, 72.000),
-                                    new Pose(52.927, 83.651),
-                                    new Pose(34.209, 84.135)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(180))
-
-                    .build();
-
-            Path4 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(34.209, 84.135),
-
-                                    new Pose(14.684, 84.135)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
-
-                    .build();
-
-            Path5 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(14.684, 84.135),
-                                    new Pose(34.209, 84.458),
-                                    new Pose(49.377, 93.816)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
-
-                    .build();
-
-            Path6 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(49.377, 93.816),
-
-                                    new Pose(61.149, 103.919)
+                                    new Pose(54.591, 85.845),
+                                    new Pose(51.784, 112.477)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(142))
 
@@ -872,159 +840,6 @@ public class AutoTop6Blue extends OpMode {
                 }
                 break;
             case 14:
-                if (follower.getCurrentTValue() >= 0.5 && follower.isBusy()) {
-                    drive. intakeMotor.setPower(1);
-                    setPathState(15);
-                }
-                break;
-            case 15:
-                pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= 0) {
-                    int remaining = pos - 0; //ccw remember ccw if larger num before smaller num if pos is larger then switch them and ccw
-                    double power = 0;
-                    power = (0.0005 * remaining);
-                    power = Math.max(power, -1);
-                    power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35) {
-                        power = 0;
-                        setPathState(16);
-                    }
-
-                    drive.spindexer.setPower(power);
-                }
-
-                break;
-            case 16:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path4, false);
-                    follower.setMaxPower(0.8);
-                    setPathState(17);
-                }
-                break;
-            case 17:
-                pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    int remaining = 2731 - pos; //ccw
-                    double power = 0;
-                    power = (0.0005 * remaining);
-                    power = Math.max(power, -1);
-                    power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35) {
-                        power = 0;
-                        slot0 = true;
-                        setPathState(18);
-                    }
-                    drive.spindexer.setPower(power);
-                }
-                break;
-            case 18:
-                if (!colorScanner.scanning && !colorScanner.colorReady) {
-                    colorScanner.startScan();
-                }
-                if (colorScanner.colorReady) {
-                    if (colorScanner.detectedColor != null) {
-                        detectedBall1 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
-                    } else {
-                        detectedBall1 = 'U';
-                    }
-                    colorScanner.reset();
-                    setPathState(19);
-                }
-                break;
-            case 19:
-                pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    int remaining = 5462 - pos;// ccw
-                    double power = 0;
-                    power = (-0.0005 * remaining);
-                    power = Math.max(power, -1);
-                    power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35) {
-                        power = 0;
-                        slot1 = true;
-                        setPathState(20);
-                    }
-                    drive.spindexer.setPower(power);
-                }
-                break;
-            case 20:
-                if (!colorScanner.scanning && !colorScanner.colorReady) {
-                    colorScanner.startScan();
-                }
-                if (colorScanner.colorReady) {
-                    if (colorScanner.detectedColor != null) {
-                        detectedBall2 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
-                    } else {
-                        detectedBall2 = 'U';
-                    }
-                    colorScanner.reset();
-                    setPathState(21);
-                }
-                break;
-            case 21:
-                pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    int remaining = 8192 - pos;
-                    double  power = 0;
-                    power = (-0.0005 * remaining);
-                    power = Math.max(power, -1);
-                    power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35) {
-                        power = 0;
-                        slot2 = true;
-                        setPathState(22);
-                    }
-                    drive.spindexer.setPower(power);
-                }
-                break;
-            case 22:
-                if (!colorScanner.scanning && !colorScanner.colorReady) {
-                    colorScanner.startScan();
-                }
-                if (colorScanner.colorReady) {
-                    if (colorScanner.detectedColor != null) {
-                        detectedBall3 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
-                    } else {
-                        detectedBall3 = 'U';
-                    }
-                    colorScanner.reset();
-                    setPathState(23);
-                }
-                break;
-            case 23:
-                follower.setMaxPower(1);
-                drive.intakeMotor.setPower(0);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path5, true);
-
-                    setPathState(24);
-                }
-                break;
-            case 24:
-                ShooterSpinup = true;
-                Spindexer1Special = true;
-                setPathState(25);
-                break;
-            case 25:
-                //husky lens stuff
-                setPathState(26);
-                break;
-            case 26:
-                if (Spindexer1Special == false) {
-                    SpindexerLogic2();
-                }
-                break;
-            case 27:
-                SpindexerLogic3();
-                break;
-            case 28:
-                drive.shooterMotor.setPower(0);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path6, true);
-                    setPathState(29);
-                }
-                break;
-            case 29:
                 if (!follower.isBusy() && pathState != -1) {
                     telemetry.addLine("Successfully (or not) completed 6 ball auto");
                     telemetry.update();
@@ -1039,6 +854,7 @@ public class AutoTop6Blue extends OpMode {
                 }
                 break;
         }
+
         return pathState;
     }
 }
