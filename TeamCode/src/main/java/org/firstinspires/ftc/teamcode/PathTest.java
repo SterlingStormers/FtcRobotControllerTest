@@ -43,14 +43,14 @@ public class PathTest extends OpMode {
     ColorSensingAuto colorScanner;
     public boolean ShooterSpinup = false;
     public double EncoderZero;
-    public boolean Spindexer1Special = false;
+
 
     @Override
     public void init() {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(24.098461538461535, 119.21230769230768, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(72, 8, Math.toRadians(90)));
 
         paths = new Paths(follower); // Build paths
 
@@ -75,7 +75,11 @@ public class PathTest extends OpMode {
     public void loop() {
         follower.update(); // Update Pedro Pathing
         pathState = autonomousPathUpdate(); // Update autonomous state machine
-
+        colorScanner.update();
+        if (ShooterSpinup == true && follower.getCurrentTValue() >= 0.75 && follower.isBusy()) {
+            drive.shooterMotor.setPower(1);
+            ShooterSpinup = false;
+        }
 
         // Log values to Panels and Driver Station
         panelsTelemetry.debug("Path State", pathState);
@@ -83,12 +87,6 @@ public class PathTest extends OpMode {
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.update(telemetry);
-        colorScanner.update();
-        if (ShooterSpinup == true && follower.getCurrentTValue() >= 0.5 && follower.isBusy()) {
-            drive.shooterMotor.setPower(1);
-            ShooterSpinup = false;
-        }
-        SpindexerLogic1Special();
     }
 
 
@@ -100,7 +98,7 @@ public class PathTest extends OpMode {
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(24.098, 119.212),
+                                    new Pose(23.907, 119.235),
 
                                     new Pose(72.000, 72.000)
                             )
@@ -112,7 +110,7 @@ public class PathTest extends OpMode {
                             new BezierLine(
                                     new Pose(72.000, 72.000),
 
-                                    new Pose(50.495, 93.498)
+                                    new Pose(66.203, 77.688)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(142))
 
@@ -120,16 +118,15 @@ public class PathTest extends OpMode {
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(50.495, 93.498),
+                                    new Pose(66.203, 77.688),
 
-                                    new Pose(50.434, 112.646)
+                                    new Pose(48.404, 119.987)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(142))
 
                     .build();
         }
     }
-
     public void setPathState(int newState) {
         pathState = newState;
         pathTimer.resetTimer();
@@ -248,124 +245,6 @@ public class PathTest extends OpMode {
             telemetry.addLine("There has been an error with the amount of balls expected. Continuing auto");
             telemetry.update();
             setPathState(pathState + 1);
-        }
-    }
-    public void SpindexerLogic1Special() {
-        if (Spindexer1Special == true) {
-            pos = drive.intakeMotor.getCurrentPosition();
-            if (detectedBall3 == ball1) { // detectedBall3 is at slot2
-                int remaining = 9557 - pos; //ccw
-                double power = 0;
-                power = (0.0005 * remaining);
-                power = Math.max(power, -1);
-                power = Math.min(power, 1);
-                if (Math.abs(remaining) <= 35) {
-                    power = 0;
-                }
-                if (Math.abs(remaining) >= 100) {
-                    pathTimer.resetTimer();
-                }
-                telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
-                drive.spindexer.setPower(power);
-                if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
-                    drive.spindexer.setPower(0);
-                    if (!kickerUp && !follower.isBusy()) {
-                        drive.kicker.setPosition(kickerPos + 1);
-                        telemetry.addData("kickerUp", true);
-                        if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
-                        }
-                    }
-                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                        drive.kicker.setPosition(kickerPos);
-                        kickerUp = false;
-                        slot2 = false;
-                        Spindexer1Special = false;
-                    }
-                }
-
-//--------------------------------USE FOR TIMER-----------------------------------
-//                    if (Math.abs(remaining) <= 35) {
-//                        power = 0;
-//                    }
-//                    if (Math.abs(remaining) >= 100) {
-//                        pathTimer.resetTimer();
-//                    }
-//                    telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
-//
-//                    if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
-
-            } else if (detectedBall2 == ball1) { // detectedBall2 is at slot1
-                int remaining = pos - 6827; //cw
-                double power = 0;
-                power = (-0.0005 * remaining);
-                power = Math.max(power, -1);
-                power = Math.min(power, 1);
-
-                if (Math.abs(remaining) <= 35) {
-                    power = 0;
-                }
-                if (Math.abs(remaining) >= 100) {
-                    pathTimer.resetTimer();
-                }
-                telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
-                drive.spindexer.setPower(power);
-
-                if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
-                    drive.spindexer.setPower(0);
-                    if (!kickerUp && !follower.isBusy()) {
-                        drive.kicker.setPosition(kickerPos + 1);
-                        telemetry.addData("kickerUp", true);
-                        if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
-                        }
-                    }
-                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                        drive.kicker.setPosition(kickerPos);
-                        kickerUp = false;
-                        slot1 = false;
-                        Spindexer1Special = false;
-                    }
-                }
-            } else if (detectedBall1 == ball1) { //detectedBall1 is at slot0
-                int remaining = 12288 - pos; //ccw
-                double power = 0;
-                power = (0.0005 * remaining);
-                power = Math.max(power, -1);
-                power = Math.min(power, 1);
-                if (Math.abs(remaining) <= 35) {
-                    power = 0;
-                }
-                if (Math.abs(remaining) >= 100) {
-                    pathTimer.resetTimer();
-                }
-                telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
-                drive.spindexer.setPower(power);
-                if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
-                    drive.spindexer.setPower(0);
-                    if (!kickerUp && !follower.isBusy()) {
-                        drive.kicker.setPosition(kickerPos + 1);
-                        telemetry.addData("kickerUp", true);
-                        if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                            kickerUp = true;
-                            kickerStartTime = runtime.seconds();
-                        }
-                    }
-                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                        drive.kicker.setPosition(kickerPos);
-                        kickerUp = false;
-                        has180Occured = true;
-                        slot0 = false;
-                        Spindexer1Special = false;
-                    }
-                }
-            } else {
-                telemetry.addLine("There has been an error with the amount of balls expected. Continuing auto");
-                telemetry.update();
-                Spindexer1Special = false;
-            }
         }
     }
     public void SpindexerLogic2() {
@@ -824,7 +703,9 @@ public class PathTest extends OpMode {
                 }
                 break;
             case 10:
-                SpindexerLogic1();
+                if (!follower.isBusy()) {
+                    SpindexerLogic1();
+                }
                 break;
             case 11:
                 SpindexerLogic2();

@@ -60,7 +60,7 @@ public class ColorSensingAuto {
     public void update() {
         if (scanning) {
             // Check if 50ms have elapsed
-            if (System.currentTimeMillis() - scanStartTime >= 50) {
+            if (System.currentTimeMillis() - scanStartTime >= 1000) {
                 PredominantColorProcessor.Result result = colorSensor.getAnalysis();
                 detectedColor = result.closestSwatch;
                 colorReady = true;   // scan is done
