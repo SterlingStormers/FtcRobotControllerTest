@@ -132,7 +132,7 @@ public class DriveTrain extends LinearOpMode {
             }
 
             if (gamepad2.left_bumper) {
-                COUNTS *= 2729;
+                COUNTS = 2729;
             } else {
                 COUNTS = 1365;
             }
@@ -190,7 +190,7 @@ public class DriveTrain extends LinearOpMode {
             }
 
             if (kickerStart && (runtime.seconds() - kickerStartTime >= 2) && (shooterMotor.getPower() >= 0.5)) {
-                kicker.setPosition(0.4);
+                kicker.setPosition(0.25);
                 kickerUp = true;
                 kickerStart = false;
                 kickerStartTime = runtime.seconds();
@@ -203,6 +203,7 @@ public class DriveTrain extends LinearOpMode {
 
             if (gamepad2.a) {
                 shooterMotor.setPower(0.9);
+
             } else {
                 shooterMotor.setPower(0);
             }
