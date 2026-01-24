@@ -24,7 +24,7 @@ public class AutoTop3Blue extends OpMode {
     private DriveTrainHardware drive;
     private Timer pathTimer, opmodeTimer;
     public int pos = 0;
-    public static double waitTime = 0.5;
+    public static double waitTime = 1.5;
     private char ball1 = 'P'; // to be changed
     private char ball2 = 'G';
     private char ball3 = 'P';
@@ -44,13 +44,12 @@ public class AutoTop3Blue extends OpMode {
     public boolean ShooterSpinup = false;
     public double EncoderZero;
 
-
     @Override
     public void init() {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(72, 8, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(23.907, 119.235, Math.toRadians(90)));
 
         paths = new Paths(follower); // Build paths
 
@@ -76,7 +75,7 @@ public class AutoTop3Blue extends OpMode {
         follower.update(); // Update Pedro Pathing
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
-        if (ShooterSpinup == true && follower.getCurrentTValue() >= 0.75 && follower.isBusy()) {
+        if (ShooterSpinup && follower.isBusy() && 0.75 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
             drive.shooterMotor.setPower(1);
             ShooterSpinup = false;
         }
@@ -132,6 +131,14 @@ public class AutoTop3Blue extends OpMode {
         pathTimer.resetTimer();
     }
     public void SpindexerLogic1(){
+
+        telemetry.addData("detectedBall1", detectedBall1);
+        telemetry.addData("detectedBall2", detectedBall2);
+        telemetry.addData("detectedBall3", detectedBall3);
+        telemetry.addData("slot0,slot1,slot2", "%b, %b, %b", slot0, slot1, slot2);
+        telemetry.addData("pos", drive.intakeMotor.getCurrentPosition());
+        telemetry.update();
+
         pos = drive.intakeMotor.getCurrentPosition();
         if (detectedBall3 == ball1) { // detectedBall3 is at slot2
             int remaining = 9557 - pos; //ccw
@@ -248,6 +255,14 @@ public class AutoTop3Blue extends OpMode {
         }
     }
     public void SpindexerLogic2() {
+
+        telemetry.addData("detectedBall1", detectedBall1);
+        telemetry.addData("detectedBall2", detectedBall2);
+        telemetry.addData("detectedBall3", detectedBall3);
+        telemetry.addData("slot0,slot1,slot2", "%b, %b, %b", slot0, slot1, slot2);
+        telemetry.addData("pos", drive.intakeMotor.getCurrentPosition());
+        telemetry.update();
+
         pos = drive.intakeMotor.getCurrentPosition();
         if (detectedBall3 == ball2 && slot2 && has180Occured) { // detectedBall3 is at slot2
             int remaining = pos - 9557; //cw
@@ -415,6 +430,14 @@ public class AutoTop3Blue extends OpMode {
 
     }
     public void SpindexerLogic3() {
+
+        telemetry.addData("detectedBall1", detectedBall1);
+        telemetry.addData("detectedBall2", detectedBall2);
+        telemetry.addData("detectedBall3", detectedBall3);
+        telemetry.addData("slot0,slot1,slot2", "%b, %b, %b", slot0, slot1, slot2);
+        telemetry.addData("pos", drive.intakeMotor.getCurrentPosition());
+        telemetry.update();
+
         pos = drive.intakeMotor.getCurrentPosition();
         if (detectedBall3 == ball3 && slot2 && has180Occured) { // detectedBall3 is at slot2
             int remaining = pos - 9557; //cw
@@ -598,11 +621,13 @@ public class AutoTop3Blue extends OpMode {
                 setPathState(1);
                 break;
             case 1:
+                telemetry.addData("case: ", 1);
                 follower.followPath(paths.Path1, true);
                 ShooterSpinup = true;
                 setPathState(2);
                 break;
             case 2:
+                telemetry.addData("case: ", 2);
                 pos = drive.intakeMotor.getCurrentPosition();
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 2731 - pos; //ccw
@@ -610,18 +635,29 @@ public class AutoTop3Blue extends OpMode {
                     power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35) {
+                    if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         power = 0;
                         slot0 = true;
                         setPathState(3);
                     }
+                    telemetry.addData("remaining: ", remaining);
                     drive.spindexer.setPower(power);
                 }
                 break;
             case 3:
+
+                telemetry.addData("case:", 3);
+                telemetry.addData("colorScanner.scanning (before)", colorScanner.scanning);
+                telemetry.addData("colorScanner.colorReady (before)", colorScanner.colorReady);
+                telemetry.update();
+
                 if (!colorScanner.scanning && !colorScanner.colorReady) {
                     colorScanner.startScan();
+                    telemetry.addData("action", "startScan called");
+                    telemetry.addData("scanStartTime", System.currentTimeMillis());
+                    telemetry.update();
                 }
+
                 if (colorScanner.colorReady) {
                     if (colorScanner.detectedColor != null) {
                         detectedBall1 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
@@ -633,14 +669,15 @@ public class AutoTop3Blue extends OpMode {
                 }
                 break;
             case 4:
+                telemetry.addData("case: ", 4);
                 pos = drive.intakeMotor.getCurrentPosition();
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 5462 - pos;
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35) {
+                    if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         power = 0;
                         slot1 = true;
                         setPathState(5);
@@ -649,6 +686,7 @@ public class AutoTop3Blue extends OpMode {
                 }
                 break;
             case 5:
+                telemetry.addData("case: ", 5);
                 if (!colorScanner.scanning && !colorScanner.colorReady) {
                     colorScanner.startScan();
                 }
@@ -667,10 +705,10 @@ public class AutoTop3Blue extends OpMode {
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 8192 - pos;
                     double power = 0;
-                    power = (-0.0005 * remaining);
+                    power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35) {
+                    if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         power = 0;
                         slot2 = true;
                         setPathState(7);
@@ -698,11 +736,19 @@ public class AutoTop3Blue extends OpMode {
                 break;
             case 9:
                 if (!follower.isBusy()) {
+                    telemetry.addData("followPath: ", 2);
                     follower.followPath(paths.Path2, true);
                     setPathState(10);
                 }
                 break;
             case 10:
+                telemetry.addData("detectedBall1", detectedBall1);
+                telemetry.addData("detectedBall2", detectedBall2);
+                telemetry.addData("detectedBall3", detectedBall3);
+                telemetry.addData("slot0,slot1,slot2", "%b, %b, %b", slot0, slot1, slot2);
+                telemetry.addData("pos", drive.intakeMotor.getCurrentPosition());
+                telemetry.update();
+
                 if (!follower.isBusy()) {
                     SpindexerLogic1();
                 }

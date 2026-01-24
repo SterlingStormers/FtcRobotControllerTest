@@ -27,7 +27,7 @@ public class ColorSensingAuto {
         WebcamName webcam = opMode.hardwareMap.get(WebcamName.class, webcamName);
 
         colorSensor = new PredominantColorProcessor.Builder()
-                .setRoi(ImageRegion.asUnityCenterCoordinates(-0.1, 0.1, 0.1, -0.1))
+                .setRoi(ImageRegion.asUnityCenterCoordinates(-0.2, 0.2, 0.2, -0.2))
                 .setSwatches(
                         PredominantColorProcessor.Swatch.ARTIFACT_GREEN,
                         PredominantColorProcessor.Swatch.ARTIFACT_PURPLE,
@@ -59,18 +59,38 @@ public class ColorSensingAuto {
     // Call this repeatedly in your auto loop/state machine
     public void update() {
         if (scanning) {
-            // Check if 50ms have elapsed
-            if (System.currentTimeMillis() - scanStartTime >= 1000) {
+            long elapsed = System.currentTimeMillis() - scanStartTime;
+
+            // Send heartbeat telemetry to dashboard so you can see the scan is running
+            TelemetryPacket heartbeat = new TelemetryPacket();
+            heartbeat.put("scanning", true);
+            heartbeat.put("elapsed_ms", elapsed);
+            dashboard.sendTelemetryPacket(heartbeat);
+
+            // Use 100ms for debug (change to 50 or 200 once stable)
+            if (elapsed >= 100) {
                 PredominantColorProcessor.Result result = colorSensor.getAnalysis();
-                detectedColor = result.closestSwatch;
+
+                if (result != null) {
+                    detectedColor = result.closestSwatch; // may be null too
+                } else {
+                    detectedColor = null;
+                }
+
                 colorReady = true;   // scan is done
                 scanning = false;
 
-                // Optional telemetry to dashboard
-                TelemetryPacket packet = new TelemetryPacket();
-                packet.put("Best Match", detectedColor);
-                dashboard.sendTelemetryPacket(packet);
+                // Detailed result telemetry
+                TelemetryPacket resultPacket = new TelemetryPacket();
+                resultPacket.put("Best Match (object)", (result == null) ? "null result" : result.toString());
+                resultPacket.put("closestSwatch", (detectedColor == null) ? "null" : detectedColor.toString());
+                dashboard.sendTelemetryPacket(resultPacket);
             }
+        } else {
+            // Optional: send a light heartbeat so you can see scanner idle state if you want
+            TelemetryPacket idle = new TelemetryPacket();
+            idle.put("scanning", false);
+            dashboard.sendTelemetryPacket(idle);
         }
     }
 
