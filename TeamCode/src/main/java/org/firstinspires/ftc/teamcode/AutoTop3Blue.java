@@ -627,7 +627,7 @@ public class AutoTop3Blue extends OpMode {
                         detectedBall1 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
                     } else {
                         detectedBall1 = 'U';
-                    }   
+                    }
                     colorScanner.reset();
                     setPathState(4);
                 }
