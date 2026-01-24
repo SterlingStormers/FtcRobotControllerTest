@@ -24,7 +24,7 @@ public class AutoTop6Blue extends OpMode {
     private DriveTrainHardware drive;
     private Timer pathTimer, opmodeTimer;
     public int pos = 0;
-    public static double waitTime = 1.5;
+    public static double waitTime = 1;
     private char ball1 = 'P'; // to be changed
     private char ball2 = 'G';
     private char ball3 = 'P';
@@ -77,7 +77,7 @@ public class AutoTop6Blue extends OpMode {
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
         if (ShooterSpinup && follower.isBusy() && 0.75 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
-            drive.shooterMotor.setPower(1);
+            drive.shooterMotor.setPower(0.9);
             ShooterSpinup = false;
         }
 
@@ -197,6 +197,15 @@ public class AutoTop6Blue extends OpMode {
         pathState = newState;
         pathTimer.resetTimer();
     }
+
+    private void commandKickerUp() {
+        double upPos = Math.min(kickerPos + 1.0, 1.0); // clamp to valid range
+        drive.kicker.setPosition(upPos);
+        // Immediately mark kicker as commanded up and start the timer:
+        kickerUp = true;
+        kickerStartTime = runtime.seconds();
+    }
+
     public void SpindexerLogic1(){
 
         telemetry.addData("detectedBall1", detectedBall1);
@@ -224,15 +233,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     slot2 = false;
                     setPathState(pathState + 1);
@@ -269,15 +275,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     slot1 = false;
                     setPathState(pathState + 1);
@@ -300,15 +303,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     has180Occured = true;
                     slot0 = false;
@@ -348,15 +348,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     has180Occured = false;
                     slot2 = false;
@@ -380,15 +377,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     slot2 = false;
                     setPathState(pathState + 1); //15019
@@ -411,15 +405,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     has180Occured = false;
                     slot1 = false;
@@ -443,15 +434,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     slot1 = false;
                     setPathState(pathState + 1);
@@ -474,15 +462,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     has180Occured = true;
                     slot0 = false;
@@ -523,15 +508,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     has180Occured = false;
                     slot2 = false;
@@ -555,15 +537,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     slot2 = false;
                     setPathState(pathState + 1); //15019
@@ -586,15 +565,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     has180Occured = false;
                     slot1 = false;
@@ -618,15 +594,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     slot1 = false;
                     setPathState(pathState + 1);
@@ -649,15 +622,12 @@ public class AutoTop6Blue extends OpMode {
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    telemetry.addData("kickerUp", true);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
+                    commandKickerUp();
+                    telemetry.addData("kicker commanded up", true);
                 }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
-                    drive.kicker.setPosition(kickerPos);
+
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 1.5) {
+                    drive.kicker.setPosition(kickerPos); // go back to home
                     kickerUp = false;
                     slot0 = false;
                     setPathState(pathState + 1);
@@ -704,7 +674,7 @@ public class AutoTop6Blue extends OpMode {
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall3 == 'U'&& !has180Occured) { // detectedBall3 is at slot2
+        }  if (detectedBall3 == 'U'&& !has180Occured) { // detectedBall3 is at slot2
             int remaining = 9557 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -735,7 +705,7 @@ public class AutoTop6Blue extends OpMode {
                     setPathState(pathState + 1); //15019
                 }
             }
-        } else if (detectedBall2 == 'U' && has180Occured) { //detectedBall2 is at slot1
+        }  if (detectedBall2 == 'U' && has180Occured) { //detectedBall2 is at slot1
             int remaining = 15019 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -767,7 +737,7 @@ public class AutoTop6Blue extends OpMode {
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall2 == 'U' && !has180Occured) { //detectedBall2 is at slot1
+        } if (detectedBall2 == 'U' && !has180Occured) { //detectedBall2 is at slot1
             int remaining = 6827 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -798,7 +768,7 @@ public class AutoTop6Blue extends OpMode {
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall1 == 'U') { //detectedBall1 is at slot0
+        }  if (detectedBall1 == 'U') { //detectedBall1 is at slot0
             int remaining = 12288 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -948,7 +918,7 @@ public class AutoTop6Blue extends OpMode {
             case 2:
                 telemetry.addData("case: ", 2);
                 pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                if (pathTimer.getElapsedTimeSeconds() >= 0.1) {
                     int remaining = 2731 - pos; //ccw
                     double power = 0;
                     power = (0.0005 * remaining);
@@ -1070,54 +1040,75 @@ public class AutoTop6Blue extends OpMode {
                 SpindexerLogic3();
                 break;
             case 13:
-                SpindexerSafety();
+//                SpindexerSafety();
+                setPathState(14);
+                break;
             case 14:
                 drive.shooterMotor.setPower(0);
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path3, false);
-                    setPathState(15);
+                        setPathState(15);
+
                 }
                 break;
             case 15:
-                drive.intakeMotor.setPower(1);
+                drive.intakeMotor.setPower(-1);
                 pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    int remaining = pos - 0; //ccw
+                    int remaining = pos; //ccw
                     double power = 0;
-                    power = (0.0005 * remaining);
+                    power = (-0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
+
+                    if (Math.abs(remaining) <= 35) {
                         power = 0;
+                    }
+                    if (Math.abs(remaining) >= 75) {
+                        pathTimer.resetTimer();
+                    }
+
+                    if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                        drive.spindexer.setPower(0);
                         setPathState(16);
                     }
+
                     telemetry.addData("remaining: ", remaining);
                     drive.spindexer.setPower(power);
-                }
                 break;
             case 16:
-                drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                //drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                telemetry.addData("position: ", drive.intakeMotor.getCurrentPosition());
                 if (!follower.isBusy()) {
                     follower.setMaxPower(0.45);
                     follower.followPath(paths.Path4, true);
-                    setPathState(17);
+                    if (pathTimer.getElapsedTimeSeconds() >= waitTime ) {
+                        setPathState(17);
+                    }
                 }
+                break;
             case 17:
                 pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    int remaining = 2731 - pos; //ccw
-                    double power = 0;
+                    remaining = 2731 - pos; //ccw
+                    power = 0;
                     power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
+
+                    if (Math.abs(remaining) <= 35) {
                         power = 0;
+                    }
+                    if (Math.abs(remaining) >= 75) {
+                        pathTimer.resetTimer();
+                    }
+
+                    if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         slot0 = true;
+                        drive.spindexer.setPower(0);
                         setPathState(18);
                     }
+
                     telemetry.addData("remaining: ", remaining);
                     drive.spindexer.setPower(power);
-                }
                 break;
             case 18:
                 if (!colorScanner.scanning && !colorScanner.colorReady) {
@@ -1136,25 +1127,35 @@ public class AutoTop6Blue extends OpMode {
             case 19:
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path5,true);
-                    setPathState(20);
+                    if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                        setPathState(20);
+                    }
                 }
                 break;
             case 20:
                 pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    int remaining = 5462 - pos; //ccw
-                    double power = 0;
+                    remaining = 5462 - pos; //ccw
+                    power = 0;
                     power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
+
+                    if (Math.abs(remaining) <= 35) {
                         power = 0;
+                    }
+
+                    if (Math.abs(remaining) >= 75) {
+                        pathTimer.resetTimer();
+                    }
+
+                    if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         slot1 = true;
+                        drive.spindexer.setPower(0);
                         setPathState(21);
                     }
+
                     telemetry.addData("remaining: ", remaining);
                     drive.spindexer.setPower(power);
-                }
                 break;
             case 21:
                 if (!colorScanner.scanning && !colorScanner.colorReady) {
@@ -1173,24 +1174,34 @@ public class AutoTop6Blue extends OpMode {
             case 22:
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path6, false);
-                    setPathState(23);
+                    if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                        setPathState(23);
+                    }
                 }
                 break;
             case 23:
                 pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
-                    int remaining = 8192 - pos;
-                    double power = 0;
+                    remaining = 8192 - pos;
+                    power = 0;
                     power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
-                    if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
+
+                    if (Math.abs(remaining) <= 35) {
                         power = 0;
+                    }
+
+                    if (Math.abs(remaining) >= 75) {
+                        pathTimer.resetTimer();
+                    }
+
+                    if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         slot2 = true;
+                        drive.spindexer.setPower(0);
                         setPathState(24);
                     }
+
                     drive.spindexer.setPower(power);
-                }
                 break;
             case 24:
                 if (!colorScanner.scanning && !colorScanner.colorReady) {

@@ -24,7 +24,7 @@ public class AutoTop3Blue extends OpMode {
     private DriveTrainHardware drive;
     private Timer pathTimer, opmodeTimer;
     public int pos = 0;
-    public static double waitTime = 1.5;
+    public static double waitTime = 1;
     private char ball1 = 'P'; // to be changed
     private char ball2 = 'G';
     private char ball3 = 'P';
@@ -76,7 +76,7 @@ public class AutoTop3Blue extends OpMode {
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
         if (ShooterSpinup && follower.isBusy() && 0.75 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
-            drive.shooterMotor.setPower(1);
+            drive.shooterMotor.setPower(0.9);
             ShooterSpinup = false;
         }
 
@@ -140,7 +140,7 @@ public class AutoTop3Blue extends OpMode {
         telemetry.update();
 
         pos = drive.intakeMotor.getCurrentPosition();
-        if (detectedBall3 == ball1) { // detectedBall3 is at slot2
+        if ((detectedBall3 == ball1)  || detectedBall3 == 'U') { // detectedBall3 is at slot2
             int remaining = 9557 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -168,6 +168,7 @@ public class AutoTop3Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot2 = false;
+                    detectedBall3 = 'N';
                     setPathState(pathState + 1);
                 }
             }
@@ -183,7 +184,7 @@ public class AutoTop3Blue extends OpMode {
 //
 //                    if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
 
-        } else if (detectedBall2 == ball1) { // detectedBall2 is at slot1
+        } else if (detectedBall2 == ball1 || detectedBall2 == 'U') { // detectedBall2 is at slot1
             int remaining = pos - 6827; //cw
             double power = 0;
             power = (-0.0005 * remaining);
@@ -213,10 +214,11 @@ public class AutoTop3Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot1 = false;
+                    detectedBall2 = 'N';
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall1 == ball1) { //detectedBall1 is at slot0
+        } else if (detectedBall1 == ball1 || detectedBall1 == 'U') { //detectedBall1 is at slot0
             int remaining = 12288 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -245,6 +247,7 @@ public class AutoTop3Blue extends OpMode {
                     kickerUp = false;
                     has180Occured = true;
                     slot0 = false;
+                    detectedBall1 = 'N';
                     setPathState(pathState + 1);
                 }
             }
@@ -264,7 +267,7 @@ public class AutoTop3Blue extends OpMode {
         telemetry.update();
 
         pos = drive.intakeMotor.getCurrentPosition();
-        if (detectedBall3 == ball2 && slot2 && has180Occured) { // detectedBall3 is at slot2
+        if (detectedBall3 == ball2 && slot2 && has180Occured || detectedBall3 == 'U') { // detectedBall3 is at slot2
             int remaining = pos - 9557; //cw
             double power = 0;
             power = (-0.0005 * remaining);
@@ -293,10 +296,11 @@ public class AutoTop3Blue extends OpMode {
                     kickerUp = false;
                     has180Occured = false;
                     slot2 = false;
+                    detectedBall3 = 'N';
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall3 == ball2 && slot2 && !has180Occured) { // detectedBall3 is at slot2
+        } else if (detectedBall3 == ball2 && slot2 && !has180Occured || detectedBall3 == 'U') { // detectedBall3 is at slot2
             int remaining = 9557 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -324,10 +328,11 @@ public class AutoTop3Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot2 = false;
+                    detectedBall3 = 'N';
                     setPathState(pathState + 1); //15019
                 }
             }
-        } else if (detectedBall2 == ball2 && slot1 && has180Occured) { //detectedBall2 is at slot1
+        } else if (detectedBall2 == ball2 && slot1 && has180Occured || detectedBall2 == 'U') { //detectedBall2 is at slot1
             int remaining = 15019 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -356,10 +361,11 @@ public class AutoTop3Blue extends OpMode {
                     kickerUp = false;
                     has180Occured = false;
                     slot1 = false;
+                    detectedBall2 = 'N';
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall2 == ball2 && slot1 && !has180Occured) { //detectedBall2 is at slot1
+        } else if (detectedBall2 == ball2 && slot1 && !has180Occured || detectedBall2 == 'U') { //detectedBall2 is at slot1
             int remaining = 6827 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -387,10 +393,11 @@ public class AutoTop3Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot1 = false;
+                    detectedBall2 = 'N';
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall1 == ball2 && slot0) { //detectedBall1 is at slot0
+        } else if (detectedBall1 == ball2 && slot0 || detectedBall1 == 'U') { //detectedBall1 is at slot0
             int remaining = 12288 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -419,6 +426,7 @@ public class AutoTop3Blue extends OpMode {
                     kickerUp = false;
                     has180Occured = true;
                     slot0 = false;
+                    detectedBall1 = 'N';
                     setPathState(pathState + 1);
                 }
             }
@@ -439,7 +447,7 @@ public class AutoTop3Blue extends OpMode {
         telemetry.update();
 
         pos = drive.intakeMotor.getCurrentPosition();
-        if (detectedBall3 == ball3 && slot2 && has180Occured) { // detectedBall3 is at slot2
+        if (detectedBall3 == ball3 && slot2 && has180Occured || detectedBall3 == 'U') { // detectedBall3 is at slot2
             int remaining = pos - 9557; //cw
             double power = 0;
             power = (-0.0005 * remaining);
@@ -468,10 +476,11 @@ public class AutoTop3Blue extends OpMode {
                     kickerUp = false;
                     has180Occured = false;
                     slot2 = false;
+                    detectedBall3 = 'N';
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall3 == ball3 && slot2 && !has180Occured) { // detectedBall3 is at slot2
+        } else if (detectedBall3 == ball3 && slot2 && !has180Occured || detectedBall3 == 'U') { // detectedBall3 is at slot2
             int remaining = 9557 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -499,10 +508,11 @@ public class AutoTop3Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot2 = false;
+                    detectedBall3 = 'N';
                     setPathState(pathState + 1); //15019
                 }
             }
-        } else if (detectedBall2 == ball3 && slot1 && has180Occured) { //detectedBall2 is at slot1
+        } else if (detectedBall2 == ball3 && slot1 && has180Occured || detectedBall2 == 'U') { //detectedBall2 is at slot1
             int remaining = 15019 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -531,10 +541,11 @@ public class AutoTop3Blue extends OpMode {
                     kickerUp = false;
                     has180Occured = false;
                     slot1 = false;
+                    detectedBall2 = 'N';
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall2 == ball3 && slot1 && !has180Occured) { //detectedBall2 is at slot1
+        } else if (detectedBall2 == ball3 && slot1 && !has180Occured || detectedBall2 == 'U') { //detectedBall2 is at slot1
             int remaining = 6827 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -562,10 +573,11 @@ public class AutoTop3Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot1 = false;
+                    detectedBall2 = 'N';
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall1 == ball3 && slot0) { //detectedBall1 is at slot0
+        } else if (detectedBall1 == ball3 && slot0 || detectedBall1 == 'U' ) { //detectedBall1 is at slot0
             int remaining = 12288 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -593,6 +605,7 @@ public class AutoTop3Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot0 = false;
+                    detectedBall1 = 'N';
                     setPathState(pathState + 1);
                 }
             }
@@ -637,7 +650,7 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall3 == 'U'&& !has180Occured) { // detectedBall3 is at slot2
+        } if (detectedBall3 == 'U'&& !has180Occured) { // detectedBall3 is at slot2
             int remaining = 9557 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -668,7 +681,7 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(pathState + 1); //15019
                 }
             }
-        } else if (detectedBall2 == 'U' && has180Occured) { //detectedBall2 is at slot1
+        } if (detectedBall2 == 'U' && has180Occured) { //detectedBall2 is at slot1
             int remaining = 15019 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -700,7 +713,7 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall2 == 'U' && !has180Occured) { //detectedBall2 is at slot1
+        }  if (detectedBall2 == 'U' && !has180Occured) { //detectedBall2 is at slot1
             int remaining = 6827 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -731,7 +744,7 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall1 == 'U') { //detectedBall1 is at slot0
+        } if (detectedBall1 == 'U') { //detectedBall1 is at slot0
             int remaining = 12288 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -923,7 +936,8 @@ public class AutoTop3Blue extends OpMode {
                 SpindexerLogic3();
                 break;
             case 13:
-                SpindexerSafety();
+                //SpindexerSafety();
+                setPathState(14);
             case 14:
                 drive.shooterMotor.setPower(0);
                 if (!follower.isBusy()) {

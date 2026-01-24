@@ -184,6 +184,12 @@ public class DriveTrain extends LinearOpMode {
                 }
             }
 
+            if (gamepad2.a) {
+                shooterMotor.setPower(0.9);
+            } else {
+                shooterMotor.setPower(0);
+            }
+
             if (gamepad2.a && !kickerUp && !kickerStart) {
                 kickerStartTime = runtime.seconds();
                 kickerStart = true;
@@ -199,13 +205,6 @@ public class DriveTrain extends LinearOpMode {
             if (kickerUp && (runtime.seconds() - kickerStartTime >= 0.75)) {
                 kicker.setPosition(1);
                 kickerUp = false;
-            }
-
-            if (gamepad2.a) {
-                shooterMotor.setPower(0.9);
-
-            } else {
-                shooterMotor.setPower(0);
             }
 
             frontLeftDrive.setPower(frontLeftPower * modifier);
