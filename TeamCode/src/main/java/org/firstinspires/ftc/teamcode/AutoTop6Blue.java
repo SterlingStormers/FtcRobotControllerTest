@@ -671,7 +671,6 @@ public class AutoTop6Blue extends OpMode {
                     kickerUp = false;
                     has180Occured = false;
                     slot2 = false;
-                    setPathState(pathState + 1);
                 }
             }
         }  if (detectedBall3 == 'U'&& !has180Occured) { // detectedBall3 is at slot2
@@ -702,7 +701,6 @@ public class AutoTop6Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot2 = false;
-                    setPathState(pathState + 1); //15019
                 }
             }
         }  if (detectedBall2 == 'U' && has180Occured) { //detectedBall2 is at slot1
@@ -734,7 +732,6 @@ public class AutoTop6Blue extends OpMode {
                     kickerUp = false;
                     has180Occured = false;
                     slot1 = false;
-                    setPathState(pathState + 1);
                 }
             }
         } if (detectedBall2 == 'U' && !has180Occured) { //detectedBall2 is at slot1
@@ -765,7 +762,6 @@ public class AutoTop6Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot1 = false;
-                    setPathState(pathState + 1);
                 }
             }
         }  if (detectedBall1 == 'U') { //detectedBall1 is at slot0
@@ -796,9 +792,8 @@ public class AutoTop6Blue extends OpMode {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot0 = false;
-                    setPathState(pathState + 1);
                 }
-            } else {
+            } else if  ((detectedBall1 != 'U') || (detectedBall2 != 'U') || (detectedBall3 != 'U')){
                 setPathState(pathState +1);
             }
         }
