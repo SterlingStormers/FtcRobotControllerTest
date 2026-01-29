@@ -32,7 +32,10 @@ public class DriveTrain extends LinearOpMode {
     private int comparableThreshold = 0;
     private double SPIN_POWER = -0.2;
     private int currentSpin = 0;
-
+    private ElapsedTime shooterSpinupTimer = new ElapsedTime();
+    private boolean shooterRunning = false;
+    private static final double SPINUP_DELAY = 1.9;     // wait 2s for wheel to spin up
+    private static final double KICKER_RETURN_TIME = 0.35;
     public DcMotor frontLeftDrive = null;
     public DcMotor backLeftDrive = null;
     public DcMotor frontRightDrive = null;
@@ -87,7 +90,6 @@ public class DriveTrain extends LinearOpMode {
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         ElapsedTime shooterTimer = new ElapsedTime();
-        boolean shooterRunning = false;
 
         waitForStart();
         runtime.reset();
@@ -127,20 +129,33 @@ public class DriveTrain extends LinearOpMode {
             // intake
             if (gamepad2.x) {
                 intakeMotor.setPower(1);
+            } else if (gamepad2.b) {
+                intakeMotor.setPower(-0.5);
             } else {
                 intakeMotor.setPower(0);
             }
 
-            if (gamepad2.left_bumper) {
+            if (gamepad2.right_bumper) {
                 COUNTS = 2729;
+                telemetry.addData("rightBumper", true);
+                telemetry.update();
             } else {
                 COUNTS = 1365;
             }
-            if (gamepad2.y && !yWasPressed && !spindexerMoving && !gamepad2.left_bumper) {
+
+            if (gamepad2.left_bumper) {
+                SPIN_POWER = -0.2;
+                telemetry.addData("negative", true);
+                telemetry.update();
+            } else {
+                SPIN_POWER = 0.2;
+            }
+
+            if (gamepad2.y && !yWasPressed && !spindexerMoving) {
                 if (SPIN_POWER > 0) {
-                    currentSpin += COUNTS;
-                } else {
                     currentSpin -= COUNTS;
+                } else {
+                    currentSpin += COUNTS;
                 }
                 spindexerMoving = true;
                 pathTimer.resetTimer();
@@ -185,14 +200,28 @@ public class DriveTrain extends LinearOpMode {
             }
 
             if (gamepad2.a) {
+                // start/reset the spinup timer only on the transition from off -> on
+                if (!shooterRunning) {
+                    shooterSpinupTimer.reset();
+                    shooterRunning = true;
+                }
+                // set motor power every loop while button held
                 shooterMotor.setPower(0.9);
+            } else if (gamepad2.b) {
+                shooterMotor.setPower(-0.3);
             } else {
                 shooterMotor.setPower(0);
+                shooterRunning = false;
             }
 
-            if (gamepad2.a && !kickerUp && !kickerStart) {
+            if (shooterRunning && shooterSpinupTimer.seconds() >= SPINUP_DELAY && !kickerUp) {
+                // start a kick
+                kicker.setPosition(0.25);
+                kickerUp = true;
                 kickerStartTime = runtime.seconds();
-                kickerStart = true;
+
+                // If you want repeated kicks every SPINUP_DELAY while button held, reset timer now:
+                shooterSpinupTimer.reset();
             }
 
             if (kickerStart && (runtime.seconds() - kickerStartTime >= 2) && (shooterMotor.getPower() >= 0.5)) {
@@ -202,7 +231,7 @@ public class DriveTrain extends LinearOpMode {
                 kickerStartTime = runtime.seconds();
             }
 
-            if (kickerUp && (runtime.seconds() - kickerStartTime >= 0.75)) {
+            if (kickerUp && (runtime.seconds() - kickerStartTime >= KICKER_RETURN_TIME)) {
                 kicker.setPosition(1);
                 kickerUp = false;
             }

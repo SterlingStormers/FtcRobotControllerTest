@@ -53,6 +53,10 @@ public class AutoTop3Blue extends OpMode {
 
         paths = new Paths(follower); // Build paths
 
+        detectedBall3 = 'U';
+        detectedBall2 = 'U';
+        detectedBall1 = 'U';
+
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
         drive = new DriveTrainHardware();
@@ -390,7 +394,7 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(pathState + 1);
                 }
             }
-        } else if (detectedBall1 == ball2 && slot0 || detectedBall1 == 'U') { //detectedBall1 is at slot0
+        } else if (detectedBall1 == ball2 && slot0) { //detectedBall1 is at slot0
             int remaining = 12288 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -637,7 +641,7 @@ public class AutoTop3Blue extends OpMode {
                     slot2 = false;
                 }
             }
-        } if (detectedBall3 == 'U'&& !has180Occured) { // detectedBall3 is at slot2
+        } else if (detectedBall3 == 'U'&& !has180Occured) { // detectedBall3 is at slot2
             int remaining = 9557 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -668,7 +672,8 @@ public class AutoTop3Blue extends OpMode {
                     slot2 = false;
                 }
             }
-        } if (detectedBall2 == 'U' && has180Occured) { //detectedBall2 is at slot1
+        }
+        if (detectedBall2 == 'U' && has180Occured) { //detectedBall2 is at slot1
             int remaining = 15019 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -700,7 +705,7 @@ public class AutoTop3Blue extends OpMode {
                     slot1 = false;
                 }
             }
-        }  if (detectedBall2 == 'U' && !has180Occured) { //detectedBall2 is at slot1
+        } else if (detectedBall2 == 'U' && !has180Occured) { //detectedBall2 is at slot1
             int remaining = 6827 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -731,7 +736,8 @@ public class AutoTop3Blue extends OpMode {
                     slot1 = false;
                 }
             }
-        } if (detectedBall1 == 'U') { //detectedBall1 is at slot0
+        }
+        if (detectedBall1 == 'U') { //detectedBall1 is at slot0
             int remaining = 12288 - pos; //ccw
             double power = 0;
             power = (0.0005 * remaining);
@@ -761,9 +767,12 @@ public class AutoTop3Blue extends OpMode {
                     detectedBall1 = 'N';
                     slot0 = false;
                 }
-            }  if  ((detectedBall1 != 'U') || (detectedBall2 != 'U') || (detectedBall3 != 'U')){
-                setPathState(pathState +1);
             }
+        }
+        if  (detectedBall1 != 'U' && detectedBall2 != 'U' && detectedBall3 != 'U') {
+            telemetry.addData("nextPathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", true);
+            telemetry.update();
+            setPathState(pathState +1);
         }
     }
 
@@ -923,6 +932,8 @@ public class AutoTop3Blue extends OpMode {
                 SpindexerLogic3();
                 break;
             case 13:
+                telemetry.addData("case", 13);
+                telemetry.update();
                 SpindexerSafety();
                 break;
             case 14:

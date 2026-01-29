@@ -77,7 +77,7 @@ public class AutoTop6Blue extends OpMode {
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
         if (ShooterSpinup && follower.isBusy() && 0.75 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
-            drive.shooterMotor.setPower(0.9);
+            drive.shooterMotor.setPower(1);
             ShooterSpinup = false;
         }
 
@@ -1040,8 +1040,7 @@ public class AutoTop6Blue extends OpMode {
                 SpindexerLogic3();
                 break;
             case 13:
-//                SpindexerSafety();
-                setPathState(14);
+                SpindexerSafety();
                 break;
             case 14:
                 drive.shooterMotor.setPower(0);
