@@ -28,6 +28,7 @@ public class DriveTrain extends LinearOpMode {
     private boolean yWasPressed = false;
     private boolean spindexerMoving = false;
     private int COUNTS = 1365;
+    private int SPIN_ACCOUNT = 0;
     private int offsetCounts = 0;
     private int comparableThreshold = 0;
     private double SPIN_POWER = -0.2;
@@ -153,9 +154,21 @@ public class DriveTrain extends LinearOpMode {
 
             if (gamepad2.y && !yWasPressed && !spindexerMoving) {
                 if (SPIN_POWER > 0) {
-                    currentSpin -= COUNTS;
+                    SPIN_ACCOUNT += 1;
+                    if (SPIN_ACCOUNT >= 3) {
+                        SPIN_ACCOUNT = 0;
+                        currentSpin -= (COUNTS - 1);
+                    } else {
+                        currentSpin -= (COUNTS);
+                    }
                 } else {
-                    currentSpin += COUNTS;
+                    SPIN_ACCOUNT += 1;
+                    if (SPIN_ACCOUNT >= 3) {
+                        SPIN_ACCOUNT = 0;
+                        currentSpin += (COUNTS + 1);
+                    } else {
+                        currentSpin += (COUNTS);
+                    }
                 }
                 spindexerMoving = true;
                 pathTimer.resetTimer();
@@ -217,6 +230,7 @@ public class DriveTrain extends LinearOpMode {
             if (shooterRunning && shooterSpinupTimer.seconds() >= SPINUP_DELAY && !kickerUp) {
                 // start a kick
                 kicker.setPosition(0.25);
+                gamepad2.rumble(500);
                 kickerUp = true;
                 kickerStartTime = runtime.seconds();
 
