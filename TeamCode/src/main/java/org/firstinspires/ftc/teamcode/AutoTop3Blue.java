@@ -42,14 +42,7 @@ public class AutoTop3Blue extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     ColorSensingAuto colorScanner;
     public boolean ShooterSpinup = false;
-    private boolean spindexerSafetyDone = false;
-    private int stable0 = 0;
-    private int stable1 = 0;
-    private int stable2 = 0;
-
-    private static final int SPINDEXER_DEADBAND = 70;      // encoder ticks tolerance (increase if still noisy)
-    private static final int SPINDEXER_STABLE_CYCLES = 3;  // must be inside deadband this many loops
-    private static final double SPINDEXER_KP = 0.0005;
+    public double EncoderZero;
 
     @Override
     public void init() {
@@ -614,135 +607,174 @@ public class AutoTop3Blue extends OpMode {
         }
 
     }
-    public void SpindexerSafety() {
-        // If already finished, stop and advance once
-        if (spindexerSafetyDone) {
-            drive.spindexer.setPower(0);
-            setPathState(pathState + 1);
-            return;
-        }
-
-        pos = drive.intakeMotor.getCurrentPosition();
-
-        telemetry.addData("pos", pos);
-        telemetry.addData("detectedBall1", detectedBall1);
-        telemetry.addData("detectedBall2", detectedBall2);
-        telemetry.addData("detectedBall3", detectedBall3);
-        telemetry.addData("slot0,slot1,slot2", "%b, %b, %b", slot0, slot1, slot2);
-        telemetry.update();
-
-        // --- Process slot2 / detectedBall3 ---
-        if (detectedBall3 == 'U') {
-            int desired = 9557; // target for slot2 (both branches used same magnitude in earlier code)
-            int error = desired - pos;                 // positive -> move CCW in your original P
-            double power = SPINDEXER_KP * error;
-            power = Math.max(Math.min(power, 1), -1);
-
-            if (Math.abs(error) <= SPINDEXER_DEADBAND) {
-                stable2++;
-                drive.spindexer.setPower(0);
-            } else {
-                stable2 = 0;
-                drive.spindexer.setPower(power);
-                pathTimer.resetTimer();
-            }
-
-            if (stable2 >= SPINDEXER_STABLE_CYCLES) {
-                // kicker sequence inline
-                if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
-                }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.85) {
-                    drive.kicker.setPosition(kickerPos);
-                    kickerUp = false;
-                    detectedBall3 = 'N';
-                    slot2 = false;
-                    stable2 = 0;
-                }
-            }
-        }
-        // --- Process slot1 / detectedBall2 ---
-        else if (detectedBall2 == 'U') {
-            int desired = has180Occured ? 15019 : 6827;
-            int error = desired - pos;
-            double power = SPINDEXER_KP * error;
-            power = Math.max(Math.min(power, 1), -1);
-
-            if (Math.abs(error) <= SPINDEXER_DEADBAND) {
-                stable1++;
-                drive.spindexer.setPower(0);
-            } else {
-                stable1 = 0;
-                drive.spindexer.setPower(power);
-                pathTimer.resetTimer();
-            }
-
-            if (stable1 >= SPINDEXER_STABLE_CYCLES) {
-                if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
-                }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.85) {
-                    drive.kicker.setPosition(kickerPos);
-                    kickerUp = false;
-                    detectedBall2 = 'N';
-                    slot1 = false;
-                    stable1 = 0;
-                }
-            }
-        }
-        // --- Process slot0 / detectedBall1 ---
-        else if (detectedBall1 == 'U') {
-            int desired = 12288;
-            int error = desired - pos;
-            double power = SPINDEXER_KP * error;
-            power = Math.max(Math.min(power, 1), -1);
-
-            if (Math.abs(error) <= SPINDEXER_DEADBAND) {
-                stable0++;
-                drive.spindexer.setPower(0);
-            } else {
-                stable0 = 0;
-                drive.spindexer.setPower(power);
-                pathTimer.resetTimer();
-            }
-
-            if (stable0 >= SPINDEXER_STABLE_CYCLES) {
-                if (!kickerUp) {
-                    drive.kicker.setPosition(kickerPos + 1);
-                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
-                        kickerUp = true;
-                        kickerStartTime = runtime.seconds();
-                    }
-                }
-                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.85) {
-                    drive.kicker.setPosition(kickerPos);
-                    kickerUp = false;
-                    detectedBall1 = 'N';
-                    slot0 = false;
-                    stable0 = 0;
-                }
-            }
-        } else {
-            // no unknowns — ensure stopped
-            drive.spindexer.setPower(0);
-        }
-
-        // If all slots cleared, mark safety done (so we advance next loop only once)
-        if (!slot0 && !slot1 && !slot2) {
-            telemetry.addData("SpindexerSafety", "all slots clear -> DONE");
-            telemetry.update();
-            drive.spindexer.setPower(0);
-            spindexerSafetyDone = true;
-        }
-    }
+//    public void SpindexerSafety() {
+//        pos = drive.intakeMotor.getCurrentPosition();
+//        if (detectedBall3 == 'U' && has180Occured) { // detectedBall3 is at slot2
+//            int remaining = pos - 9557; //cw
+//            double power = 0;
+//            power = (-0.0005 * remaining);
+//            power = Math.max(power, -1);
+//            power = Math.min(power, 1);
+//            if (Math.abs(remaining) <= 35) {
+//                power = 0;
+//            }
+//            if (Math.abs(remaining) >= 100) {
+//                pathTimer.resetTimer();
+//            }
+//            telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
+//            drive.spindexer.setPower(power);
+//            if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
+//                drive.spindexer.setPower(0);
+//                if (!kickerUp) {
+//                    drive.kicker.setPosition(kickerPos + 1);
+//                    telemetry.addData("kickerUp", true);
+//                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
+//                        kickerUp = true;
+//                        kickerStartTime = runtime.seconds();
+//                    }
+//                }
+//                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+//                    drive.kicker.setPosition(kickerPos);
+//                    kickerUp = false;
+//                    has180Occured = false;
+//                    detectedBall3 = 'N';
+//                    slot2 = false;
+//                }
+//            }
+//        } else if (detectedBall3 == 'U'&& !has180Occured) { // detectedBall3 is at slot2
+//            int remaining = 9557 - pos; //ccw
+//            double power = 0;
+//            power = (0.0005 * remaining);
+//            power = Math.max(power, -1);
+//            power = Math.min(power, 1);
+//            if (Math.abs(remaining) <= 35) {
+//                power = 0;
+//            }
+//            if (Math.abs(remaining) >= 100) {
+//                pathTimer.resetTimer();
+//            }
+//            telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
+//            drive.spindexer.setPower(power);
+//            if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
+//                drive.spindexer.setPower(0);
+//                if (!kickerUp) {
+//                    drive.kicker.setPosition(kickerPos + 1);
+//                    telemetry.addData("kickerUp", true);
+//                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
+//                        kickerUp = true;
+//                        kickerStartTime = runtime.seconds();
+//                    }
+//                }
+//                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+//                    drive.kicker.setPosition(kickerPos);
+//                    kickerUp = false;
+//                    detectedBall3 = 'N';
+//                    slot2 = false;
+//                }
+//            }
+//        }
+//        if (detectedBall2 == 'U' && has180Occured) { //detectedBall2 is at slot1
+//            int remaining = 15019 - pos; //ccw
+//            double power = 0;
+//            power = (0.0005 * remaining);
+//            power = Math.max(power, -1);
+//            power = Math.min(power, 1);
+//            if (Math.abs(remaining) <= 35) {
+//                power = 0;
+//            }
+//            if (Math.abs(remaining) >= 100) {
+//                pathTimer.resetTimer();
+//            }
+//            telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
+//            drive.spindexer.setPower(power);
+//            if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
+//                drive.spindexer.setPower(0);
+//                if (!kickerUp) {
+//                    drive.kicker.setPosition(kickerPos + 1);
+//                    telemetry.addData("kickerUp", true);
+//                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
+//                        kickerUp = true;
+//                        kickerStartTime = runtime.seconds();
+//                    }
+//                }
+//                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+//                    drive.kicker.setPosition(kickerPos);
+//                    kickerUp = false;
+//                    has180Occured = false;
+//                    detectedBall2 = 'N';
+//                    slot1 = false;
+//                }
+//            }
+//        } else if (detectedBall2 == 'U' && !has180Occured) { //detectedBall2 is at slot1
+//            int remaining = 6827 - pos; //ccw
+//            double power = 0;
+//            power = (0.0005 * remaining);
+//            power = Math.max(power, -1);
+//            power = Math.min(power, 1);
+//            if (Math.abs(remaining) <= 35) {
+//                power = 0;
+//            }
+//            if (Math.abs(remaining) >= 100) {
+//                pathTimer.resetTimer();
+//            }
+//            telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
+//            drive.spindexer.setPower(power);
+//            if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
+//                drive.spindexer.setPower(0);
+//                if (!kickerUp) {
+//                    drive.kicker.setPosition(kickerPos + 1);
+//                    telemetry.addData("kickerUp", true);
+//                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
+//                        kickerUp = true;
+//                        kickerStartTime = runtime.seconds();
+//                    }
+//                }
+//                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+//                    drive.kicker.setPosition(kickerPos);
+//                    kickerUp = false;
+//                    detectedBall2 = 'N';
+//                    slot1 = false;
+//                }
+//            }
+//        }
+//        if (detectedBall1 == 'U') { //detectedBall1 is at slot0
+//            int remaining = 12288 - pos; //ccw
+//            double power = 0;
+//            power = (0.0005 * remaining);
+//            power = Math.max(power, -1);
+//            power = Math.min(power, 1);
+//            if (Math.abs(remaining) <= 35) {
+//                power = 0;
+//            }
+//            if (Math.abs(remaining) >= 100) {
+//                pathTimer.resetTimer();
+//            }
+//            telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
+//            drive.spindexer.setPower(power);
+//            if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
+//                drive.spindexer.setPower(0);
+//                if (!kickerUp) {
+//                    drive.kicker.setPosition(kickerPos + 1);
+//                    telemetry.addData("kickerUp", true);
+//                    if (drive.kicker.getPosition() > kickerPos + 0.5) {
+//                        kickerUp = true;
+//                        kickerStartTime = runtime.seconds();
+//                    }
+//                }
+//                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+//                    drive.kicker.setPosition(kickerPos);
+//                    kickerUp = false;
+//                    detectedBall1 = 'N';
+//                    slot0 = false;
+//                }
+//            }
+//        }
+//        if  (detectedBall1 != 'U' && detectedBall2 != 'U' && detectedBall3 != 'U') {
+//            telemetry.addData("nextPathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", true);
+//            telemetry.update();
+//            setPathState(pathState +1);
+//        }
+//    }
 
 
     public int autonomousPathUpdate() {
@@ -802,7 +834,7 @@ public class AutoTop3Blue extends OpMode {
                     if (colorScanner.detectedColor != null) {
                         detectedBall1 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
                     } else {
-                        detectedBall1 = 'U';
+                        detectedBall1 = 'P';
                     }
                     colorScanner.reset();
                     setPathState(4);
@@ -834,7 +866,7 @@ public class AutoTop3Blue extends OpMode {
                     if (colorScanner.detectedColor != null) {
                         detectedBall2 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
                     } else {
-                        detectedBall2 = 'U';
+                        detectedBall2 = 'P';
                     }
                     colorScanner.reset();
                     setPathState(6);
@@ -864,7 +896,7 @@ public class AutoTop3Blue extends OpMode {
                     if (colorScanner.detectedColor != null) {
                         detectedBall3 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
                     } else {
-                        detectedBall3 = 'U';
+                        detectedBall3 = 'P';
                     }
                     colorScanner.reset();
                     setPathState(8);
@@ -902,7 +934,8 @@ public class AutoTop3Blue extends OpMode {
             case 13:
                 telemetry.addData("case", 13);
                 telemetry.update();
-                SpindexerSafety();
+                setPathState(14);
+                //SpindexerSafety();
                 break;
             case 14:
                 drive.shooterMotor.setPower(0);
