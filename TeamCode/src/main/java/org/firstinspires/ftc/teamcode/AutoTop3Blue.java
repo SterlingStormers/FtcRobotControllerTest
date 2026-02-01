@@ -1,6 +1,7 @@
 
 package org.firstinspires.ftc.teamcode;
 import com.pedropathing.util.Timer;
+import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.bylazar.configurables.annotations.Configurable;
@@ -42,6 +43,10 @@ public class AutoTop3Blue extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     ColorSensingAuto colorScanner;
     public boolean ShooterSpinup = false;
+    private int seenAprilTag = -1;            // the confirmed tag ID we saw (or -1 if none)
+    private int aprilTagConfirmCount = 0;    // how many consecutive frames we saw the same tag
+    private static final int APRILTAG_CONFIRM_THRESHOLD = 3; // require N frames to confirm
+    private final int[] targetTags = {1, 2, 3};
     public double EncoderZero;
 
     @Override
@@ -71,7 +76,11 @@ public class AutoTop3Blue extends OpMode {
         colorScanner = new ColorSensingAuto(this, "Webcam 1");
 //        motor = hardwareMap.get(DcMotor.class, "intake_motor");
         drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // Reset the motor encoder
-        drive.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Makes sure intake motor does not rely on
+        drive.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        drive.husky.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
+
+        telemetry.update();
     }
 
     @Override
@@ -795,13 +804,74 @@ public class AutoTop3Blue extends OpMode {
             case 1:
                 telemetry.addData("case: ", 1);
                 follower.followPath(paths.Path1, true);
+
                 ShooterSpinup = true;
                 setPathState(2);
                 break;
             case 2:
                 telemetry.addData("case: ", 2);
+
+                HuskyLens.Block[] blocks = drive.husky.blocks();
+                telemetry.addData("Block count", blocks.length);
+
+                boolean foundTargetThisFrame = false;
+                for (int i = 0; i < blocks.length; i++) {
+                    telemetry.addData("Block", blocks[i].toString());
+
+                    int id = blocks[i].id;
+                    for (int t = 0; t < targetTags.length; t++) {
+                        if (id == targetTags[t]) {
+                            foundTargetThisFrame = true;
+
+                            if (seenAprilTag == id) {
+                                aprilTagConfirmCount++;
+                            } else {
+                                seenAprilTag = id;
+                                aprilTagConfirmCount = 1;
+                            }
+
+                            panelsTelemetry.debug("AprilTag candidate", id + " (count=" + aprilTagConfirmCount + ")");
+                            break;
+                        }
+                    }
+
+                    if (foundTargetThisFrame) break;
+                }
+
+                if (!foundTargetThisFrame) {
+                    aprilTagConfirmCount = 0;
+                    seenAprilTag = -1;
+                }
+
+                if (aprilTagConfirmCount >= APRILTAG_CONFIRM_THRESHOLD) {
+                    panelsTelemetry.debug("AprilTag confirmed", String.valueOf(seenAprilTag));
+                    telemetry.addData("AprilTag confirmed", seenAprilTag);
+                    telemetry.update();
+
+                    if (seenAprilTag == 1) {
+                        ball1 = 'P';
+                        ball2 = 'P';
+                        ball3 = 'G';
+                    } else if (seenAprilTag == 2) {
+                        ball1 = 'P';
+                        ball2 = 'G';
+                        ball3 = 'P';
+                    } else if (seenAprilTag == 3) {
+                        ball1 = 'G';
+                        ball2 = 'P';
+                        ball3 = 'P';
+                    } else {
+                        ball1 = 'P';
+                        ball2 = 'G';
+                        ball3 = 'P';
+                        telemetry.addData("scanned", false);
+                    }
+                }
+
+                telemetry.update();
+
                 pos = drive.intakeMotor.getCurrentPosition();
-                if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                if (pathTimer.getElapsedTimeSeconds() >= 2) {
                     int remaining = 2731 - pos; //ccw
                     double power = 0;
                     power = (0.0005 * remaining);

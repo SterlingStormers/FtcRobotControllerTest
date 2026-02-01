@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.hardware.Sensor;
 
+import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -18,7 +19,7 @@ public class DriveTrainHardware {
     public DcMotor intakeMotor;
     public DcMotor shooterMotor;
     public CRServo spindexer;
-    public SensorHuskyLens husky;
+    public HuskyLens husky;
     public Servo kicker;
 
     public void init(HardwareMap hw) {
@@ -30,7 +31,7 @@ public class DriveTrainHardware {
         shooterMotor = hw.get(DcMotor.class, "shooter_motor");
         spindexer = hw.get(CRServo.class, "spindexer_servo");
         kicker = hw.get(Servo.class, "kicker_servo");
-        husky = hw.get(SensorHuskyLens.class, "husky_lens");
+        husky = hw.get(HuskyLens.class, "husky_lens");
 
         //To be changed
 
