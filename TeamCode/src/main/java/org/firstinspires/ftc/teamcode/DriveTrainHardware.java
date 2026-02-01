@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorHuskyLens;
+
 public class DriveTrainHardware {
     public DcMotor frontLeftDrive;
     public DcMotor backLeftDrive;
@@ -16,6 +18,7 @@ public class DriveTrainHardware {
     public DcMotor intakeMotor;
     public DcMotor shooterMotor;
     public CRServo spindexer;
+    public SensorHuskyLens husky;
     public Servo kicker;
 
     public void init(HardwareMap hw) {
@@ -27,6 +30,7 @@ public class DriveTrainHardware {
         shooterMotor = hw.get(DcMotor.class, "shooter_motor");
         spindexer = hw.get(CRServo.class, "spindexer_servo");
         kicker = hw.get(Servo.class, "kicker_servo");
+        husky = hw.get(SensorHuskyLens.class, "husky_lens");
 
         //To be changed
 
