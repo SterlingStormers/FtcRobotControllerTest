@@ -107,7 +107,7 @@ public class ColorSensingAuto {
         switch (swatch) {
             case ARTIFACT_PURPLE: return 'P';
             case ARTIFACT_GREEN: return 'G';
-            default: return 'U';  // unknown
+            default: return 'P';  // unknown
         }
     }
 
