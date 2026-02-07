@@ -11,6 +11,8 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.opencv.ImageRegion;
 import org.firstinspires.ftc.vision.opencv.PredominantColorProcessor;
 
+import java.util.Optional;
+
 public class ColorSensingAuto {
 
     private PredominantColorProcessor colorSensor;
@@ -107,7 +109,8 @@ public class ColorSensingAuto {
         switch (swatch) {
             case ARTIFACT_PURPLE: return 'P';
             case ARTIFACT_GREEN: return 'G';
-            default: return 'P';  // unknown
+            default:
+                throw new IllegalStateException("Unhandled Color");
         }
     }
 

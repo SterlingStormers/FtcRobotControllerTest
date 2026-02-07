@@ -145,7 +145,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -190,7 +190,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -221,7 +221,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -263,7 +263,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -295,7 +295,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -326,7 +326,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -358,7 +358,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -389,7 +389,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -430,7 +430,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -462,7 +462,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -493,7 +493,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -525,7 +525,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
@@ -556,7 +556,7 @@ public class SpindexerLogic extends OpMode {
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             telemetry.addData("kickerUp", true);
-                            if (drive.kicker.getPosition() > kickerPos + 0.5) {
+                            if (drive.kicker.getPosition() > kickerPos + 0.3) {
                                 kickerUp = true;
                                 kickerStartTime = runtime.seconds();
                             }
