@@ -199,7 +199,7 @@ public class DriveTrain extends LinearOpMode {
                 spindexer.setPower(power);
                 telemetry.addData("remaining: ", remaining);
 
-                double timeoutSec = 0.85;
+                double timeoutSec = 0.65;
                 if (Math.abs(remaining) <= tolerance && pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
 //                    offsetCounts = remaining
                     spindexer.setPower(0);
