@@ -34,9 +34,6 @@ public class SpindexerLogic extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     public int pos = 0;
 
-    // Track which slot is currently being shot
-    private int activeSlot = -1;  // 0, 1, or 2
-
     @Override
     public void init() {
         drive = new DriveTrainHardware();
@@ -48,47 +45,11 @@ public class SpindexerLogic extends OpMode {
         opmodeTimer = new Timer();
         drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         drive.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        runtime.reset();
     }
 
     @Override
     public void loop() {
-        // debug telemetry for kicker timing
-        telemetry.addData("pathState", pathState);
-        telemetry.addData("kickerStartTime", kickerStartTime);
-        telemetry.addData("kickerElapsed", kickerStartTime > 0.0 ? runtime.seconds() - kickerStartTime : 0.0);
-        telemetry.addData("activeSlot", activeSlot);
-
-        // If kicker has been up for >= 0.5s, lower it and advance the state
-        if (kickerStartTime > 0.0 && (runtime.seconds() - kickerStartTime >= 0.5)) {
-            // ensure kicker is down
-            drive.kicker.setPosition(kickerPos);
-            kickerUp = false;
-
-            // Clear the correct slot based on which one was active
-            if (activeSlot == 2) {
-                slot2 = false;
-            } else if (activeSlot == 1) {
-                slot1 = false;
-            } else if (activeSlot == 0) {
-                slot0 = false;
-                has180Occured = true;  // Only set when slot0 is shot
-            }
-
-            // Advance to next state
-            if (pathState == 5) {
-                setPathState(6);
-            } else if (pathState == 6) {
-                has180Occured = false;  // Reset for ball3
-                setPathState(7);
-            } else if (pathState == 7) {
-                setPathState(8);
-            }
-
-            // Clear the active slot and timestamp
-            activeSlot = -1;
-            kickerStartTime = 0.0;
-        }
-
         pathState = autonomousPathUpdate();
         telemetry.update();
     }
@@ -99,6 +60,14 @@ public class SpindexerLogic extends OpMode {
     }
 
     public int autonomousPathUpdate() {
+        // Safety: if we're done, ensure everything stays stopped
+        if (pathState == -1) {
+            drive.shooterMotor.setPower(0);
+            drive.spindexer.setPower(0);
+            drive.intakeMotor.setPower(0);
+            return -1;
+        }
+
         switch(pathState) {
             case 0:
                 drive.intakeMotor.setPower(-1);
@@ -181,10 +150,15 @@ public class SpindexerLogic extends OpMode {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 2;  // Track that we're shooting slot2
                         }
                     } else {
                         drive.spindexer.setPower(power);
+                    }
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        slot2 = false;
+                        setPathState(6);
                     }
 
                 } else if (detectedBall2 == ball1) {  // ball1 is in slot1
@@ -198,12 +172,16 @@ public class SpindexerLogic extends OpMode {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 1;  // Track that we're shooting slot1
                         }
                     } else {
                         drive.spindexer.setPower(power);
                     }
-
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        slot1 = false;
+                        setPathState(6);
+                    }
                 } else if (detectedBall1 == ball1) {  // ball1 is in slot0
                     int remaining = 12288 - pos;
                     double power = 0.0005 * remaining;
@@ -215,16 +193,22 @@ public class SpindexerLogic extends OpMode {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 0;  // Track that we're shooting slot0
                         }
                     } else {
                         drive.spindexer.setPower(power);
                     }
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        has180Occured = true;
+                        slot0 = false;
+                        setPathState(6);
+                    }
+                } else {
+                    drive.spindexer.setPower(0);
                 }
             }
             break;
-
-            // ===== CASE 6 - Shoot ball2 =====
             case 6:
                 telemetry.addData("case", 6);
                 pos = drive.intakeMotor.getCurrentPosition();
@@ -240,10 +224,16 @@ public class SpindexerLogic extends OpMode {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 2;
                         }
                     } else {
                         drive.spindexer.setPower(power);
+                    }
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        has180Occured = false;
+                        slot2 = false;
+                        setPathState(7);
                     }
 
                 } else if (detectedBall2 == ball2 && slot1) {
@@ -257,10 +247,15 @@ public class SpindexerLogic extends OpMode {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 1;
                         }
                     } else {
                         drive.spindexer.setPower(power);
+                    }
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        slot1 = false;
+                        setPathState(7);
                     }
 
                 } else if (detectedBall1 == ball2 && slot0) {
@@ -274,11 +269,19 @@ public class SpindexerLogic extends OpMode {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 0;
                         }
                     } else {
                         drive.spindexer.setPower(power);
                     }
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        has180Occured = true;
+                        slot0 = false;
+                        setPathState(7);
+                    }
+                } else {
+                    drive.spindexer.setPower(0);
                 }
                 break;
 
@@ -298,29 +301,38 @@ public class SpindexerLogic extends OpMode {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 2;
                         }
                     } else {
                         drive.spindexer.setPower(power);
                     }
-
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        has180Occured = false;
+                        slot2 = false;
+                        setPathState(8);
+                    }
                 } else if (detectedBall2 == ball3 && slot1) {
                     int remaining = has180Occured ? (15019 - pos) : (6827 - pos);
                     double power = 0.0005 * remaining;
                     power = Math.max(-1, Math.min(1, power));
-
                     if (Math.abs(remaining) <= 35) {
                         drive.spindexer.setPower(0);
                         if (!kickerUp) {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 1;
                         }
                     } else {
                         drive.spindexer.setPower(power);
                     }
-
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        has180Occured = false;
+                        slot1 = false;
+                        setPathState(8);
+                    }
                 } else if (detectedBall1 == ball3 && slot0) {
                     int remaining = 12288 - pos;
                     double power = 0.0005 * remaining;
@@ -332,11 +344,18 @@ public class SpindexerLogic extends OpMode {
                             drive.kicker.setPosition(kickerPos + 1);
                             kickerUp = true;
                             kickerStartTime = runtime.seconds();
-                            activeSlot = 0;
                         }
                     } else {
                         drive.spindexer.setPower(power);
                     }
+                    if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
+                        drive.kicker.setPosition(kickerPos);
+                        kickerUp = false;
+                        slot0 = false;
+                        setPathState(8);
+                    }
+                } else {
+                    drive.spindexer.setPower(0);
                 }
                 break;
 
