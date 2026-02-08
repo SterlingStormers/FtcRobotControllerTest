@@ -177,7 +177,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot2 = false;
@@ -222,7 +222,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot1 = false;
@@ -253,7 +253,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     has180Occured = true;
@@ -301,7 +301,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     has180Occured = false;
@@ -333,7 +333,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot2 = false;
@@ -364,7 +364,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     has180Occured = false;
@@ -396,7 +396,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot1 = false;
@@ -427,7 +427,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     has180Occured = true;
@@ -476,7 +476,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     has180Occured = false;
@@ -508,7 +508,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot2 = false;
@@ -539,7 +539,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     has180Occured = false;
@@ -571,7 +571,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot1 = false;
@@ -602,7 +602,7 @@ public class AutoTop3Blue extends OpMode {
                         kickerStartTime = runtime.seconds();
                     }
                 }
-                if (kickerUp || (runtime.seconds() - kickerStartTime) >= 0.5) {
+                if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                     drive.kicker.setPosition(kickerPos);
                     kickerUp = false;
                     slot0 = false;
