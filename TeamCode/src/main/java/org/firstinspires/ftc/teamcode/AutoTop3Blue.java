@@ -112,7 +112,7 @@ public class AutoTop3Blue extends OpMode {
                             new BezierLine(
                                     new Pose(23.907, 119.235),
 
-                                    new Pose(72.000, 72.000)
+                                    new Pose(61.750, 81.578)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
 
@@ -120,7 +120,7 @@ public class AutoTop3Blue extends OpMode {
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(72.000, 72.000),
+                                    new Pose(61.750, 81.578),
 
                                     new Pose(66.203, 77.688)
                             )
