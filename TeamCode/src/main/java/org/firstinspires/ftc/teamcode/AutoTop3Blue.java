@@ -112,7 +112,7 @@ public class AutoTop3Blue extends OpMode {
                             new BezierLine(
                                     new Pose(23.907, 119.235),
 
-                                    new Pose(61.750, 81.578)
+                                    new Pose(72.000, 72.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
 
@@ -120,7 +120,7 @@ public class AutoTop3Blue extends OpMode {
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(61.750, 81.578),
+                                    new Pose(72.000, 72.000),
 
                                     new Pose(66.203, 77.688)
                             )
@@ -142,6 +142,11 @@ public class AutoTop3Blue extends OpMode {
     public void setPathState(int newState) {
         pathState = newState;
         pathTimer.resetTimer();
+
+        // Reset kicker state when entering shooting states
+        if (newState == 10 || newState == 11 || newState == 12) {
+            kickerUp = false;
+        }
     }
     public void SpindexerLogic1(){
 
@@ -159,7 +164,12 @@ public class AutoTop3Blue extends OpMode {
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -182,7 +192,12 @@ public class AutoTop3Blue extends OpMode {
             double power = -0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -205,7 +220,12 @@ public class AutoTop3Blue extends OpMode {
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -225,7 +245,11 @@ public class AutoTop3Blue extends OpMode {
             }
         } else {
             drive.spindexer.setPower(0);
+            setPathState(pathState + 1);
         }
+
+
+
     }
     public void SpindexerLogic2() {
 
@@ -234,6 +258,7 @@ public class AutoTop3Blue extends OpMode {
         telemetry.addData("detectedBall3", detectedBall3);
         telemetry.addData("slot0,slot1,slot2", "%b, %b, %b", slot0, slot1, slot2);
         telemetry.addData("pos", drive.intakeMotor.getCurrentPosition());
+        telemetry.addData("kickerUp", kickerUp);
         telemetry.update();
 
         pos = drive.intakeMotor.getCurrentPosition();
@@ -243,7 +268,15 @@ public class AutoTop3Blue extends OpMode {
             double power = has180Occured ? (-0.0005 * remaining) : (0.0005 * remaining);
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            telemetry.addData("Logic2: targeting slot2", true);
+            telemetry.addData("remaining", Math.abs(remaining));
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -267,7 +300,15 @@ public class AutoTop3Blue extends OpMode {
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            telemetry.addData("Logic2: targeting slot1", true);
+            telemetry.addData("remaining", Math.abs(remaining));
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -290,7 +331,15 @@ public class AutoTop3Blue extends OpMode {
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            telemetry.addData("Logic2: targeting slot0", true);
+            telemetry.addData("remaining", Math.abs(remaining));
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -310,7 +359,9 @@ public class AutoTop3Blue extends OpMode {
             }
         } else {
             drive.spindexer.setPower(0);
+            setPathState(pathState + 1);
         }
+
     }
     public void SpindexerLogic3() {
 
@@ -327,7 +378,12 @@ public class AutoTop3Blue extends OpMode {
             double power = has180Occured ? (-0.0005 * remaining) : (0.0005 * remaining);
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -351,7 +407,12 @@ public class AutoTop3Blue extends OpMode {
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -375,7 +436,12 @@ public class AutoTop3Blue extends OpMode {
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
 
-            if (Math.abs(remaining) <= 35) {
+            // Prevent stalling - use minimum power when far away
+            if (Math.abs(remaining) > 10) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
+            if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
                     drive.kicker.setPosition(kickerPos + 1);
@@ -394,11 +460,23 @@ public class AutoTop3Blue extends OpMode {
             }
         } else {
             drive.spindexer.setPower(0);
+            setPathState(pathState + 1);
         }
     }
 
 
     public int autonomousPathUpdate() {
+        // Safety: if we're done, ensure everything stays stopped
+        if (pathState == -1) {
+            drive.shooterMotor.setPower(0);
+            drive.spindexer.setPower(0);
+            drive.intakeMotor.setPower(0);
+            drive.frontLeftDrive.setPower(0);
+            drive.backLeftDrive.setPower(0);
+            drive.frontRightDrive.setPower(0);
+            drive.backRightDrive.setPower(0);
+            return -1;
+        }
 
         // Add your state machine Here
         // Access paths with paths.pathName
