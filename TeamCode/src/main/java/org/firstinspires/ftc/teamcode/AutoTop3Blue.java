@@ -245,12 +245,8 @@ public class AutoTop3Blue extends OpMode {
             }
         } else {
             drive.spindexer.setPower(0);
-            drive.intakeMotor.setPower(1);
             setPathState(pathState + 1);
         }
-
-
-
     }
     public void SpindexerLogic2() {
 
@@ -571,6 +567,9 @@ public class AutoTop3Blue extends OpMode {
                     power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
+                    if (Math.abs(remaining) > 10) {
+                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
+                    }
                     if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         power = 0;
                         slot0 = true;
@@ -616,15 +615,17 @@ public class AutoTop3Blue extends OpMode {
                     power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
+
+                    if (Math.abs(remaining) > 10) {
+                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
+                    }
+
                     if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         power = 0;
                         slot1 = true;
                         setPathState(5);
                     }
 
-                    if (Math.abs(remaining) > 10) {
-                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
-                    }
 
                     drive.spindexer.setPower(power);
                 }
@@ -637,11 +638,6 @@ public class AutoTop3Blue extends OpMode {
                     try {
                         if (colorScanner.detectedColor != null) {
                             detectedBall2 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
-                            if (detectedBall2 == 'G' && detectedBall1 == 'G') {
-                                detectedBall2 = 'P';
-                            }
-                        } else {
-                            detectedBall2 = ball2;
                         }
                     } catch (IllegalStateException e) {
                         detectedBall2 = ball2;
@@ -658,14 +654,13 @@ public class AutoTop3Blue extends OpMode {
                     power = (0.0005 * remaining);
                     power = Math.max(power, -1);
                     power = Math.min(power, 1);
+                    if (Math.abs(remaining) > 10) {
+                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
+                    }
                     if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         power = 0;
                         slot2 = true;
                         setPathState(7);
-                    }
-
-                    if (Math.abs(remaining) > 10) {
-                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
                     }
 
                     drive.spindexer.setPower(power);
@@ -680,9 +675,6 @@ public class AutoTop3Blue extends OpMode {
                         if (colorScanner.detectedColor != null) {
                             detectedBall3 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
                             // Force to P if ball1 or ball2 was already G
-                            if (detectedBall3 == 'G' && (detectedBall1 == 'G' || detectedBall2 == 'G')) {
-                                detectedBall3 = 'P';
-                            }
                         } else {
                             detectedBall3 = ball3;
                         }
@@ -701,6 +693,20 @@ public class AutoTop3Blue extends OpMode {
                 if (!follower.isBusy()) {
                     telemetry.addData("followPath: ", 2);
                     follower.followPath(paths.Path2, true);
+
+                    if (detectedBall1 == 'G') {
+                        detectedBall2 = 'P';
+                        detectedBall3 = 'P';
+                    } else {
+                        detectedBall1 = 'P';
+                        if (detectedBall2 == 'G') {
+                            detectedBall3 = 'P';
+                        } else {
+                            detectedBall2 = 'P';
+                            detectedBall3 = 'G';
+                        }
+                    }
+
                     setPathState(10);
                 }
                 break;
