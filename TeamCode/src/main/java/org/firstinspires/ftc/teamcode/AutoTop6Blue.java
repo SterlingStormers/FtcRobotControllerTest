@@ -229,6 +229,10 @@ public class AutoTop6Blue extends OpMode {
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
             }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
+
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
@@ -274,6 +278,9 @@ public class AutoTop6Blue extends OpMode {
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
             }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
 
@@ -306,6 +313,9 @@ public class AutoTop6Blue extends OpMode {
             }
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
+            }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
             }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
@@ -356,6 +366,9 @@ public class AutoTop6Blue extends OpMode {
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
             }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
@@ -389,6 +402,9 @@ public class AutoTop6Blue extends OpMode {
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
             }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
@@ -420,6 +436,9 @@ public class AutoTop6Blue extends OpMode {
             }
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
+            }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
             }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
@@ -454,6 +473,9 @@ public class AutoTop6Blue extends OpMode {
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
             }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
@@ -485,6 +507,9 @@ public class AutoTop6Blue extends OpMode {
             }
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
+            }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
             }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
@@ -536,6 +561,9 @@ public class AutoTop6Blue extends OpMode {
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
             }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
@@ -568,6 +596,9 @@ public class AutoTop6Blue extends OpMode {
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
             }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
@@ -598,6 +629,9 @@ public class AutoTop6Blue extends OpMode {
             }
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
+            }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
             }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
@@ -631,6 +665,9 @@ public class AutoTop6Blue extends OpMode {
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
             }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+            }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
             if (pathTimer.getElapsedTimeSeconds() >= 0.3) {
@@ -661,6 +698,9 @@ public class AutoTop6Blue extends OpMode {
             }
             if (Math.abs(remaining) >= 100) {
                 pathTimer.resetTimer();
+            }
+            if (Math.abs(remaining) > 45) {
+                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
             }
             telemetry.addData("Timer", pathTimer.getElapsedTimeSeconds());
             drive.spindexer.setPower(power);
@@ -976,6 +1016,9 @@ public class AutoTop6Blue extends OpMode {
                         slot0 = true;
                         setPathState(3);
                     }
+                    if (Math.abs(remaining) > 35) {
+                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
+                    }
                     telemetry.addData("remaining: ", remaining);
                     drive.spindexer.setPower(power);
                 }
@@ -1011,6 +1054,9 @@ public class AutoTop6Blue extends OpMode {
                         slot1 = true;
                         setPathState(5);
                     }
+                    if (Math.abs(remaining) > 35) {
+                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
+                    }
                     drive.spindexer.setPower(power);
                 }
                 break;
@@ -1042,6 +1088,9 @@ public class AutoTop6Blue extends OpMode {
                         power = 0;
                         slot2 = true;
                         setPathState(7);
+                    }
+                    if (Math.abs(remaining) > 35) {
+                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
                     }
                     drive.spindexer.setPower(power);
                 }

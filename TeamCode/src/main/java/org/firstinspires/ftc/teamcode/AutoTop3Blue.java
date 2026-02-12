@@ -89,7 +89,7 @@ public class AutoTop3Blue extends OpMode {
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
         if (ShooterSpinup && follower.isBusy() && 0.25 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
-            drive.shooterMotor.setPower(1);
+            drive.shooterMotor.setPower(0.875);
             ShooterSpinup = false;
         }
 
@@ -166,7 +166,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             if (Math.abs(remaining) <= 10) {
@@ -194,7 +194,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             if (Math.abs(remaining) <= 10) {
@@ -222,7 +222,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             if (Math.abs(remaining) <= 10) {
@@ -245,6 +245,7 @@ public class AutoTop3Blue extends OpMode {
             }
         } else {
             drive.spindexer.setPower(0);
+            drive.intakeMotor.setPower(1);
             setPathState(pathState + 1);
         }
 
@@ -270,7 +271,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             telemetry.addData("Logic2: targeting slot2", true);
@@ -302,7 +303,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             telemetry.addData("Logic2: targeting slot1", true);
@@ -333,7 +334,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             telemetry.addData("Logic2: targeting slot0", true);
@@ -359,6 +360,7 @@ public class AutoTop3Blue extends OpMode {
             }
         } else {
             drive.spindexer.setPower(0);
+            drive.intakeMotor.setPower(1);
             setPathState(pathState + 1);
         }
 
@@ -380,7 +382,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             if (Math.abs(remaining) <= 10) {
@@ -409,7 +411,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             if (Math.abs(remaining) <= 10) {
@@ -438,7 +440,7 @@ public class AutoTop3Blue extends OpMode {
 
             // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
-                power = Math.max(Math.abs(power), 0.15) * Math.signum(power);
+                power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
 
             if (Math.abs(remaining) <= 10) {
@@ -460,6 +462,7 @@ public class AutoTop3Blue extends OpMode {
             }
         } else {
             drive.spindexer.setPower(0);
+            drive.intakeMotor.setPower(1);
             setPathState(pathState + 1);
         }
     }
@@ -594,6 +597,8 @@ public class AutoTop3Blue extends OpMode {
                     try {
                         if (colorScanner.detectedColor != null) {
                             detectedBall1 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
+                        } else {
+                            detectedBall1 = ball1;
                         }
                     } catch (IllegalStateException e) {
                         detectedBall1 = ball1;
@@ -616,6 +621,11 @@ public class AutoTop3Blue extends OpMode {
                         slot1 = true;
                         setPathState(5);
                     }
+
+                    if (Math.abs(remaining) > 10) {
+                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
+                    }
+
                     drive.spindexer.setPower(power);
                 }
                 break;
@@ -627,6 +637,11 @@ public class AutoTop3Blue extends OpMode {
                     try {
                         if (colorScanner.detectedColor != null) {
                             detectedBall2 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
+                            if (detectedBall2 == 'G' && detectedBall1 == 'G') {
+                                detectedBall2 = 'P';
+                            }
+                        } else {
+                            detectedBall2 = ball2;
                         }
                     } catch (IllegalStateException e) {
                         detectedBall2 = ball2;
@@ -648,6 +663,11 @@ public class AutoTop3Blue extends OpMode {
                         slot2 = true;
                         setPathState(7);
                     }
+
+                    if (Math.abs(remaining) > 10) {
+                        power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
+                    }
+
                     drive.spindexer.setPower(power);
                 }
                 break;
@@ -659,6 +679,12 @@ public class AutoTop3Blue extends OpMode {
                     try {
                         if (colorScanner.detectedColor != null) {
                             detectedBall3 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
+                            // Force to P if ball1 or ball2 was already G
+                            if (detectedBall3 == 'G' && (detectedBall1 == 'G' || detectedBall2 == 'G')) {
+                                detectedBall3 = 'P';
+                            }
+                        } else {
+                            detectedBall3 = ball3;
                         }
                     } catch (IllegalStateException e) {
                         detectedBall3 = ball3;
