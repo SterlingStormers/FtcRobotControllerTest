@@ -79,6 +79,8 @@ public class AutoTop3Blue extends OpMode {
 
         drive.husky.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
 
+        drive.light.setPosition(1);
+
         telemetry.update();
         runtime.reset();
     }

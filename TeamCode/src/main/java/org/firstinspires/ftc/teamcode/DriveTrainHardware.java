@@ -21,6 +21,7 @@ public class DriveTrainHardware {
     public CRServo spindexer;
     public HuskyLens husky;
     public Servo kicker;
+    public Servo light;
 
     public void init(HardwareMap hw) {
         frontLeftDrive = hw.get(DcMotor.class, "front_left_drive");
@@ -31,6 +32,7 @@ public class DriveTrainHardware {
         shooterMotor = hw.get(DcMotor.class, "shooter_motor");
         spindexer = hw.get(CRServo.class, "spindexer_servo");
         kicker = hw.get(Servo.class, "kicker_servo");
+        light = hw.get(Servo.class, "bright_light");
         husky = hw.get(HuskyLens.class, "husky_lens");
 
         //To be changed
