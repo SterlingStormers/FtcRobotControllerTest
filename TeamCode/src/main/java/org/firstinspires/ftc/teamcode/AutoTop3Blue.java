@@ -91,7 +91,7 @@ public class AutoTop3Blue extends OpMode {
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
         if (ShooterSpinup && follower.isBusy() && 0.25 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
-            drive.shooterMotor.setPower(0.875);
+            drive.shooterMotor.setPower(0.82);
             ShooterSpinup = false;
         }
 
@@ -114,29 +114,29 @@ public class AutoTop3Blue extends OpMode {
                             new BezierLine(
                                     new Pose(23.907, 119.235),
 
-                                    new Pose(72.000, 72.000)
+                                    new Pose(56.000, 88.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(67))
 
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(72.000, 72.000),
+                                    new Pose(56.000, 88.000),
 
-                                    new Pose(66.203, 77.688)
+                                    new Pose(55.000, 89.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(132))
+                    ).setLinearHeadingInterpolation(Math.toRadians(67), Math.toRadians(144))
 
                     .build();
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(66.203, 77.688),
+                                    new Pose(55.000, 89.000),
 
                                     new Pose(48.404, 119.987)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(135), Math.toRadians(135))
+                    ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(144))
 
                     .build();
         }
@@ -460,7 +460,6 @@ public class AutoTop3Blue extends OpMode {
             }
         } else {
             drive.spindexer.setPower(0);
-            drive.intakeMotor.setPower(1);
             setPathState(pathState + 1);
         }
     }
@@ -708,6 +707,9 @@ public class AutoTop3Blue extends OpMode {
                             detectedBall3 = 'G';
                         }
                     }
+                    if (detectedBall1 == 'P' && detectedBall2 == 'P' && detectedBall3 == 'P')  {
+                        detectedBall1 = 'G';
+                    }
 
                     setPathState(10);
                 }
@@ -720,7 +722,7 @@ public class AutoTop3Blue extends OpMode {
                 telemetry.addData("pos", drive.intakeMotor.getCurrentPosition());
                 telemetry.update();
 
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     SpindexerLogic1();
                 }
                 break;
