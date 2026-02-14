@@ -396,6 +396,7 @@ public class AutoTop3Blue extends OpMode {
 
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
+                drive.spindexer.setPower(0);
                 kickerUp = false;
                 has180Occured = false;
                 slot2 = false;
@@ -425,6 +426,7 @@ public class AutoTop3Blue extends OpMode {
 
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
+                drive.spindexer.setPower(0);
                 kickerUp = false;
                 has180Occured = false;
                 slot1 = false;
@@ -454,6 +456,7 @@ public class AutoTop3Blue extends OpMode {
 
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
+                drive.spindexer.setPower(0);
                 kickerUp = false;
                 slot0 = false;
                 setPathState(pathState + 1);
@@ -741,7 +744,32 @@ public class AutoTop3Blue extends OpMode {
                 drive.shooterMotor.setPower(0);
                 if (!follower.isBusy()) {
                     follower.followPath(paths.Path3, true);
-                    setPathState(15);
+
+                    pos = drive.intakeMotor.getCurrentPosition();
+                    if (pathTimer.getElapsedTimeSeconds() >= waitTime/2) {
+
+                        int remaining = 8129 - pos;
+                        double power = 0;
+                        power = (0.0005 * remaining);
+                        power = Math.max(power, -1);
+                        power = Math.min(power, 1);
+
+                        int tolerance = 30;
+
+                        drive.spindexer.setPower(power);
+                        telemetry.addData("remaining: ", remaining);
+
+                        double timeoutSec = 0.85;
+                        if (Math.abs(remaining) <= tolerance && pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+                            drive.spindexer.setPower(0);
+                            setPathState(15);
+                        } else if (pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+                            telemetry.addData("timed out: ", true);
+                            drive.spindexer.setPower(0);
+                            setPathState(15);
+                        }
+
+                    }
                 }
                 break;
             case 15:
