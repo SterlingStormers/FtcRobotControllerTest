@@ -91,7 +91,7 @@ public class AutoBottom3Red extends OpMode {
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
         if (ShooterSpinup && follower.isBusy() && 0.25 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
-            drive.shooterMotor.setPower(0.82);
+            drive.shooterMotor.setPower(0.785);
             ShooterSpinup = false;
         }
 

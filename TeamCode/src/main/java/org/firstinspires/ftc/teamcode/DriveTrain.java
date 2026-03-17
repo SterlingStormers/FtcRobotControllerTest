@@ -220,7 +220,7 @@ public class DriveTrain extends LinearOpMode {
                     shooterRunning = true;
                 }
                 // set motor power every loop while button held
-                shooterMotor.setPower(0.9);
+                shooterMotor.setPower(0.785);
             } else if (gamepad2.b) {
                 shooterMotor.setPower(-0.3);
             } else {
