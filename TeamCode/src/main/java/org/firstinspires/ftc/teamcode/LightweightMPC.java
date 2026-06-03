@@ -15,6 +15,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.paths.PathChain;
 
 
 
@@ -22,38 +23,134 @@ import com.pedropathing.follower.Follower;
 
 
 public class LightweightMPC {
-    private double baseForward;
-    private double baseStrafe;
-    private double baseTurn;
     private final Follower follower;
     private final DriveTrainHardware drive;
+    private static final double[] FORWARD_DELTAS = {-0.15, -0.05, 0.0, 0.05, 0.15};
+    private static final double[] STRAFE_DELTAS  = {-0.15, -0.05, 0.0, 0.05, 0.15};
+    private static final double[] TURN_DELTAS    = {-0.10, -0.03, 0.0, 0.03, 0.10};
+    private static final double LOOKAHEAD_TIME = 0.1;
+    private static final double MAX_SPEED_FORWARD = 40.0;  // tune
+    private static final double MAX_SPEED_STRAFE  = 30.0;  // tune
+    private static final double MAX_TURN_RATE_RAD_PER_SECOND = Math.PI; // tune
+    private static final double ACCEL_FACTOR_FORWARD = 0.3; // tune
+    private static final double ACCEL_FACTOR_STRAFE  = 0.3; // tune
+    private static final double TURN_COUPLING_FACTOR = 0.3; // tune
+    private static final double HEADING_WEIGHT    = 5.0;   // tune
+    private static final double SMOOTHNESS_WEIGHT = 0.5;   // tune
+    private double lastBestForwardPower = 0;
+    private double lastBestStrafePower = 0;
+    private double lastBestTurnPower = 0;
     public LightweightMPC(Follower follower, DriveTrainHardware drive) {
         this.follower = follower;
         this.drive = drive;
     }
 
     public void update() {
-        // This is where the pulling happens.
+        // step1
         double currentX = follower.getPose().getX();
         double currentY = follower.getPose().getY();
         double currentHeading = follower.getPose().getHeading();
-        double fl = drive.frontLeftDrive .getPower();
-        double bl = drive.backLeftDrive  .getPower();
+        //step2
+        double fl = drive.frontLeftDrive.getPower();
+        double bl = drive.backLeftDrive.getPower();
         double fr = drive.frontRightDrive.getPower();
-        double br = drive.backRightDrive .getPower();
+        double br = drive.backRightDrive.getPower();
+        double baseForward = (fl + bl + fr + br) / 4;
+        double baseStrafe = (fl - bl - fr + br) / 4;
+        double baseTurn = (fl + bl - fr - br) / 4;
+        double fieldVelX = follower.getVelocity().getXComponent();
+        double fieldVelY = follower.getVelocity().getYComponent();
+        double currentForwardVelocity =  fieldVelX * Math.cos(currentHeading) + fieldVelY * Math.sin(currentHeading);
+        double currentStrafeVelocity  = -fieldVelX * Math.sin(currentHeading) + fieldVelY * Math.cos(currentHeading);
+        double bestScore = Double.MAX_VALUE;
+        double bestForwardPower = baseForward;
+        double bestStrafePower = baseStrafe;
+        double bestTurnPower = baseTurn;
+        //step5
+        double lookAheadDistance = follower.getVelocity().getMagnitude() * LOOKAHEAD_TIME;
+        Path currentPath = follower.getCurrentPath();
+        double currentT  = follower.getCurrentTValue();
+        double targetT = Math.min(currentT + lookAheadDistance / currentPath.length(), 1.0);
+        Pose targetPose = currentPath.getPose(targetT);
+        double targetX = targetPose.getX();
+        double targetY = targetPose.getY();
+        double targetHeading = targetPose.getHeading();
 
-        double baseForward = (fl + bl + fr + br) / 4.0;
-        double baseStrafe  = (fl - bl - fr + br) / 4.0;
-        double baseTurn    = (fl + bl - fr - br) / 4.0;
+        //step3
+        for (double forwardDelta : FORWARD_DELTAS) {
+            for (double strafeDelta : STRAFE_DELTAS) {
+                for (double turnDelta : TURN_DELTAS) {
+                    double forwardPower = baseForward + forwardDelta;
+                    double strafePower = baseStrafe + strafeDelta;
+                    double turnPower = baseTurn + turnDelta;
+                    double maxWheel = Math.abs(forwardPower) + Math.abs(strafePower) + Math.abs(turnPower);
+                    if (maxWheel > 1.0) {
+                        forwardPower /= maxWheel;
+                        strafePower /= maxWheel;
+                        turnPower /= maxWheel;
+                    }
+                    double distanceMovedForward = currentForwardVelocity * LOOKAHEAD_TIME + (forwardPower * MAX_SPEED_FORWARD - currentForwardVelocity) * LOOKAHEAD_TIME * ACCEL_FACTOR_FORWARD;
+                    double distanceMovedStrafe = currentStrafeVelocity * LOOKAHEAD_TIME + (strafePower * MAX_SPEED_STRAFE - currentStrafeVelocity) * LOOKAHEAD_TIME * ACCEL_FACTOR_STRAFE;
+                    double turnEffect = Math.abs(turnPower);
+                    double turnScale  = 1.0 - (turnEffect * TURN_COUPLING_FACTOR);
+                    distanceMovedForward *= turnScale;
+                    distanceMovedStrafe  *= turnScale;
+                    double predictedRotation = turnPower * MAX_TURN_RATE_RAD_PER_SECOND * LOOKAHEAD_TIME;
+                    double midpointHeading = currentHeading + (predictedRotation / 2.0);
+                    double xMoved = (distanceMovedForward * Math.cos(midpointHeading)) - (distanceMovedStrafe * Math.sin(midpointHeading));
+                    double yMoved = (distanceMovedForward * Math.sin(midpointHeading)) + (distanceMovedStrafe * Math.cos(midpointHeading));
+                    double xPredicted = currentX + xMoved;
+                    double yPredicted = currentY + yMoved;
+                    double headingPredicted = currentHeading + predictedRotation;
+                    //step5
+                    double errorX = targetX - xPredicted;
+                    double errorY = targetY - yPredicted;
+                    double distanceError = Math.sqrt(errorX * errorX + errorY * errorY);
+                    double headingError = targetHeading - headingPredicted;
+                    while (headingError >  Math.PI) headingError -= 2 * Math.PI;
+                    while (headingError < -Math.PI) headingError += 2 * Math.PI;
+                    headingError = Math.abs(headingError);
+                    double commandChange = Math.abs(forwardPower - lastBestForwardPower) + Math.abs(strafePower  - lastBestStrafePower) + Math.abs(turnPower    - lastBestTurnPower);
+                    double currentScore = distanceError + headingError * HEADING_WEIGHT + commandChange * SMOOTHNESS_WEIGHT;
+                    //step6
+                    if (currentScore < bestScore) {
+                        bestScore        = currentScore;
+                        bestForwardPower = forwardPower;
+                        bestStrafePower  = strafePower;
+                        bestTurnPower    = turnPower;
+                    }
 
-        // velocity, path, target also pulled here
+
+                    // candidate body goes here — saturation, predict, score
+                    // we'll fill this in step by step
+
+                }
+            }
+        }
+        //step7
+        if (Double.isNaN(bestForwardPower) || Double.isInfinite(bestForwardPower) || Double.isNaN(bestStrafePower)  || Double.isInfinite(bestStrafePower) || Double.isNaN(bestTurnPower)    || Double.isInfinite(bestTurnPower)) {
+            bestForwardPower = baseForward;
+            bestStrafePower = baseStrafe;
+            bestTurnPower = baseTurn;
+        }
+        double flPower = bestForwardPower + bestStrafePower + bestTurnPower;
+        double blPower = bestForwardPower - bestStrafePower + bestTurnPower;
+        double frPower = bestForwardPower - bestStrafePower - bestTurnPower;
+        double brPower = bestForwardPower + bestStrafePower - bestTurnPower;
+        drive.frontLeftDrive.setPower(flPower);
+        drive.backLeftDrive.setPower(blPower);
+        drive.frontRightDrive.setPower(frPower);
+        drive.backRightDrive.setPower(brPower);
+        lastBestForwardPower = bestForwardPower;
+        lastBestStrafePower = bestStrafePower;
+        lastBestTurnPower = bestTurnPower;
+
+
+
 
         // run the 125-candidate loop, score them, find the best
 
         // mix and send to motors at the end
-        drive.frontLeftDrive.setPower();
-        drive.backLeftDrive.setPower();
-        drive.frontRightDrive.setPower();
-        drive.backRightDrive.setPower();
+
     }
 }
