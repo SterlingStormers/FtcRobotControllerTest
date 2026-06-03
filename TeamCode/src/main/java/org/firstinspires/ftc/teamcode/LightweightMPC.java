@@ -76,7 +76,6 @@ public class LightweightMPC {
         double targetX = targetPose.getX();
         double targetY = targetPose.getY();
         double targetHeading = targetPose.getHeading();
-
         //step3
         for (double forwardDelta : FORWARD_DELTAS) {
             for (double strafeDelta : STRAFE_DELTAS) {
