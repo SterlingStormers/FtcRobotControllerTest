@@ -39,6 +39,7 @@ public class LightweightMPC {
     private static final double SMOOTHNESS_WEIGHT = 0.5;   // tune
     private double lastBestForwardPower = 0;
     private double lastBestStrafePower = 0;
+
     private double lastBestTurnPower = 0;
     public LightweightMPC(Follower follower, DriveTrainHardware drive) {
         this.follower = follower;

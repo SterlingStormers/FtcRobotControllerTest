@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.bylazar.configurables.annotations.Configurable;
@@ -60,6 +61,9 @@ public class AutoBottom3Red extends OpMode {
         detectedBall3 = 'U';
         detectedBall2 = 'U';
         detectedBall1 = 'U';
+
+        GoBildaPinpointDriver pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "Odom");
+        pinpoint.recalibrateIMU();
 
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
