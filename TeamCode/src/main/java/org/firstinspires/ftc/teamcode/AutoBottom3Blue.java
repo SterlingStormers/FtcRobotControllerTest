@@ -68,7 +68,6 @@ public class AutoBottom3Blue extends OpMode {
         panelsTelemetry.update(telemetry);
         drive = new DriveTrainHardware();
         drive.init(hardwareMap);
-        mpc = new LightweightMPC(follower, drive);
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         drive.kicker.setPosition(0);

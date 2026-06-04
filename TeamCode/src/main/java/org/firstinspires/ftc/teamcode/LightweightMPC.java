@@ -1,4 +1,6 @@
 package org.firstinspires.ftc.teamcode;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import com.pedropathing.paths.Path;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
@@ -17,9 +19,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 
-
-
-
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 public class LightweightMPC {
@@ -37,17 +37,20 @@ public class LightweightMPC {
     private static final double TURN_COUPLING_FACTOR = 0.3; // tune
     private static final double HEADING_WEIGHT    = 5.0;   // tune
     private static final double SMOOTHNESS_WEIGHT = 0.5;   // tune
+    private final Telemetry telemetry;
     private double lastBestForwardPower = 0;
     private double lastBestStrafePower = 0;
 
     private double lastBestTurnPower = 0;
-    public LightweightMPC(Follower follower, DriveTrainHardware drive) {
+    public LightweightMPC(Follower follower, DriveTrainHardware drive, Telemetry telemetry) {
         this.follower = follower;
         this.drive = drive;
+        this.telemetry = telemetry;
     }
 
     public void update() {
         // step1
+        telemetry.addData("MPC", true);
         double currentX = follower.getPose().getX();
         double currentY = follower.getPose().getY();
         double currentHeading = follower.getPose().getHeading();
