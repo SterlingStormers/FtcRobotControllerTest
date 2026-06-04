@@ -144,6 +144,10 @@ public class LightweightMPC {
         drive.backLeftDrive.setPower(blPower);
         drive.frontRightDrive.setPower(frPower);
         drive.backRightDrive.setPower(brPower);
+        telemetry.addData("fl", flPower);
+        telemetry.addData("bl", blPower);
+        telemetry.addData("fr", frPower);
+        telemetry.addData("br", brPower);
         lastBestForwardPower = bestForwardPower;
         lastBestStrafePower = bestStrafePower;
         lastBestTurnPower = bestTurnPower;
