@@ -56,7 +56,7 @@ public class PathTest extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(57.000, 8.670, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(56.000, 8.000, Math.toRadians(90)));
 
         paths = new Paths(follower); // Build paths
 
@@ -123,7 +123,7 @@ public class PathTest extends OpMode {
 
                                     new Pose(56.000, 36.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(90))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
 
                     .build();
 
@@ -133,7 +133,7 @@ public class PathTest extends OpMode {
 
                                     new Pose(95.725, 35.976)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                     .build();
         }
@@ -178,8 +178,10 @@ public class PathTest extends OpMode {
                 break;
             case 2:
                 telemetry.addData("case: ", 2);
-                follower.followPath(paths.Path2, true);
-                setPathState(3);
+                if (!follower.isBusy()) {
+                    follower.followPath(paths.Path2, true);
+                    setPathState(3);
+                }
                 break;
             case 3:
                 if (!follower.isBusy() && pathState != -1) {
