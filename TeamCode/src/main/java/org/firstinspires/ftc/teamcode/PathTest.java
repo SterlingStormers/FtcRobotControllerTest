@@ -131,19 +131,9 @@ public class PathTest extends OpMode {
                             new BezierLine(
                                     new Pose(56.000, 36.000),
 
-                                    new Pose(67.098, 60.648)
+                                    new Pose(95.725, 35.976)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(80), Math.toRadians(180))
-
-                    .build();
-
-            Path3 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(67.098, 60.648),
-
-                                    new Pose(86.250, 35.474)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(270))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
 
                     .build();
         }
@@ -192,11 +182,6 @@ public class PathTest extends OpMode {
                 setPathState(3);
                 break;
             case 3:
-                telemetry.addData("case:", 3);
-                follower.followPath(paths.Path3, true);
-                setPathState(4);
-                break;
-            case 4:
                 if (!follower.isBusy() && pathState != -1) {
                     telemetry.addLine("Successfully (or not) completed 3 ball auto");
                     telemetry.update();
