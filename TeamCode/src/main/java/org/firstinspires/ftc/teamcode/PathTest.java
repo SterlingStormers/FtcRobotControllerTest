@@ -92,9 +92,9 @@ public class PathTest extends OpMode {
     @Override
     public void loop() {
         follower.update(); // Update Pedro Pathing
-//        if (follower.isBusy()) {
-//            mpc.update();
-//        }
+        if (follower.isBusy()) {
+            mpc.update();
+        }
         pathState = autonomousPathUpdate(); // Update autonomous state machine
         colorScanner.update();
         if (ShooterSpinup && follower.isBusy() && 0.25 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
