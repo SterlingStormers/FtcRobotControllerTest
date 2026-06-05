@@ -28,15 +28,15 @@ public class LightweightMPC {
     private static final double[] FORWARD_VALUES = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
     private static final double[] STRAFE_VALUES  = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
     private static final double[] TURN_VALUES    = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
-    private static final double LOOKAHEAD_TIME = 0.2;
+    private static final double LOOKAHEAD_TIME = 0.1;
     private double maxSpeedForward = 40.0;   // adaptive
     private double maxSpeedStrafe = 30.0;   // adaptive
     private double maxTurnRate = Math.PI; // adaptive
     private static final double ACCEL_FACTOR_FORWARD = 0.3; // tune
     private static final double ACCEL_FACTOR_STRAFE  = 0.3; // tune
     private static final double TURN_COUPLING_FACTOR = 0.3; // tune
-    private static final double HEADING_WEIGHT    = 5.0;   // tune
-    private static final double SMOOTHNESS_WEIGHT = 1.5;   // tune
+    private static final double HEADING_WEIGHT = 5.0;   // tune
+    private static final double SMOOTHNESS_WEIGHT = 3.0;   // tune
     private final Telemetry telemetry;
     private double lastBestForwardPower = 0;
     private double lastBestStrafePower = 0;
