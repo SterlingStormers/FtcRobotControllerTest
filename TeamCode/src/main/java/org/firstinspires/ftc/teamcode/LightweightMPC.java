@@ -41,10 +41,9 @@ public class LightweightMPC {
     private double lastBestForwardPower = 0;
     private double lastBestStrafePower = 0;
     private double lastBestTurnPower = 0;
-    // SysID state — predictions saved from previous loop for comparison this loop
     private double lastPredictedForwardVel = 0;
-    private double lastPredictedStrafeVel  = 0;
-    private double lastPredictedTurnVel    = 0;
+    private double lastPredictedStrafeVel = 0;
+    private double lastPredictedTurnVel = 0;
     private boolean haveLastPrediction = false;   // false until first prediction is made
     private static final double LEARNING_RATE = 0.01;   // how fast constants adapt; small = stable
     public LightweightMPC(Follower follower, DriveTrainHardware drive, Telemetry telemetry) {
