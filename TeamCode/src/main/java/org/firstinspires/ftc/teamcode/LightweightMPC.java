@@ -30,8 +30,8 @@ public class LightweightMPC {
     private static final double[] TURN_DELTAS    = {-0.10, -0.03, 0.0, 0.03, 0.10};
     private static final double LOOKAHEAD_TIME = 0.1;
     private double maxSpeedForward = 40.0;   // adaptive
-    private double maxSpeedStrafe  = 30.0;   // adaptive
-    private double maxTurnRate     = Math.PI; // adaptive
+    private double maxSpeedStrafe = 30.0;   // adaptive
+    private double maxTurnRate = Math.PI; // adaptive
     private static final double ACCEL_FACTOR_FORWARD = 0.3; // tune
     private static final double ACCEL_FACTOR_STRAFE  = 0.3; // tune
     private static final double TURN_COUPLING_FACTOR = 0.3; // tune
@@ -77,22 +77,22 @@ public class LightweightMPC {
         //SysID: compare last loop's prediction to actual measurements now
         if (haveLastPrediction) {
             double forwardVelError = currentForwardVelocity - lastPredictedForwardVel;
-            double strafeVelError = currentStrafeVelocity - lastPredictedStrafeVel;
-            double turnVelError = follower.getAngularVelocity() - lastPredictedTurnVel;
-            if (Math.abs(lastBestForwardPower) > 0.1) {
+            double strafeVelError  = currentStrafeVelocity  - lastPredictedStrafeVel;
+            double turnVelError    = follower.getAngularVelocity() - lastPredictedTurnVel;
+            if (Math.abs(lastBestForwardPower) > 0.1 && Math.abs(currentForwardVelocity) > 3.0) {
                 double denom = lastBestForwardPower * ACCEL_FACTOR_FORWARD;
                 maxSpeedForward += LEARNING_RATE * forwardVelError / denom;
             }
-            if (Math.abs(lastBestStrafePower) > 0.1) {
+            if (Math.abs(lastBestStrafePower) > 0.1 && Math.abs(currentStrafeVelocity) > 3.0) {
                 double denom = lastBestStrafePower * ACCEL_FACTOR_STRAFE;
                 maxSpeedStrafe += LEARNING_RATE * strafeVelError / denom;
             }
-            if (Math.abs(lastBestTurnPower) > 0.1) {
+            if (Math.abs(lastBestTurnPower) > 0.1 && Math.abs(follower.getAngularVelocity()) > 0.3) {
                 maxTurnRate += LEARNING_RATE * turnVelError / lastBestTurnPower;
             }
             maxSpeedForward = Math.max(10.0, Math.min(100.0, maxSpeedForward));
-            maxSpeedStrafe = Math.max(5.0,  Math.min(80.0,  maxSpeedStrafe));
-            maxTurnRate = Math.max(0.5,  Math.min(15.0,  maxTurnRate));
+            maxSpeedStrafe  = Math.max(5.0,  Math.min(80.0,  maxSpeedStrafe));
+            maxTurnRate     = Math.max(0.5,  Math.min(15.0,  maxTurnRate));
         }
         double bestScore = Double.MAX_VALUE;
         double bestForwardPower = baseForward;
