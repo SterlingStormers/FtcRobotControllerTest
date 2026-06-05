@@ -28,7 +28,9 @@ public class LightweightMPC {
     private static final double[] FORWARD_VALUES = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
     private static final double[] STRAFE_VALUES  = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
     private static final double[] TURN_VALUES    = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
-    private static final double LOOKAHEAD_TIME = 0.1;
+    private static final int HORIZON_STEPS = 5;
+    private static final double STEP_TIME = 0.1;
+    private static final double TOTAL_HORIZON = STEP_TIME * HORIZON_STEPS;
     private double maxSpeedForward = 40.0;   // adaptive
     private double maxSpeedStrafe = 30.0;   // adaptive
     private double maxTurnRate = Math.PI; // adaptive
@@ -101,62 +103,76 @@ public class LightweightMPC {
         double bestStrafePower = baseStrafe;
         double bestTurnPower = baseTurn;
         //step5
-        double lookAheadDistance = follower.getVelocity().getMagnitude() * LOOKAHEAD_TIME;
         Path currentPath = follower.getCurrentPath();
         double currentT  = follower.getCurrentTValue();
-        double targetT = Math.min(currentT + lookAheadDistance / currentPath.length(), 1.0);
-        Pose targetPose = currentPath.getPose(targetT);
-        double targetX = targetPose.getX();
-        double targetY = targetPose.getY();
-        double targetHeading = targetPose.getHeading();
-        //step3
+        double currentSpeed = follower.getVelocity().getMagnitude();
+        double pathLength = currentPath.length();
+        double lookAheadDistancePerStep = currentSpeed * STEP_TIME;
+        double[] targetXs = new double[HORIZON_STEPS];
+        double[] targetYs = new double[HORIZON_STEPS];
+        double[] targetHeadings = new double[HORIZON_STEPS];
+        for (int step = 0; step < HORIZON_STEPS; step++) {
+            double targetT_step = Math.min(
+                    currentT + (step + 1) * lookAheadDistancePerStep / pathLength,
+                    1.0
+            );
+            Pose tPose = currentPath.getPose(targetT_step);
+            targetXs[step] = tPose.getX();
+            targetYs[step] = tPose.getY();
+            targetHeadings[step] = tPose.getHeading();
+        }
         for (double forwardValue : FORWARD_VALUES) {
             for (double strafeValue : STRAFE_VALUES) {
                 for (double turnValue : TURN_VALUES) {
                     double forwardPower = forwardValue;
-                    double strafePower = strafeValue;
-                    double turnPower = turnValue;
+                    double strafePower  = strafeValue;
+                    double turnPower    = turnValue;
                     double maxWheel = Math.abs(forwardPower) + Math.abs(strafePower) + Math.abs(turnPower);
                     if (maxWheel > 1.0) {
                         forwardPower /= maxWheel;
-                        strafePower /= maxWheel;
-                        turnPower /= maxWheel;
+                        strafePower  /= maxWheel;
+                        turnPower    /= maxWheel;
                     }
-                    double distanceMovedForward = currentForwardVelocity * LOOKAHEAD_TIME + (forwardPower * maxSpeedForward - currentForwardVelocity) * LOOKAHEAD_TIME * ACCEL_FACTOR_FORWARD;
-                    double distanceMovedStrafe = currentStrafeVelocity * LOOKAHEAD_TIME + (strafePower * maxSpeedStrafe - currentStrafeVelocity) * LOOKAHEAD_TIME * ACCEL_FACTOR_STRAFE;
-                    double turnEffect = Math.abs(turnPower);
-                    double turnScale  = 1.0 - (turnEffect * TURN_COUPLING_FACTOR);
-                    distanceMovedForward *= turnScale;
-                    distanceMovedStrafe  *= turnScale;
-                    double predictedRotation = turnPower * maxTurnRate * LOOKAHEAD_TIME;
-                    double midpointHeading = currentHeading + (predictedRotation / 2.0);
-                    double xMoved = (distanceMovedForward * Math.cos(midpointHeading)) - (distanceMovedStrafe * Math.sin(midpointHeading));
-                    double yMoved = (distanceMovedForward * Math.sin(midpointHeading)) + (distanceMovedStrafe * Math.cos(midpointHeading));
-                    double xPredicted = currentX + xMoved;
-                    double yPredicted = currentY + yMoved;
-                    double headingPredicted = currentHeading + predictedRotation;
-                    //step5
-                    double errorX = targetX - xPredicted;
-                    double errorY = targetY - yPredicted;
-                    double distanceError = Math.sqrt(errorX * errorX + errorY * errorY);
-                    double headingError = targetHeading - headingPredicted;
-                    while (headingError >  Math.PI) headingError -= 2 * Math.PI;
-                    while (headingError < -Math.PI) headingError += 2 * Math.PI;
-                    headingError = Math.abs(headingError);
-                    double commandChange = Math.abs(forwardPower - lastBestForwardPower) + Math.abs(strafePower  - lastBestStrafePower) + Math.abs(turnPower - lastBestTurnPower);
-                    double currentScore = distanceError + headingError * HEADING_WEIGHT + commandChange * SMOOTHNESS_WEIGHT;
-                    //step6
-                    if (currentScore < bestScore) {
-                        bestScore        = currentScore;
+                    double simX = currentX;
+                    double simY = currentY;
+                    double simHeading = currentHeading;
+                    double simForwardVel = currentForwardVelocity;
+                    double simStrafeVel  = currentStrafeVelocity;
+                    double totalCost = 0;
+                    for (int step = 0; step < HORIZON_STEPS; step++) {
+                        double distanceMovedForward = simForwardVel * STEP_TIME + (forwardPower * maxSpeedForward - simForwardVel) * STEP_TIME * ACCEL_FACTOR_FORWARD;
+                        double distanceMovedStrafe = simStrafeVel * STEP_TIME + (strafePower * maxSpeedStrafe - simStrafeVel) * STEP_TIME * ACCEL_FACTOR_STRAFE;
+                        double turnEffect = Math.abs(turnPower);
+                        double turnScale = 1.0 - (turnEffect * TURN_COUPLING_FACTOR);
+                        distanceMovedForward *= turnScale;
+                        distanceMovedStrafe  *= turnScale;
+                        double predictedRotation = turnPower * maxTurnRate * STEP_TIME;
+                        double midpointHeading = simHeading + (predictedRotation / 2.0);
+                        double xMoved = (distanceMovedForward * Math.cos(midpointHeading)) - (distanceMovedStrafe * Math.sin(midpointHeading));
+                        double yMoved = (distanceMovedForward * Math.sin(midpointHeading)) + (distanceMovedStrafe * Math.cos(midpointHeading));
+                        simX += xMoved;
+                        simY += yMoved;
+                        simHeading += predictedRotation;
+                        simForwardVel += (forwardPower * maxSpeedForward - simForwardVel) * ACCEL_FACTOR_FORWARD;
+                        simStrafeVel  += (strafePower  * maxSpeedStrafe  - simStrafeVel)  * ACCEL_FACTOR_STRAFE;
+                        double errorX = targetXs[step] - simX;
+                        double errorY = targetYs[step] - simY;
+                        double distanceError = Math.sqrt(errorX * errorX + errorY * errorY);
+                        double headingError = targetHeadings[step] - simHeading;
+                        while (headingError >  Math.PI) headingError -= 2 * Math.PI;
+                        while (headingError < -Math.PI) headingError += 2 * Math.PI;
+                        headingError = Math.abs(headingError);
+                        double stepWeight = 1.0 + step * 0.2;
+                        totalCost += stepWeight * (distanceError + headingError * HEADING_WEIGHT);
+                    }
+                    double commandChange = Math.abs(forwardPower - lastBestForwardPower) + Math.abs(strafePower  - lastBestStrafePower) + Math.abs(turnPower    - lastBestTurnPower);
+                    totalCost += commandChange * SMOOTHNESS_WEIGHT;
+                    if (totalCost < bestScore) {
+                        bestScore        = totalCost;
                         bestForwardPower = forwardPower;
                         bestStrafePower  = strafePower;
                         bestTurnPower    = turnPower;
                     }
-
-
-                    // candidate body goes here — saturation, predict, score
-                    // we'll fill this in step by step
-
                 }
             }
         }
