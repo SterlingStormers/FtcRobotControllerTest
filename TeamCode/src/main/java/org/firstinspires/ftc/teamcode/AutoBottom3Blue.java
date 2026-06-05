@@ -49,7 +49,7 @@ public class AutoBottom3Blue extends OpMode {
     private static final int APRILTAG_CONFIRM_THRESHOLD = 3; // require N frames to confirm
     private final int[] targetTags = {1, 2, 3};
     public double EncoderZero;
-    private LightweightMPC mpc;  //------ Testing
+    private LightweightMPCV2 mpc;  //------ Testing
 
     @Override
     public void init() {
@@ -68,6 +68,8 @@ public class AutoBottom3Blue extends OpMode {
         panelsTelemetry.update(telemetry);
         drive = new DriveTrainHardware();
         drive.init(hardwareMap);
+        mpc = new LightweightMPCV2(follower, drive, telemetry);
+
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         drive.kicker.setPosition(0);
