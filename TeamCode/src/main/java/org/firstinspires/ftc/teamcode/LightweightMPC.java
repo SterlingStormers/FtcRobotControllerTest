@@ -28,7 +28,7 @@ public class LightweightMPC {
     private static final double[] FORWARD_VALUES = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
     private static final double[] STRAFE_VALUES  = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
     private static final double[] TURN_VALUES    = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
-    private static final int HORIZON_STEPS = 5;
+    private static final int HORIZON_STEPS = 3;
     private static final double STEP_TIME = 0.1;
     private static final double TOTAL_HORIZON = STEP_TIME * HORIZON_STEPS;
     private double maxSpeedForward = 40.0;   // adaptive
@@ -37,8 +37,8 @@ public class LightweightMPC {
     private static final double ACCEL_FACTOR_FORWARD = 0.3; // tune
     private static final double ACCEL_FACTOR_STRAFE  = 0.3; // tune
     private static final double TURN_COUPLING_FACTOR = 0.3; // tune
-    private static final double HEADING_WEIGHT = 5.0;   // tune
-    private static final double SMOOTHNESS_WEIGHT = 3.0;   // tune
+    private static final double HEADING_WEIGHT = 1.0;   // tune
+    private static final double SMOOTHNESS_WEIGHT = 6.0;   // tune
     private final Telemetry telemetry;
     private double lastBestForwardPower = 0;
     private double lastBestStrafePower = 0;
@@ -107,7 +107,8 @@ public class LightweightMPC {
         double currentT  = follower.getCurrentTValue();
         double currentSpeed = follower.getVelocity().getMagnitude();
         double pathLength = currentPath.length();
-        double lookAheadDistancePerStep = currentSpeed * STEP_TIME;
+        double effectiveSpeed = Math.max(currentSpeed, 15.0);   // minimum 15 in/s for lookahead
+        double lookAheadDistancePerStep = effectiveSpeed * STEP_TIME;
         double[] targetXs = new double[HORIZON_STEPS];
         double[] targetYs = new double[HORIZON_STEPS];
         double[] targetHeadings = new double[HORIZON_STEPS];
@@ -162,7 +163,7 @@ public class LightweightMPC {
                         while (headingError >  Math.PI) headingError -= 2 * Math.PI;
                         while (headingError < -Math.PI) headingError += 2 * Math.PI;
                         headingError = Math.abs(headingError);
-                        double stepWeight = 1.0 + step * 0.2;
+                        double stepWeight = 1.0;
                         totalCost += stepWeight * (distanceError + headingError * HEADING_WEIGHT);
                     }
                     double commandChange = Math.abs(forwardPower - lastBestForwardPower) + Math.abs(strafePower  - lastBestStrafePower) + Math.abs(turnPower    - lastBestTurnPower);
