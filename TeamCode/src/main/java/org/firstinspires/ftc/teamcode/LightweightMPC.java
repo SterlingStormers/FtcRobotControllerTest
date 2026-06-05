@@ -21,13 +21,13 @@ import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-
+@Configurable
 public class LightweightMPC {
     private final Follower follower;
     private final DriveTrainHardware drive;
-    private static final double[] FORWARD_DELTAS = {-0.15, -0.05, 0.0, 0.05, 0.15};
-    private static final double[] STRAFE_DELTAS  = {-0.15, -0.05, 0.0, 0.05, 0.15};
-    private static final double[] TURN_DELTAS    = {-0.10, -0.03, 0.0, 0.03, 0.10};
+    private static final double[] FORWARD_VALUES = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
+    private static final double[] STRAFE_VALUES  = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
+    private static final double[] TURN_VALUES    = {-1.0, -0.5, -0.2, 0.0, 0.2, 0.5, 1.0};
     private static final double LOOKAHEAD_TIME = 0.1;
     private double maxSpeedForward = 40.0;   // adaptive
     private double maxSpeedStrafe = 30.0;   // adaptive
@@ -36,7 +36,7 @@ public class LightweightMPC {
     private static final double ACCEL_FACTOR_STRAFE  = 0.3; // tune
     private static final double TURN_COUPLING_FACTOR = 0.3; // tune
     private static final double HEADING_WEIGHT    = 5.0;   // tune
-    private static final double SMOOTHNESS_WEIGHT = 0.5;   // tune
+    private static final double SMOOTHNESS_WEIGHT = 3.0;   // tune
     private final Telemetry telemetry;
     private double lastBestForwardPower = 0;
     private double lastBestStrafePower = 0;
@@ -77,8 +77,8 @@ public class LightweightMPC {
         //SysID: compare last loop's prediction to actual measurements now
         if (haveLastPrediction) {
             double forwardVelError = currentForwardVelocity - lastPredictedForwardVel;
-            double strafeVelError  = currentStrafeVelocity  - lastPredictedStrafeVel;
-            double turnVelError    = follower.getAngularVelocity() - lastPredictedTurnVel;
+            double strafeVelError = currentStrafeVelocity  - lastPredictedStrafeVel;
+            double turnVelError = follower.getAngularVelocity() - lastPredictedTurnVel;
             if (Math.abs(lastBestForwardPower) > 0.1 && Math.abs(currentForwardVelocity) > 3.0) {
                 double denom = lastBestForwardPower * ACCEL_FACTOR_FORWARD;
                 maxSpeedForward += LEARNING_RATE * forwardVelError / denom;
@@ -108,12 +108,12 @@ public class LightweightMPC {
         double targetY = targetPose.getY();
         double targetHeading = targetPose.getHeading();
         //step3
-        for (double forwardDelta : FORWARD_DELTAS) {
-            for (double strafeDelta : STRAFE_DELTAS) {
-                for (double turnDelta : TURN_DELTAS) {
-                    double forwardPower = baseForward + forwardDelta;
-                    double strafePower = baseStrafe + strafeDelta;
-                    double turnPower = baseTurn + turnDelta;
+        for (double forwardValue : FORWARD_VALUES) {
+            for (double strafeValue : STRAFE_VALUES) {
+                for (double turnValue : TURN_VALUES) {
+                    double forwardPower = forwardValue;
+                    double strafePower = strafeValue;
+                    double turnPower = turnValue;
                     double maxWheel = Math.abs(forwardPower) + Math.abs(strafePower) + Math.abs(turnPower);
                     if (maxWheel > 1.0) {
                         forwardPower /= maxWheel;
