@@ -29,9 +29,9 @@ public class LightweightMPC {
     private static final double[] STRAFE_DELTAS  = {-0.15, -0.05, 0.0, 0.05, 0.15};
     private static final double[] TURN_DELTAS    = {-0.10, -0.03, 0.0, 0.03, 0.10};
     private static final double LOOKAHEAD_TIME = 0.1;
-    private static final double MAX_SPEED_FORWARD = 40.0;  // tune
-    private static final double MAX_SPEED_STRAFE  = 30.0;  // tune
-    private static final double MAX_TURN_RATE_RAD_PER_SECOND = Math.PI; // tune
+    private double maxSpeedForward = 40.0;   // adaptive
+    private double maxSpeedStrafe  = 30.0;   // adaptive
+    private double maxTurnRate     = Math.PI; // adaptive
     private static final double ACCEL_FACTOR_FORWARD = 0.3; // tune
     private static final double ACCEL_FACTOR_STRAFE  = 0.3; // tune
     private static final double TURN_COUPLING_FACTOR = 0.3; // tune
@@ -40,8 +40,13 @@ public class LightweightMPC {
     private final Telemetry telemetry;
     private double lastBestForwardPower = 0;
     private double lastBestStrafePower = 0;
-
     private double lastBestTurnPower = 0;
+    // SysID state — predictions saved from previous loop for comparison this loop
+    private double lastPredictedForwardVel = 0;
+    private double lastPredictedStrafeVel  = 0;
+    private double lastPredictedTurnVel    = 0;
+    private boolean haveLastPrediction = false;   // false until first prediction is made
+    private static final double LEARNING_RATE = 0.01;   // how fast constants adapt; small = stable
     public LightweightMPC(Follower follower, DriveTrainHardware drive, Telemetry telemetry) {
         this.follower = follower;
         this.drive = drive;
@@ -51,6 +56,9 @@ public class LightweightMPC {
     public void update() {
         // step1
         telemetry.addData("MPC", true);
+        telemetry.addData("maxSpeedFwd",   maxSpeedForward);
+        telemetry.addData("maxSpeedStrafe", maxSpeedStrafe);
+        telemetry.addData("maxTurnRate",   maxTurnRate);
         double currentX = follower.getPose().getX();
         double currentY = follower.getPose().getY();
         double currentHeading = follower.getPose().getHeading();
@@ -66,6 +74,26 @@ public class LightweightMPC {
         double fieldVelY = follower.getVelocity().getYComponent();
         double currentForwardVelocity =  fieldVelX * Math.cos(currentHeading) + fieldVelY * Math.sin(currentHeading);
         double currentStrafeVelocity  = -fieldVelX * Math.sin(currentHeading) + fieldVelY * Math.cos(currentHeading);
+        //SysID: compare last loop's prediction to actual measurements now
+        if (haveLastPrediction) {
+            double forwardVelError = currentForwardVelocity - lastPredictedForwardVel;
+            double strafeVelError = currentStrafeVelocity - lastPredictedStrafeVel;
+            double turnVelError = follower.getAngularVelocity() - lastPredictedTurnVel;
+            if (Math.abs(lastBestForwardPower) > 0.1) {
+                double denom = lastBestForwardPower * ACCEL_FACTOR_FORWARD;
+                maxSpeedForward += LEARNING_RATE * forwardVelError / denom;
+            }
+            if (Math.abs(lastBestStrafePower) > 0.1) {
+                double denom = lastBestStrafePower * ACCEL_FACTOR_STRAFE;
+                maxSpeedStrafe += LEARNING_RATE * strafeVelError / denom;
+            }
+            if (Math.abs(lastBestTurnPower) > 0.1) {
+                maxTurnRate += LEARNING_RATE * turnVelError / lastBestTurnPower;
+            }
+            maxSpeedForward = Math.max(10.0, Math.min(100.0, maxSpeedForward));
+            maxSpeedStrafe = Math.max(5.0,  Math.min(80.0,  maxSpeedStrafe));
+            maxTurnRate = Math.max(0.5,  Math.min(15.0,  maxTurnRate));
+        }
         double bestScore = Double.MAX_VALUE;
         double bestForwardPower = baseForward;
         double bestStrafePower = baseStrafe;
@@ -92,13 +120,13 @@ public class LightweightMPC {
                         strafePower /= maxWheel;
                         turnPower /= maxWheel;
                     }
-                    double distanceMovedForward = currentForwardVelocity * LOOKAHEAD_TIME + (forwardPower * MAX_SPEED_FORWARD - currentForwardVelocity) * LOOKAHEAD_TIME * ACCEL_FACTOR_FORWARD;
-                    double distanceMovedStrafe = currentStrafeVelocity * LOOKAHEAD_TIME + (strafePower * MAX_SPEED_STRAFE - currentStrafeVelocity) * LOOKAHEAD_TIME * ACCEL_FACTOR_STRAFE;
+                    double distanceMovedForward = currentForwardVelocity * LOOKAHEAD_TIME + (forwardPower * maxSpeedForward - currentForwardVelocity) * LOOKAHEAD_TIME * ACCEL_FACTOR_FORWARD;
+                    double distanceMovedStrafe = currentStrafeVelocity * LOOKAHEAD_TIME + (strafePower * maxSpeedStrafe - currentStrafeVelocity) * LOOKAHEAD_TIME * ACCEL_FACTOR_STRAFE;
                     double turnEffect = Math.abs(turnPower);
                     double turnScale  = 1.0 - (turnEffect * TURN_COUPLING_FACTOR);
                     distanceMovedForward *= turnScale;
                     distanceMovedStrafe  *= turnScale;
-                    double predictedRotation = turnPower * MAX_TURN_RATE_RAD_PER_SECOND * LOOKAHEAD_TIME;
+                    double predictedRotation = turnPower * maxTurnRate * LOOKAHEAD_TIME;
                     double midpointHeading = currentHeading + (predictedRotation / 2.0);
                     double xMoved = (distanceMovedForward * Math.cos(midpointHeading)) - (distanceMovedStrafe * Math.sin(midpointHeading));
                     double yMoved = (distanceMovedForward * Math.sin(midpointHeading)) + (distanceMovedStrafe * Math.cos(midpointHeading));
@@ -113,7 +141,7 @@ public class LightweightMPC {
                     while (headingError >  Math.PI) headingError -= 2 * Math.PI;
                     while (headingError < -Math.PI) headingError += 2 * Math.PI;
                     headingError = Math.abs(headingError);
-                    double commandChange = Math.abs(forwardPower - lastBestForwardPower) + Math.abs(strafePower  - lastBestStrafePower) + Math.abs(turnPower    - lastBestTurnPower);
+                    double commandChange = Math.abs(forwardPower - lastBestForwardPower) + Math.abs(strafePower  - lastBestStrafePower) + Math.abs(turnPower - lastBestTurnPower);
                     double currentScore = distanceError + headingError * HEADING_WEIGHT + commandChange * SMOOTHNESS_WEIGHT;
                     //step6
                     if (currentScore < bestScore) {
@@ -148,6 +176,18 @@ public class LightweightMPC {
         telemetry.addData("bl", blPower);
         telemetry.addData("fr", frPower);
         telemetry.addData("br", brPower);
+        //SysID: predict what velocity we expect to see next loop
+        double bestMaxWheel = Math.abs(bestForwardPower) + Math.abs(bestStrafePower) + Math.abs(bestTurnPower);
+        double satF = bestForwardPower, satS = bestStrafePower, satT = bestTurnPower;
+        if (bestMaxWheel > 1.0) {
+            satF /= bestMaxWheel;
+            satS /= bestMaxWheel;
+            satT /= bestMaxWheel;
+        }
+        lastPredictedForwardVel = currentForwardVelocity + (satF * maxSpeedForward - currentForwardVelocity) * ACCEL_FACTOR_FORWARD;
+        lastPredictedStrafeVel = currentStrafeVelocity  + (satS * maxSpeedStrafe  - currentStrafeVelocity)  * ACCEL_FACTOR_STRAFE;
+        lastPredictedTurnVel = satT * maxTurnRate;
+        haveLastPrediction = true;
         lastBestForwardPower = bestForwardPower;
         lastBestStrafePower = bestStrafePower;
         lastBestTurnPower = bestTurnPower;
