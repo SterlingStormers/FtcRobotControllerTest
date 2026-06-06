@@ -59,6 +59,7 @@ public class LightweightMPCV2 {
         telemetry.addData("maxSpeedFwd",   maxSpeedForward);
         telemetry.addData("maxSpeedStrafe", maxSpeedStrafe);
         telemetry.addData("maxTurnRate",   maxTurnRate);
+        telemetry.update();
         double currentX = follower.getPose().getX();
         double currentY = follower.getPose().getY();
         double currentHeading = follower.getPose().getHeading();
@@ -167,6 +168,7 @@ public class LightweightMPCV2 {
         telemetry.addData("bestForwardPower:", bestForwardPower);
         telemetry.addData("bestStrafePower:", bestStrafePower);
         telemetry.addData("bestTurnPower", bestTurnPower);
+        telemetry.update();
         double flPower = bestForwardPower + bestStrafePower + bestTurnPower;
         double blPower = bestForwardPower - bestStrafePower + bestTurnPower;
         double frPower = bestForwardPower - bestStrafePower - bestTurnPower;
@@ -179,6 +181,7 @@ public class LightweightMPCV2 {
         telemetry.addData("bl", blPower);
         telemetry.addData("fr", frPower);
         telemetry.addData("br", brPower);
+        telemetry.update();
         //SysID: predict what velocity we expect to see next loop
         double bestMaxWheel = Math.abs(bestForwardPower) + Math.abs(bestStrafePower) + Math.abs(bestTurnPower);
         double satF = bestForwardPower, satS = bestStrafePower, satT = bestTurnPower;
