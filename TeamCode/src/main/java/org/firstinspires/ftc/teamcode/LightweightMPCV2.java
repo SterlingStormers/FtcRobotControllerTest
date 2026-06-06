@@ -74,9 +74,6 @@ public class LightweightMPCV2 {
         double fieldVelY = follower.getVelocity().getYComponent();
         double currentForwardVelocity =  fieldVelX * Math.cos(currentHeading) + fieldVelY * Math.sin(currentHeading);
         double currentStrafeVelocity  = -fieldVelX * Math.sin(currentHeading) + fieldVelY * Math.cos(currentHeading);
-        telemetry.addData("haveLastPred", haveLastPrediction);
-        telemetry.addData("fwdVel", currentForwardVelocity);
-        telemetry.addData("lastBestFwd", lastBestForwardPower);
         //SysID: compare last loop's prediction to actual measurements now
         if (haveLastPrediction) {
             double forwardVelError = currentForwardVelocity - lastPredictedForwardVel;
@@ -167,6 +164,9 @@ public class LightweightMPCV2 {
             bestStrafePower = baseStrafe;
             bestTurnPower = baseTurn;
         }
+        telemetry.addData("bestForwardPower:", bestForwardPower);
+        telemetry.addData("bestStrafePower:", bestStrafePower);
+        telemetry.addData("bestTurnPower", bestTurnPower);
         double flPower = bestForwardPower + bestStrafePower + bestTurnPower;
         double blPower = bestForwardPower - bestStrafePower + bestTurnPower;
         double frPower = bestForwardPower - bestStrafePower - bestTurnPower;
