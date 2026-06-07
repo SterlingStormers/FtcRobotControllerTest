@@ -545,7 +545,7 @@ public class AutoBottom3Blue extends OpMode {
                     aprilTagConfirmCount = 0;
                     seenAprilTag = -1;
                 }
-
+                
                 if (aprilTagConfirmCount >= APRILTAG_CONFIRM_THRESHOLD) {
                     panelsTelemetry.debug("AprilTag confirmed", String.valueOf(seenAprilTag));
                     telemetry.addData("AprilTag confirmed", seenAprilTag);
