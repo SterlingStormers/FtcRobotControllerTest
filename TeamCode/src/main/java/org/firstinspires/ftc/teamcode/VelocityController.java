@@ -44,7 +44,7 @@ public class VelocityController {
         double effortVy = pidfCompute(desiredVy, actualVy, KFF_STRAFE, KP_STRAFE, KI_STRAFE, KD_STRAFE, dt,"vy");
         double effortOmega = pidfCompute(desiredOmega, actualOmega, KFF_OMEGA, KP_OMEGA, KI_OMEGA, KD_OMEGA, dt,"omega");
         // Pass to Kinematics
-        kinematics.drive(effortVx, effortVy, effortOmega);
+        //kinematics.drive(effortVx, effortVy, effortOmega);
     }
     private double pidfCompute(double desired, double actual, double kff, double kp, double ki, double kd, double dt, String axis) {
         double error = desired - actual;

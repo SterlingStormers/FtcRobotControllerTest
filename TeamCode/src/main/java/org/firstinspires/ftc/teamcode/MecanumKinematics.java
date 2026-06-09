@@ -3,15 +3,17 @@ package org.firstinspires.ftc.teamcode;
 public class MecanumKinematics {
     private final DriveTrainHardware drive;
     private final MPC mpc;
-    public MecanumKinematics(DriveTrainHardware drive, MPC mpc) {
+    private final VelocityControllerV2 controller;
+    public MecanumKinematics(DriveTrainHardware drive, MPC mpc, VelocityControllerV2 controller) {
         this.drive = drive;
         this.mpc = mpc;
+        this.controller = controller;
     }
-    public void drive(double vx, double vy, double omega) {
+    public void drive() {
         // Normalize using MPC's current model parameters
-        double vxNorm = vx / mpc.getMaxSpeedForward();
-        double vyNorm = vy / mpc.getMaxSpeedStrafe();
-        double omegaNorm = omega / mpc.getMaxTurnRate();
+        double vxNorm = controller.effortVx / mpc.maxSpeedForward;
+        double vyNorm = controller.effortVy / mpc.maxSpeedStrafe;
+        double omegaNorm = controller.effortOmega / mpc.maxTurnRateRad;
         // Mecanum mixing
         double fl = vxNorm + vyNorm + omegaNorm;
         double fr = vxNorm - vyNorm - omegaNorm;

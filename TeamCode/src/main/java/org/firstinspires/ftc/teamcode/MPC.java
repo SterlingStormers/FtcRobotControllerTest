@@ -1,22 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
 public class MPC {
-    // Robot model parameters  owned by MPC, read by Kinematics and others
-    // Will be refined by SysID logic (added later)
-    private double maxSpeedForward = 60.0;   // placeholder, in/s
-    private double maxSpeedStrafe = 50.0;    // placeholder, in/s
-    private double maxTurnRate = 4.0;        // placeholder, rad/s
-
-    // Getters for other layers to read the model
-    public double getMaxSpeedForward() {
-        return maxSpeedForward;
-    }
-    public double getMaxSpeedStrafe() {
-        return maxSpeedStrafe;
-    }
-    public double getMaxTurnRate() {
-        return maxTurnRate;
-    }
-    // Real planning logic and SysID will be added later.
-    // For now this class just holds the model parameters.
+    // Robot model parameters
+    double maxSpeedForward = 54.8;
+    double maxSpeedStrafe = 46.0;
+    double maxTurnRateRad = 4.0;
+    // Current desired velocity output — for testing, hardcoded
+    // Later this gets computed by compute() based on path geometry
+    double desiredVx = 0;
+    double desiredVy = 0;
+    double desiredOmega = 0;
+    // Real compute() logic comes later — will eventually set desiredVx etc. internally
 }

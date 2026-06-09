@@ -4,7 +4,7 @@ import com.pedropathing.follower.Follower;
 
 public class VelocityControllerV2 {
     private final Follower follower;
-    private final MecanumKinematics kinematics;
+    private final MPC mpc;
     // PIDF gain placeholders, we'll tune these
     private static final double KFF_FORWARD = 1.0;   // feedforward: command = desired velocity
     private static final double KP_FORWARD = 0.05;
@@ -30,15 +30,18 @@ public class VelocityControllerV2 {
     private double desiredOmega;
     private double actualOmega;
     private double dt;
+    public double effortVx;
+    public double effortVy;
+    public double effortOmega;
 
-    public VelocityControllerV2(Follower follower, MecanumKinematics kinematics) {
+    public VelocityControllerV2(Follower follower, MPC mpc) {
         this.follower = follower;
-        this.kinematics = kinematics;
+        this.mpc = mpc;
     }
     public void velocity(){
-        desiredVx = //from mpc
-        desiredVy = //from mpc
-        desiredOmega = //from mpc
+        desiredVx = mpc.desiredVx;
+        desiredVy = mpc.desiredVy;
+        desiredOmega = mpc.desiredOmega;
         double fieldVelX = follower.getVelocity().getXComponent();
         double fieldVelY = follower.getVelocity().getYComponent();
         double heading = follower.getPose().getHeading();
@@ -49,11 +52,9 @@ public class VelocityControllerV2 {
         long now = System.nanoTime();
         dt = (lastTimeNs == 0) ? 0.02 : (now - lastTimeNs) / 1e9;
         lastTimeNs = now;
-        double effortVx = pidfComputeVx();
-        double effortVy = pidfComputeVy();
-        double effortOmega = pidfComputeOmega();
-        kinematics.drive(effortVx, effortVy, effortOmega);
-
+        effortVx = pidfComputeVx();
+        effortVy = pidfComputeVy();
+        effortOmega = pidfComputeOmega();
     }
     private double pidfComputeVx() {
         double errorVx = desiredVx - actualVx;
