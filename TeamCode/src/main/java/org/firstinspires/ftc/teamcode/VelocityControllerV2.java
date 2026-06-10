@@ -24,11 +24,11 @@ public class VelocityControllerV2 {
     private double integralOmega = 0, lastErrorOmega = 0;
     private long lastTimeNs = 0;
     private double desiredVx;
-    private double actualVx;
+    public double actualVx;
     private double desiredVy;
-    private double actualVy;
+    public double actualVy;
     private double desiredOmega;
-    private double actualOmega;
+    public double actualOmega;
     private double dt;
     public double effortVx;
     public double effortVy;

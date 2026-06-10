@@ -21,11 +21,6 @@ public class KinematicsTest extends LinearOpMode {
 
         MecanumKinematics kinematics = new MecanumKinematics(drive, mpc, controller);
 
-        telemetry.addLine("Kinematics Test Ready");
-        telemetry.addLine("A = forward, B = strafe right, X = rotate CCW");
-        telemetry.addLine("Release all buttons = stop");
-        telemetry.update();
-
         waitForStart();
 
         while (opModeIsActive()) {
@@ -56,6 +51,12 @@ public class KinematicsTest extends LinearOpMode {
             }
             controller.velocity(); //must come first
             kinematics.drive();
+            telemetry.addData("desired vx", mpc.desiredVx);
+            telemetry.addData("actual vx", controller.actualVx);
+            telemetry.addData("desired vy", mpc.desiredVy);
+            telemetry.addData("actual vy", controller.actualVy);
+            telemetry.addData("desired omega", mpc.desiredOmega);
+            telemetry.addData("actual omega", controller.actualOmega);
             telemetry.update();
         }
     }
