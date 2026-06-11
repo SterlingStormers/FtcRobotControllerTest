@@ -26,6 +26,17 @@ public class AMPC {
     private static final int T_FINE_STEPS = 40;       // refines to ~0.002 t resolution
     private static final double FINE_WINDOW = 0.04;   // ±window around coarse best
     public PathChain getActivePath() { return activePath; }
+    // Lookahead configuration
+    private static final double LOOKAHEAD_T_DELTA = 0.1;   // ~5 in on 50 in test path
+    // Lookahead output (read by Step 3+)
+    public double lookaheadT = 0;
+    public Pose lookaheadPose = new Pose(0, 0, 0);
+
+    public void updateLookahead() {
+        if (activePath == null) return;
+        lookaheadT = Math.min(1.0, currentT + LOOKAHEAD_T_DELTA);
+        lookaheadPose = activePath.getPath(0).getPose(lookaheadT);
+    }
 
     public AMPC(Follower follower) {
         this.follower = follower;
@@ -90,6 +101,7 @@ public class AMPC {
             return;
         }
         updateClosestT();
+        updateLookahead();
         // More logic added in later steps
     }
 }

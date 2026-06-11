@@ -38,9 +38,12 @@ public class MPCStep1Test extends LinearOpMode {
             Pose currentPose = follower.getPose();
             telemetry.addData("robot X", currentPose.getX());
             telemetry.addData("robot Y", currentPose.getY());
-            telemetry.addData("currentT", mpc.currentT);
             Pose midSample = mpc.getActivePath().getPath(0).getPose(0.5);
             telemetry.addData("path midpoint", "(" + midSample.getX() + ", " + midSample.getY() + ")");
+            telemetry.addData("currentT", mpc.currentT);
+            telemetry.addData("lookaheadT", mpc.lookaheadT);
+            telemetry.addData("lookahead X", mpc.lookaheadPose.getX());
+            telemetry.addData("lookahead Y", mpc.lookaheadPose.getY());
             telemetry.update();
         }
     }
