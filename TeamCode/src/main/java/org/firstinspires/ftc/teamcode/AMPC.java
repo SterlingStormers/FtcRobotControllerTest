@@ -42,7 +42,7 @@ public class AMPC {
 // may need removal (code above)======
 
     public void updateClosestT() {
-        if (activePath == null) {
+        if (activePath != null) {
 
         Pose currentPose = follower.getPose();
         double bestT = 0;
