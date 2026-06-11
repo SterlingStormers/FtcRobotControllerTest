@@ -20,7 +20,7 @@ public class PIDFStepTest extends LinearOpMode {
         Follower follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
 
-        MPC mpc = new MPC();
+        AMPC mpc = new AMPC(follower);
         VelocityControllerV2 controller = new VelocityControllerV2(follower, mpc);
         MecanumKinematics kinematics = new MecanumKinematics(drive, mpc, controller);
 
@@ -109,7 +109,7 @@ public class PIDFStepTest extends LinearOpMode {
         }
     }
 
-    private void setDesiredForAxis(MPC mpc, double target) {
+    private void setDesiredForAxis(AMPC mpc, double target) {
         if (AXIS == 0) { mpc.desiredVx = target; mpc.desiredVy = 0; mpc.desiredOmega = 0; }
         else if (AXIS == 1) { mpc.desiredVx = 0; mpc.desiredVy = target; mpc.desiredOmega = 0; }
         else { mpc.desiredVx = 0; mpc.desiredVy = 0; mpc.desiredOmega = target; }

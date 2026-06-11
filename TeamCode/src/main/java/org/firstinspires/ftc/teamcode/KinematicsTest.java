@@ -15,7 +15,7 @@ public class KinematicsTest extends LinearOpMode {
         Follower follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
 
-        MPC mpc = new MPC();
+        AMPC mpc = new AMPC(follower);
 
         VelocityControllerV2 controller = new VelocityControllerV2(follower, mpc);
 

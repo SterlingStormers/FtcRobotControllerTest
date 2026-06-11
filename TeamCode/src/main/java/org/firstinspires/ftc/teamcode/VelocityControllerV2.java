@@ -4,7 +4,7 @@ import com.pedropathing.follower.Follower;
 
 public class VelocityControllerV2 {
     private final Follower follower;
-    private final MPC mpc;
+    private final AMPC mpc;
     // PIDF gain placeholders, we'll tune these
     private static final double KFF_FORWARD = 1.0;   // feedforward: command = desired velocity
     private static final double KP_FORWARD = 0.05;
@@ -34,7 +34,7 @@ public class VelocityControllerV2 {
     public double effortVy;
     public double effortOmega;
 
-    public VelocityControllerV2(Follower follower, MPC mpc) {
+    public VelocityControllerV2(Follower follower, AMPC mpc) {
         this.follower = follower;
         this.mpc = mpc;
     }

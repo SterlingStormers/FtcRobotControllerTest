@@ -2,9 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 public class MecanumKinematics {
     private final DriveTrainHardware drive;
-    private final MPC mpc;
+    private final AMPC mpc;
     private final VelocityControllerV2 controller;
-    public MecanumKinematics(DriveTrainHardware drive, MPC mpc, VelocityControllerV2 controller) {
+    public MecanumKinematics(DriveTrainHardware drive, AMPC mpc, VelocityControllerV2 controller) {
         this.drive = drive;
         this.mpc = mpc;
         this.controller = controller;
