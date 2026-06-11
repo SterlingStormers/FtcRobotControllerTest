@@ -25,6 +25,7 @@ public class AMPC {
     private static final int T_COARSE_STEPS = 50;     // ~0.02 t resolution over full path
     private static final int T_FINE_STEPS = 40;       // refines to ~0.002 t resolution
     private static final double FINE_WINDOW = 0.04;   // ±window around coarse best
+    public PathChain getActivePath() { return activePath; }
 
     public AMPC(Follower follower) {
         this.follower = follower;
