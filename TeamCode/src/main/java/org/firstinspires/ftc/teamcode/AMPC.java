@@ -31,17 +31,9 @@ public class AMPC {
     // Lookahead output (read by Step 3+)
     public double lookaheadT = 0;
     public Pose lookaheadPose = new Pose(0, 0, 0);
-
-    public void updateLookahead() {
-        if (activePath == null) return;
-        lookaheadT = Math.min(1.0, currentT + LOOKAHEAD_T_DELTA);
-        lookaheadPose = activePath.getPath(0).getPose(lookaheadT);
-    }
-
     public AMPC(Follower follower) {
         this.follower = follower;
     }
-
     public void setActivePath(PathChain path) {
         this.activePath = path;
         this.currentT = 0;
@@ -87,6 +79,11 @@ public class AMPC {
         }
         currentT = bestT;
         }
+    }
+    public void updateLookahead() {
+        if (activePath == null) return;
+        lookaheadT = Math.min(1.0, currentT + LOOKAHEAD_T_DELTA);
+        lookaheadPose = activePath.getPath(0).getPose(lookaheadT);
     }
 
     /**
