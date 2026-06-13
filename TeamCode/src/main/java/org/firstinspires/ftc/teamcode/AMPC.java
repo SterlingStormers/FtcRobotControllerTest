@@ -25,6 +25,7 @@ public class AMPC {
     private static final int T_COARSE_STEPS = 50;     // ~0.02 t resolution over full path
     private static final int T_FINE_STEPS = 40;       // refines to ~0.002 t resolution
     private static final double FINE_WINDOW = 0.04;   // ±window around coarse best
+    private static final double HEADING_GAIN = 2.0;
     public PathChain getActivePath() { return activePath; }
     // Lookahead configuration
     private static final double LOOKAHEAD_T_DELTA = 0.1;   // ~5 in on 50 in test path
@@ -85,6 +86,48 @@ public class AMPC {
         lookaheadT = Math.min(1.0, currentT + LOOKAHEAD_T_DELTA);
         lookaheadPose = activePath.getPath(0).getPose(lookaheadT);
     }
+    public void updateVelocityOutput() {
+        if (activePath != null) {
+            Pose robotPose = follower.getPose();
+            // Field-frame vector from robot to lookahead
+            double dxField = lookaheadPose.getX() - robotPose.getX();
+            double dyField = lookaheadPose.getY() - robotPose.getY();
+
+            // Rotate into robot frame using current heading
+            double heading = robotPose.getHeading();
+            double cos = Math.cos(heading);
+            double sin = Math.sin(heading);
+            double dxRobot = (dxField * cos) + (dyField * sin);
+            double dyRobot = (-dxField * sin) + (dyField * cos);
+
+            // Aim at lookahead at max forward speed
+            double dist = Math.sqrt((dxRobot * dxRobot) + (dyRobot * dyRobot));
+            if (dist < 0.01) {
+                desiredVx = 0;
+                desiredVy = 0;
+            } else {
+                desiredVx = (dxRobot / dist) * maxSpeedForward;
+                desiredVy = (dyRobot / dist) * maxSpeedForward;
+            }
+
+            // Omega aimed at lookahead heading, capped at max turn rate
+            double headingError = wrapAngle(lookaheadPose.getHeading() - heading);
+            desiredOmega = Math.max(-maxTurnRateRad, Math.min(maxTurnRateRad, headingError * HEADING_GAIN));
+        } else {
+            desiredVx = 0;
+            desiredVy = 0;
+            desiredOmega = 0;
+        }
+    }
+    private double wrapAngle(double angle) {
+        angle = angle % (2 * Math.PI);
+        if (angle > Math.PI) {
+            angle -= 2 * Math.PI;
+        } else if (angle < -Math.PI) {
+            angle += 2 * Math.PI;
+        }
+        return angle;
+    }
 
     /**
      * Main MPC update — called once per loop.
@@ -99,6 +142,7 @@ public class AMPC {
         }
         updateClosestT();
         updateLookahead();
+        updateVelocityOutput();
         // More logic added in later steps
     }
 }

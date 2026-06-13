@@ -44,6 +44,9 @@ public class MPCStep1Test extends LinearOpMode {
             telemetry.addData("lookaheadT", mpc.lookaheadT);
             telemetry.addData("lookahead X", mpc.lookaheadPose.getX());
             telemetry.addData("lookahead Y", mpc.lookaheadPose.getY());
+            telemetry.addData("desiredVx", mpc.desiredVx);
+            telemetry.addData("desiredVy", mpc.desiredVy);
+            telemetry.addData("desiredOmega", mpc.desiredOmega);
             telemetry.update();
         }
     }
