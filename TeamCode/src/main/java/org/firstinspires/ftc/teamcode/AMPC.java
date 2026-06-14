@@ -112,7 +112,13 @@ public class AMPC {
 
             // Omega aimed at lookahead heading, capped at max turn rate
             double headingError = wrapAngle(lookaheadPose.getHeading() - heading);
-            desiredOmega = Math.max(-maxTurnRateRad, Math.min(maxTurnRateRad, headingError * HEADING_GAIN));
+            if (headingError * HEADING_GAIN > maxTurnRateRad) {
+                desiredOmega = maxTurnRateRad;
+            } else if (headingError * HEADING_GAIN < -maxTurnRateRad) {
+                desiredOmega = -maxTurnRateRad;
+            } else {
+                desiredOmega = headingError * HEADING_GAIN;
+            }
         } else {
             desiredVx = 0;
             desiredVy = 0;
