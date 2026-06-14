@@ -126,10 +126,10 @@ public class AMPC {
         }
     }
     private double wrapAngle(double angle) {
-        angle = angle % (2 * Math.PI);
-        if (angle > Math.PI) {
+        while (angle > Math.PI) {
             angle -= 2 * Math.PI;
-        } else if (angle < -Math.PI) {
+        }
+        while (angle <= -Math.PI) {
             angle += 2 * Math.PI;
         }
         return angle;
