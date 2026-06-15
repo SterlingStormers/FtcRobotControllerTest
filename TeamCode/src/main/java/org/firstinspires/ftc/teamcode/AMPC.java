@@ -25,7 +25,7 @@ public class AMPC {
     private static final int T_COARSE_STEPS = 50;     // ~0.02 t resolution over full path
     private static final int T_FINE_STEPS = 40;       // refines to ~0.002 t resolution
     private static final double FINE_WINDOW = 0.04;   // ±window around coarse best
-    private static final double HEADING_GAIN = -2;
+    private static final double HEADING_GAIN = 2;
     public PathChain getActivePath() { return activePath; }
     // Lookahead configuration
     private static final double LOOKAHEAD_T_DELTA = 0.1;   // ~5 in on 50 in test path

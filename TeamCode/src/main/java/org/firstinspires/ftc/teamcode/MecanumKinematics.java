@@ -15,10 +15,10 @@ public class MecanumKinematics {
         double vyNorm = controller.effortVy / mpc.maxSpeedStrafe;
         double omegaNorm = controller.effortOmega / mpc.maxTurnRateRad;
         // Mecanum mixing
-        double fl = vxNorm + vyNorm + omegaNorm;
-        double fr = vxNorm - vyNorm - omegaNorm;
-        double bl = vxNorm - vyNorm + omegaNorm;
-        double br = vxNorm + vyNorm - omegaNorm;
+        double fl = vxNorm - vyNorm - omegaNorm;
+        double fr = vxNorm + vyNorm + omegaNorm;
+        double bl = vxNorm + vyNorm - omegaNorm;
+        double br = vxNorm - vyNorm + omegaNorm;
         // Scale if any wheel exceeds 1.0
         double maxWheel = Math.max(Math.abs(fl),
                 Math.max(Math.abs(fr),
