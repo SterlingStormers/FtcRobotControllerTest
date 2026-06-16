@@ -6,7 +6,7 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "MPC Step 3 Tier 2 Test", group = "Test")
+@TeleOp(name = "MPC Step 3 Test", group = "Test")
 public class MPCStep3Test extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -41,8 +41,14 @@ public class MPCStep3Test extends LinearOpMode {
             Pose pose = follower.getPose();
             telemetry.addData("robot", "(" + pose.getX() + ", " + pose.getY() + ", " + Math.toDegrees(pose.getHeading()) + "°)");
             telemetry.addData("currentT", mpc.currentT);
-            telemetry.addData("desired V (x,y,ω)", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
-            telemetry.addData("actual V (x,y,ω)", "(" + controller.actualVx + ", " + controller.actualVy + ", " + controller.actualOmega + ")");
+            telemetry.addData("desired V (x,y,omega)", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
+            telemetry.addData("actual V (x,y,omega)", "(" + controller.actualVx + ", " + controller.actualVy + ", " + controller.actualOmega + ")");
+            telemetry.addData("currentT", mpc.currentT);
+            telemetry.addData("lookahead", "(" + mpc.lookaheadPose.getX() + ", " + mpc.lookaheadPose.getY() + ")");
+            telemetry.addData("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
+            telemetry.addData("actual V", "(" + controller.actualVx + ", " + controller.actualVy + ", " + controller.actualOmega + ")");
+            telemetry.addData("lastBestCost", mpc.lastBestCost);
+            telemetry.addData("robot", "(" + follower.getPose().getX() + ", " + follower.getPose().getY() + ", " + Math.toDegrees(follower.getPose().getHeading()) + ")");
             telemetry.update();
         }
     }

@@ -31,7 +31,23 @@ public class AMPC {
     private static final double LOOKAHEAD_T_DELTA = 0.1;   // ~5 in on 50 in test path
     // Lookahead output (read by Step 3+)
     public double lookaheadT = 0;
+
+    // MPC configuration
+    private static final double HORIZON_SECONDS = 0.1;
+    private static final int GRID_HALF = 1; // 1 → 3×3×3 = 27 candidates
+    private static final double GRID_STEP_FRACTION = 0.2; // ±20% of max per step
+
+    // Cost weights
+    private static final double WEIGHT_LOOKAHEAD = 1.0;
+    private static final double WEIGHT_PATH = 0.5;
+
+    // State carried across loops (for dynamic grid centering)
+    private double lastBestVx = 0;
+    private double lastBestVy = 0;
+    private double lastBestOmega = 0;
+    public double lastBestCost = 0;   // public for telemetry
     public Pose lookaheadPose = new Pose(0, 0, 0);
+
     public AMPC(Follower follower) {
         this.follower = follower;
     }
@@ -86,44 +102,129 @@ public class AMPC {
         lookaheadT = Math.min(1.0, currentT + LOOKAHEAD_T_DELTA);
         lookaheadPose = activePath.getPath(0).getPose(lookaheadT);
     }
-    public void updateVelocityOutput() {
+    public void updateMPC() {
         if (activePath != null) {
+
             Pose robotPose = follower.getPose();
-            // Field-frame vector from robot to lookahead
-            double dxField = lookaheadPose.getX() - robotPose.getX();
-            double dyField = lookaheadPose.getY() - robotPose.getY();
 
-            // Rotate into robot frame using current heading
-            double heading = robotPose.getHeading();
-            double cos = Math.cos(heading);
-            double sin = Math.sin(heading);
-            double dxRobot = (dxField * cos) + (dyField * sin);
-            double dyRobot = (-dxField * sin) + (dyField * cos);
+            double vxStep = GRID_STEP_FRACTION * maxSpeedForward;
+            double vyStep = GRID_STEP_FRACTION * maxSpeedStrafe;
+            double omegaStep = GRID_STEP_FRACTION * maxTurnRateRad;
 
-            // Aim at lookahead at max forward speed
-            double dist = Math.sqrt((dxRobot * dxRobot) + (dyRobot * dyRobot));
-            if (dist < 0.01) {
-                desiredVx = 0;
-                desiredVy = 0;
-            } else {
-                desiredVx = (dxRobot / dist) * maxSpeedForward;
-                desiredVy = (dyRobot / dist) * maxSpeedForward;
+            double bestCost = Double.MAX_VALUE;
+            double bestVx = lastBestVx;
+            double bestVy = lastBestVy;
+            double bestOmega = lastBestOmega;
+
+            // Dynamic grid centered on last best command
+            for (int i = -GRID_HALF; i <= GRID_HALF; i++) {
+                for (int j = -GRID_HALF; j <= GRID_HALF; j++) {
+                    for (int k = -GRID_HALF; k <= GRID_HALF; k++) {
+                        double candVx = clamp((lastBestVx + (i * vxStep)), -maxSpeedForward, maxSpeedForward);
+                        double candVy = clamp((lastBestVy + (j * vyStep)), -maxSpeedStrafe, maxSpeedStrafe);
+                        double candOmega = clamp((lastBestOmega + (k * omegaStep)), -maxTurnRateRad, maxTurnRateRad);
+
+                        double cost = evaluateCandidate(candVx, candVy, candOmega, robotPose);
+                        if (cost < bestCost) {
+                            bestCost = cost;
+                            bestVx = candVx;
+                            bestVy = candVy;
+                            bestOmega = candOmega;
+                        }
+                    }
+                }
             }
 
-            // Omega aimed at lookahead heading, capped at max turn rate
-            double headingError = wrapAngle(lookaheadPose.getHeading() - heading);
-            if (headingError * HEADING_GAIN > maxTurnRateRad) {
-                desiredOmega = maxTurnRateRad;
-            } else if (headingError * HEADING_GAIN < -maxTurnRateRad) {
-                desiredOmega = -maxTurnRateRad;
-            } else {
-                desiredOmega = headingError * HEADING_GAIN;
+            // Global escape candidate 1: pure pursuit
+            double[] pp = computePurePursuit(robotPose);
+            double ppCost = evaluateCandidate(pp[0], pp[1], pp[2], robotPose);
+            if (ppCost < bestCost) {
+                bestCost = ppCost;
+                bestVx = pp[0];
+                bestVy = pp[1];
+                bestOmega = pp[2];
             }
+
+            // Global escape candidate 2: brake (zero command)
+            double brakeCost = evaluateCandidate(0, 0, 0, robotPose);
+            if (brakeCost < bestCost) {
+                bestCost = brakeCost;
+                bestVx = 0;
+                bestVy = 0;
+                bestOmega = 0;
+            }
+            // Commit
+            desiredVx = bestVx;
+            desiredVy = bestVy;
+            desiredOmega = bestOmega;
+            lastBestVx = bestVx;
+            lastBestVy = bestVy;
+            lastBestOmega = bestOmega;
+            lastBestCost = bestCost;
         } else {
             desiredVx = 0;
             desiredVy = 0;
             desiredOmega = 0;
         }
+    }
+
+    private double evaluateCandidate(double vx, double vy, double omega, Pose robotPose) {
+        // Convert robot-frame velocity to field frame for prediction
+        double heading = robotPose.getHeading();
+        double cosH = Math.cos(heading);
+        double sinH = Math.sin(heading);
+        double fieldVx = (vx * cosH) - (vy * sinH);
+        double fieldVy = (vx * sinH) + (vy * cosH);
+
+        // Euler integration over horizon
+        double predictedX = robotPose.getX() + (fieldVx * HORIZON_SECONDS);
+        double predictedY = robotPose.getY() + (fieldVy * HORIZON_SECONDS);
+        // predicted heading not used in Step 4 cost, but available for Step 5+
+
+        // Cost term 1: distance from predicted pose to lookahead
+        double dxError = lookaheadPose.getX() - predictedX;
+        double dyError = lookaheadPose.getY() - predictedY;
+        double distError = Math.sqrt((dxError * dxError) + (dyError * dyError));
+        // Cost term 2: distance from predicted pose to closest point on path
+        Pose closestPath = activePath.getPath(0).getPose(currentT);
+        double dxPathError = closestPath.getX() - predictedX;
+        double dyPathError = closestPath.getY() - predictedY;
+        double distPathError = Math.sqrt((dxPathError * dxPathError) + (dyPathError * dyPathError));
+
+        return (WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError);
+    }
+    private double[] computePurePursuit(Pose robotPose) {
+        double dxField = lookaheadPose.getX() - robotPose.getX();
+        double dyField = lookaheadPose.getY() - robotPose.getY();
+
+        double heading = robotPose.getHeading();
+        double cosH = Math.cos(heading);
+        double sinH = Math.sin(heading);
+        double dxRobot = dxField * cosH + dyField * sinH;
+        double dyRobot = -dxField * sinH + dyField * cosH;
+
+        double dist = Math.sqrt(dxRobot * dxRobot + dyRobot * dyRobot);
+        double ppVx, ppVy;
+        if (dist < 0.01) {
+            ppVx = 0;
+            ppVy = 0;
+        } else {
+            ppVx = (dxRobot / dist) * maxSpeedForward;
+            ppVy = (dyRobot / dist) * maxSpeedForward;
+        }
+
+        double headingError = wrapAngle(lookaheadPose.getHeading() - heading);
+        double ppOmega = clamp(headingError * HEADING_GAIN, -maxTurnRateRad, maxTurnRateRad);
+        return new double[] {ppVx, ppVy, ppOmega};
+    }
+    private double clamp(double candidate, double min, double max) {
+        if (candidate < min) {
+            return min;
+        }
+        if (candidate > max) {
+            return max;
+        }
+        return candidate;
     }
     private double wrapAngle(double angle) {
         while (angle > Math.PI) {
@@ -147,7 +248,7 @@ public class AMPC {
         }
         updateClosestT();
         updateLookahead();
-        updateVelocityOutput();
+        updateMPC();
         // More logic added in later steps
     }
 }
