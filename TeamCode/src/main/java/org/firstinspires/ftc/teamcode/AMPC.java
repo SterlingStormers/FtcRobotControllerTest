@@ -36,7 +36,6 @@ public class AMPC {
     private static final double HORIZON_SECONDS = 0.1;
     private static final int GRID_HALF = 1; // 1 → 3×3×3 = 27 candidates
     private static final double GRID_STEP_FRACTION = 0.2; // ±20% of max per step
-
     // Cost weights
     private static final double WEIGHT_LOOKAHEAD = 1.0;
     private static final double WEIGHT_PATH = 0.5;
@@ -57,7 +56,7 @@ public class AMPC {
     private static final double WEIGHT_SMOOTHNESS_OMEGA = 0.1;   // rad/s scale, needs bigger weight
     private boolean firstLoop = true;
     private static final double MAX_DECEL = 2112.0;     // measured via Pedro's forwardZeroPowerAcceleration tune
-    private static final double WEIGHT_TERMINAL = 100;
+    private static final double WEIGHT_TERMINAL = 600;
     public AMPC(Follower follower) {
         this.follower = follower;
     }
