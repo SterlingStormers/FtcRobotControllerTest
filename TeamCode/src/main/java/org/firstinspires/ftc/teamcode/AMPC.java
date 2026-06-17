@@ -40,6 +40,7 @@ public class AMPC {
     // Cost weights
     private static final double WEIGHT_LOOKAHEAD = 1.0;
     private static final double WEIGHT_PATH = 0.5;
+    private static final double WEIGHT_HEADING = 10.0;   // radians are small; needs big weight
 
     // State carried across loops (for dynamic grid centering)
     private double lastBestVx = 0;
@@ -181,6 +182,7 @@ public class AMPC {
         // Euler integration over horizon
         double predictedX = robotPose.getX() + (fieldVx * HORIZON_SECONDS);
         double predictedY = robotPose.getY() + (fieldVy * HORIZON_SECONDS);
+        double predictedHeading = heading + (omega * HORIZON_SECONDS);
         // predicted heading not used in Step 4 cost, but available for Step 5+
 
         // Cost term 1: distance from predicted pose to lookahead
@@ -192,8 +194,10 @@ public class AMPC {
         double dxPathError = closestPath.getX() - predictedX;
         double dyPathError = closestPath.getY() - predictedY;
         double distPathError = Math.sqrt((dxPathError * dxPathError) + (dyPathError * dyPathError));
+        double headingError = Math.abs(wrapAngle(lookaheadPose.getHeading() - predictedHeading));
 
-        return (WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError);
+        return (WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError) + (WEIGHT_HEADING * headingError);
+
     }
     private void computePurePursuit(Pose robotPose) {
         double dxField = lookaheadPose.getX() - robotPose.getX();
