@@ -56,6 +56,8 @@ public class AMPC {
     private static final double WEIGHT_SMOOTHNESS_VY = 0.05;
     private static final double WEIGHT_SMOOTHNESS_OMEGA = 5.0;   // rad/s scale, needs bigger weight
     private boolean firstLoop = true;
+    private static final double MAX_DECEL = 2112.0;     // measured via Pedro's forwardZeroPowerAcceleration tune
+    private static final double WEIGHT_TERMINAL = 100;
     public AMPC(Follower follower) {
         this.follower = follower;
     }
@@ -212,8 +214,21 @@ public class AMPC {
         double dVy = vy - lastBestVy;
         double dOmega = omega - lastBestOmega;
         double smoothnessCost = (WEIGHT_SMOOTHNESS_VX * (dVx * dVx)) + (WEIGHT_SMOOTHNESS_VY * (dVy * dVy)) + (WEIGHT_SMOOTHNESS_OMEGA * (dOmega * dOmega));
+        // Terminal cost: penalize "can't stop in time before path end"
+        double speed = Math.sqrt((vx * vx) + (vy * vy));
+        double brakeDist = (speed * speed) / (2.0 * MAX_DECEL);   // physics: v^2 = 2·a·d
 
-        return ((WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError) + (WEIGHT_HEADING * headingError) + smoothnessCost);
+        Pose endPose = activePath.getPath(0).getPose(1.0);
+        double dxEnd = endPose.getX() - predictedX;
+        double dyEnd = endPose.getY() - predictedY;
+        double remainingDist = Math.sqrt((dxEnd * dxEnd) + (dyEnd * dyEnd));
+
+        double terminalCost = 0;
+        if (brakeDist > remainingDist) {
+            terminalCost = WEIGHT_TERMINAL * (brakeDist - remainingDist);
+        }
+
+        return ((WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError) + (WEIGHT_HEADING * headingError) + smoothnessCost + terminalCost);
 
     }
     private void computePurePursuit(Pose robotPose) {
