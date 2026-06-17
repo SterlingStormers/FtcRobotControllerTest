@@ -47,7 +47,9 @@ public class AMPC {
     private double lastBestOmega = 0;
     public double lastBestCost = 0;   // public for telemetry
     public Pose lookaheadPose = new Pose(0, 0, 0);
-
+    public double pursuitVx = 0;
+    public double pursuitVy = 0;
+    public double pursuitOmega = 0;
     public AMPC(Follower follower) {
         this.follower = follower;
     }
@@ -136,13 +138,13 @@ public class AMPC {
             }
 
             // Global escape candidate 1: pure pursuit
-            double[] pp = computePurePursuit(robotPose);
-            double ppCost = evaluateCandidate(pp[0], pp[1], pp[2], robotPose);
+            computePurePursuit(robotPose);
+            double ppCost = evaluateCandidate(pursuitVx, pursuitVy, pursuitOmega, robotPose);
             if (ppCost < bestCost) {
                 bestCost = ppCost;
-                bestVx = pp[0];
-                bestVy = pp[1];
-                bestOmega = pp[2];
+                bestVx = pursuitVx;
+                bestVy = pursuitVy;
+                bestOmega = pursuitOmega;
             }
 
             // Global escape candidate 2: brake (zero command)
@@ -193,29 +195,25 @@ public class AMPC {
 
         return (WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError);
     }
-    private double[] computePurePursuit(Pose robotPose) {
+    private void computePurePursuit(Pose robotPose) {
         double dxField = lookaheadPose.getX() - robotPose.getX();
         double dyField = lookaheadPose.getY() - robotPose.getY();
 
         double heading = robotPose.getHeading();
-        double cosH = Math.cos(heading);
-        double sinH = Math.sin(heading);
-        double dxRobot = dxField * cosH + dyField * sinH;
-        double dyRobot = -dxField * sinH + dyField * cosH;
+        double dxRobot = (dxField * Math.cos(heading)) + (dyField * Math.sin(heading));
+        double dyRobot = (-dxField * Math.sin(heading)) + (dyField * Math.cos(heading));
 
-        double dist = Math.sqrt(dxRobot * dxRobot + dyRobot * dyRobot);
-        double ppVx, ppVy;
+        double dist = Math.sqrt((dxRobot * dxRobot) + (dyRobot * dyRobot));
         if (dist < 0.01) {
-            ppVx = 0;
-            ppVy = 0;
+            pursuitVx = 0;
+            pursuitVy = 0;
         } else {
-            ppVx = (dxRobot / dist) * maxSpeedForward;
-            ppVy = (dyRobot / dist) * maxSpeedForward;
+            pursuitVx = (dxRobot / dist) * maxSpeedForward;
+            pursuitVy = (dyRobot / dist) * maxSpeedForward;
         }
 
         double headingError = wrapAngle(lookaheadPose.getHeading() - heading);
-        double ppOmega = clamp(headingError * HEADING_GAIN, -maxTurnRateRad, maxTurnRateRad);
-        return new double[] {ppVx, ppVy, ppOmega};
+        pursuitOmega = clamp(headingError * HEADING_GAIN, -maxTurnRateRad, maxTurnRateRad);
     }
     private double clamp(double candidate, double min, double max) {
         if (candidate < min) {
