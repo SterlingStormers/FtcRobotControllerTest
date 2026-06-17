@@ -56,7 +56,7 @@ public class AMPC {
     private static final double WEIGHT_SMOOTHNESS_OMEGA = 0.1;   // rad/s scale, needs bigger weight
     private boolean firstLoop = true;
     private static final double MAX_DECEL = 2112.0;     // measured via Pedro's forwardZeroPowerAcceleration tune
-    private static final double WEIGHT_TERMINAL = 600;
+    private static final double WEIGHT_TERMINAL = 100;
     public AMPC(Follower follower) {
         this.follower = follower;
     }
