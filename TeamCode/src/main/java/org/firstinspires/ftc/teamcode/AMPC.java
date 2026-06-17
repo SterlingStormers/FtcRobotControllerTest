@@ -229,11 +229,11 @@ public class AMPC {
         return candidate;
     }
     private double wrapAngle(double angle) {
-        while (angle > Math.PI) {
-            angle = angle - (2 * Math.PI);
+        while (angle > Math.PI) { //180 degrees
+            angle = angle - (2 * Math.PI); //360 degrees
         }
-        while (angle <= -Math.PI) {
-            angle = angle + (2 * Math.PI);
+        while (angle <= -Math.PI) { //-180 degrees
+            angle = angle + (2 * Math.PI); //-360 degrees
         }
         return angle;
     }
