@@ -52,9 +52,9 @@ public class AMPC {
     public double pursuitVy = 0;
     public double pursuitOmega = 0;
     // Smoothness weights — penalize change from last command (squared)
-    private static final double WEIGHT_SMOOTHNESS_VX = 0.05;
-    private static final double WEIGHT_SMOOTHNESS_VY = 0.05;
-    private static final double WEIGHT_SMOOTHNESS_OMEGA = 5.0;   // rad/s scale, needs bigger weight
+    private static final double WEIGHT_SMOOTHNESS_VX = 0.02;
+    private static final double WEIGHT_SMOOTHNESS_VY = 0.02;
+    private static final double WEIGHT_SMOOTHNESS_OMEGA = 0.1;   // rad/s scale, needs bigger weight
     private boolean firstLoop = true;
     private static final double MAX_DECEL = 2112.0;     // measured via Pedro's forwardZeroPowerAcceleration tune
     private static final double WEIGHT_TERMINAL = 100;
