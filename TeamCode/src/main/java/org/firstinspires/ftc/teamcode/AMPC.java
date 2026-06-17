@@ -51,12 +51,18 @@ public class AMPC {
     public double pursuitVx = 0;
     public double pursuitVy = 0;
     public double pursuitOmega = 0;
+    // Smoothness weights — penalize change from last command (squared)
+    private static final double WEIGHT_SMOOTHNESS_VX = 0.05;
+    private static final double WEIGHT_SMOOTHNESS_VY = 0.05;
+    private static final double WEIGHT_SMOOTHNESS_OMEGA = 5.0;   // rad/s scale, needs bigger weight
+    private boolean firstLoop = true;
     public AMPC(Follower follower) {
         this.follower = follower;
     }
     public void setActivePath(PathChain path) {
         this.activePath = path;
         this.currentT = 0;
+        this.firstLoop = true;
     }
     // may need removal (code below)=====+
     public boolean hasActivePath() {
@@ -109,6 +115,14 @@ public class AMPC {
         if (activePath != null) {
 
             Pose robotPose = follower.getPose();
+
+            if (firstLoop) {
+                computePurePursuit(robotPose);
+                lastBestVx = pursuitVx;
+                lastBestVy = pursuitVy;
+                lastBestOmega = pursuitOmega;
+                firstLoop = false;
+            }
 
             double vxStep = GRID_STEP_FRACTION * maxSpeedForward;
             double vyStep = GRID_STEP_FRACTION * maxSpeedStrafe;
@@ -179,12 +193,9 @@ public class AMPC {
         double fieldVx = (vx * cosH) - (vy * sinH);
         double fieldVy = (vx * sinH) + (vy * cosH);
 
-        // Euler integration over horizon
         double predictedX = robotPose.getX() + (fieldVx * HORIZON_SECONDS);
         double predictedY = robotPose.getY() + (fieldVy * HORIZON_SECONDS);
         double predictedHeading = heading + (omega * HORIZON_SECONDS);
-        // predicted heading not used in Step 4 cost, but available for Step 5+
-
         // Cost term 1: distance from predicted pose to lookahead
         double dxError = lookaheadPose.getX() - predictedX;
         double dyError = lookaheadPose.getY() - predictedY;
@@ -194,9 +205,15 @@ public class AMPC {
         double dxPathError = closestPath.getX() - predictedX;
         double dyPathError = closestPath.getY() - predictedY;
         double distPathError = Math.sqrt((dxPathError * dxPathError) + (dyPathError * dyPathError));
+        //Cost term 3: heading error
         double headingError = Math.abs(wrapAngle(lookaheadPose.getHeading() - predictedHeading));
+        // Cost term 4: smoothness, penalize change from last command
+        double dVx = vx - lastBestVx;
+        double dVy = vy - lastBestVy;
+        double dOmega = omega - lastBestOmega;
+        double smoothnessCost = (WEIGHT_SMOOTHNESS_VX * (dVx * dVx)) + (WEIGHT_SMOOTHNESS_VY * (dVy * dVy)) + (WEIGHT_SMOOTHNESS_OMEGA * (dOmega * dOmega));
 
-        return (WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError) + (WEIGHT_HEADING * headingError);
+        return ((WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError) + (WEIGHT_HEADING * headingError) + smoothnessCost);
 
     }
     private void computePurePursuit(Pose robotPose) {
