@@ -48,7 +48,7 @@ public class MPCStep3Test extends LinearOpMode {
             telemetry.addData("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
             telemetry.addData("actual V", "(" + controller.actualVx + ", " + controller.actualVy + ", " + controller.actualOmega + ")");
             telemetry.addData("lastBestCost", mpc.lastBestCost);
-            telemetry.addData("robot", "(" + follower.getPose().getX() + ", " + follower.getPose().getY() + ", " + Math.toDegrees(follower.getPose().getHeading()) + ")");
+            telemetry.addData("terminalCost", mpc.terminalCost);
             telemetry.update();
         }
     }

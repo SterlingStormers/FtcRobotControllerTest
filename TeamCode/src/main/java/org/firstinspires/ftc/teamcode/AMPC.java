@@ -56,6 +56,8 @@ public class AMPC {
     private boolean firstLoop = true;
     private static final double MAX_DECEL = 2112.0;     // measured via Pedro's forwardZeroPowerAcceleration tune
     private static final double WEIGHT_TERMINAL = 100;
+    public double terminalCost = 0;
+
     public AMPC(Follower follower) {
         this.follower = follower;
     }
@@ -221,7 +223,6 @@ public class AMPC {
         double dyEnd = endPose.getY() - predictedY;
         double remainingDist = Math.sqrt((dxEnd * dxEnd) + (dyEnd * dyEnd));
 
-        double terminalCost = 0;
         if (brakeDist > remainingDist) {
             terminalCost = WEIGHT_TERMINAL * (brakeDist - remainingDist);
         }
