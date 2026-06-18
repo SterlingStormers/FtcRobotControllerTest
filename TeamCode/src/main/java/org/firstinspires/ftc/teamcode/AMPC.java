@@ -32,7 +32,7 @@ public class AMPC {
     // Lookahead output (read by Step 3+)
     public double lookaheadT = 0;
     // MPC configuration
-    private static final double HORIZON_SECONDS = 0.4;
+    private static final double HORIZON_SECONDS = 0.1;
     private static final int GRID_HALF = 1; // 1 → 3×3×3 = 27 candidates
     private static final double GRID_STEP_FRACTION = 0.2; // ±20% of max per step
     // Cost weights
