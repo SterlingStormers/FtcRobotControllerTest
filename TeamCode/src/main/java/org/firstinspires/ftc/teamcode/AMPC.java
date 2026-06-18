@@ -24,16 +24,15 @@ public class AMPC {
     // Search resolution for finding closest t (two-pass refinement)
     private static final int T_COARSE_STEPS = 50;     // ~0.02 t resolution over full path
     private static final int T_FINE_STEPS = 40;       // refines to ~0.002 t resolution
-    private static final double FINE_WINDOW = 0.04;   // ±window around coarse best
+    private static final double FINE_WINDOW = 0.04;   // window around coarse best
     private static final double HEADING_GAIN = 2;
     public PathChain getActivePath() { return activePath; }
     // Lookahead configuration
     private static final double LOOKAHEAD_T_DELTA = 0.1;   // ~5 in on 50 in test path
     // Lookahead output (read by Step 3+)
     public double lookaheadT = 0;
-
     // MPC configuration
-    private static final double HORIZON_SECONDS = 0.1;
+    private static final double HORIZON_SECONDS = 0.4;
     private static final int GRID_HALF = 1; // 1 → 3×3×3 = 27 candidates
     private static final double GRID_STEP_FRACTION = 0.2; // ±20% of max per step
     // Cost weights
