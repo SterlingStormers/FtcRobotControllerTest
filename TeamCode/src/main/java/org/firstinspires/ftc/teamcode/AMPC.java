@@ -217,7 +217,7 @@ public class AMPC {
         // Terminal cost: penalize "can't stop in time before path end"
         double speed = Math.sqrt((vx * vx) + (vy * vy));
         double brakeDist = (speed * speed) / (2.0 * MAX_DECEL);   // physics: v^2 = 2·a·d
-
+        terminalCost = 0;
         Pose endPose = activePath.getPath(0).getPose(1.0);
         double dxEnd = endPose.getX() - predictedX;
         double dyEnd = endPose.getY() - predictedY;
