@@ -223,8 +223,14 @@ public class AMPC {
         double dyEnd = endPose.getY() - predictedY;
         double remainingDist = Math.sqrt((dxEnd * dxEnd) + (dyEnd * dyEnd));
 
-        if (brakeDist > remainingDist) {
-            terminalCost = WEIGHT_TERMINAL * (brakeDist - remainingDist);
+//        if (brakeDist > remainingDist) {
+//            terminalCost = WEIGHT_TERMINAL * (brakeDist - remainingDist);
+//        }
+        double brakingMargin = remainingDist - brakeDist;
+        if (brakingMargin < 0) {
+            terminalCost = WEIGHT_TERMINAL * (brakingMargin * brakingMargin);
+        } else {
+            terminalCost = 0;
         }
 
         return ((WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError) + (WEIGHT_HEADING * headingError) + smoothnessCost + terminalCost);
