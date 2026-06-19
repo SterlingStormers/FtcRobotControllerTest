@@ -58,6 +58,7 @@ public class AMPC {
     private static final double WEIGHT_TERMINAL = 100;
     public double terminalCost = 0;
     public boolean terminalTriggered = false;
+    private static final double SCRUBBING_FACTOR = 0.15;
 
     public AMPC(Follower follower) {
         this.follower = follower;
@@ -193,8 +194,9 @@ public class AMPC {
         double heading = robotPose.getHeading();
         double cosH = Math.cos(heading);
         double sinH = Math.sin(heading);
-        double fieldVx = (vx * cosH) - (vy * sinH);
-        double fieldVy = (vx * sinH) + (vy * cosH);
+        double scrubbingLossMultiplier = 1.0 - (Math.abs(omega) / maxTurnRateRad) * SCRUBBING_FACTOR;
+        double fieldVx = (vx * cosH) - (vy * sinH) * scrubbingLossMultiplier;
+        double fieldVy = (vx * sinH) + (vy * cosH) * scrubbingLossMultiplier;
 
         double predictedX = robotPose.getX() + (fieldVx * HORIZON_SECONDS);
         double predictedY = robotPose.getY() + (fieldVy * HORIZON_SECONDS);
@@ -215,6 +217,8 @@ public class AMPC {
         double dVy = vy - lastBestVy;
         double dOmega = omega - lastBestOmega;
         double smoothnessCost = (WEIGHT_SMOOTHNESS_VX * (dVx * dVx)) + (WEIGHT_SMOOTHNESS_VY * (dVy * dVy)) + (WEIGHT_SMOOTHNESS_OMEGA * (dOmega * dOmega));
+        //Dynamic endpoint cost
+        double endpointWeightMultiplier = 1.0 + (currentT * currentT * 4.0);
         // Terminal cost: penalize "can't stop in time before path end"
         double speed = Math.sqrt((vx * vx) + (vy * vy));
         double brakeDist = (speed * speed) / (2.0 * MAX_DECEL);   // physics: v^2 = 2·a·d
@@ -226,12 +230,12 @@ public class AMPC {
         terminalTriggered = false;
 
         if (brakeDist > remainingDist) {
-            terminalCost = WEIGHT_TERMINAL * (brakeDist - remainingDist);
+            terminalCost = WEIGHT_TERMINAL * (brakeDist - remainingDist) * endpointWeightMultiplier;
             terminalTriggered = true;
 
         }
 
-        return ((WEIGHT_LOOKAHEAD * distError) + (WEIGHT_PATH * distPathError) + (WEIGHT_HEADING * headingError) + smoothnessCost + terminalCost);
+        return ((WEIGHT_LOOKAHEAD * distError * endpointWeightMultiplier) + (WEIGHT_PATH * distPathError * endpointWeightMultiplier) + (WEIGHT_HEADING * headingError) + smoothnessCost + terminalCost);
 
     }
     private void computePurePursuit(Pose robotPose) {
