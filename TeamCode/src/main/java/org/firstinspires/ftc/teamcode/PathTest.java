@@ -56,7 +56,7 @@ public class PathTest extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(56.000, 8.000, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(0, 0, Math.toRadians(0)));
 
         paths = new Paths(follower); // Build paths
 
@@ -119,19 +119,9 @@ public class PathTest extends OpMode {
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(56.000, 8.000),
+                                    new Pose(0, 0),
 
-                                    new Pose(56.000, 36.000)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
-
-                    .build();
-
-            Path2 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(56.000, 36.000),
-
-                                    new Pose(95.725, 35.976)
+                                    new Pose(50.000, 0)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
@@ -177,13 +167,6 @@ public class PathTest extends OpMode {
                 setPathState(2);
                 break;
             case 2:
-                telemetry.addData("case: ", 2);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path2, true);
-                    setPathState(3);
-                }
-                break;
-            case 3:
                 if (!follower.isBusy() && pathState != -1) {
                     telemetry.addLine("Successfully (or not) completed 3 ball auto");
                     telemetry.update();
