@@ -11,9 +11,9 @@ public class MecanumKinematics {
     }
     public void drive() {
         // Normalize using MPC's current model parameters
-        double vxNorm = /* controller.effortVx */ mpc.desiredVx / mpc.maxSpeedForward;
-        double vyNorm = /* controller.effortVy */ mpc.desiredVy / mpc.maxSpeedStrafe;
-        double omegaNorm = /*controller.effortOmega */ mpc.desiredOmega / mpc.maxTurnRateRad;
+        double vxNorm = controller.effortVx / mpc.maxSpeedForward;
+        double vyNorm = controller.effortVy / mpc.maxSpeedStrafe;
+        double omegaNorm = controller.effortOmega / mpc.maxTurnRateRad;
         // Mecanum mixing
         double fl = vxNorm - vyNorm - omegaNorm;
         double fr = vxNorm + vyNorm + omegaNorm;
