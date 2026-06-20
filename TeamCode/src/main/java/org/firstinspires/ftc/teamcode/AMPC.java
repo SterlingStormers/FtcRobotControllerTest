@@ -210,10 +210,10 @@ public class AMPC {
         Pose closestPath = activePath.getPath(0).getPose(currentT);
         double dxPathError = closestPath.getX() - predictedX;
         double dyPathError = closestPath.getY() - predictedY;
-//        double distPathError = Math.sqrt((dxPathError * dxPathError) + (dyPathError * dyPathError));
-        double pathHeading = closestPath.getHeading();
-        double crossTrackError = (-dxPathError * Math.sin(pathHeading)) + (dyPathError * Math.cos(pathHeading));
-        double distPathError = Math.abs(crossTrackError);
+        double distPathError = Math.sqrt((dxPathError * dxPathError) + (dyPathError * dyPathError));
+//        double pathHeading = closestPath.getHeading();
+//        double crossTrackError = (-dxPathError * Math.sin(pathHeading)) + (dyPathError * Math.cos(pathHeading));
+//        double distPathError = Math.abs(crossTrackError);
         //Cost term 3: heading error
         double headingError = Math.abs(wrapAngle(lookaheadPose.getHeading() - predictedHeading));
         // Cost term 4: smoothness, penalize change from last command
