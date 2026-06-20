@@ -9,7 +9,7 @@ public class AMPC {
 
     // Robot model parameters (will be refined by SysID later)
     public double maxSpeedForward = 54.8;
-    public double maxSpeedStrafe = 46.0;
+    public double maxSpeedStrafe = 30; //46.0;
     public double maxTurnRateRad = 4.0;
 
     // Current desired velocity output (read by VelocityController)
