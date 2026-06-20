@@ -128,9 +128,13 @@ public class AMPC {
                 firstLoop = false;
             }
 
-            double vxStep = GRID_STEP_FRACTION * maxSpeedForward;
-            double vyStep = GRID_STEP_FRACTION * maxSpeedStrafe;
-            double omegaStep = GRID_STEP_FRACTION * maxTurnRateRad;
+//            double vxStep = GRID_STEP_FRACTION * maxSpeedForward;
+//            double vyStep = GRID_STEP_FRACTION * maxSpeedStrafe;
+//            double omegaStep = GRID_STEP_FRACTION * maxTurnRateRad;
+            // This forces the grid to get hyper-fine as the robot slows down near the path
+            double vxStep = GRID_STEP_FRACTION * Math.max(8.0, Math.abs(lastBestVx));
+            double vyStep = GRID_STEP_FRACTION * Math.max(8.0, Math.abs(lastBestVy));
+            double omegaStep = GRID_STEP_FRACTION * Math.max(1.0, Math.abs(lastBestOmega));
 
             double bestCost = Double.MAX_VALUE;
             double bestVx = lastBestVx;
