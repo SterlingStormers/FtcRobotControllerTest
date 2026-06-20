@@ -55,7 +55,7 @@ public class AMPC {
     private static final double WEIGHT_SMOOTHNESS_OMEGA = 0.0;   // rad/s scale, needs bigger weight
     private boolean firstLoop = true;
     private static final double MAX_DECEL = 100;     // measured via Pedro's forwardZeroPowerAcceleration tune
-    private static final double WEIGHT_TERMINAL = 100;
+    private static final double WEIGHT_TERMINAL = 0;  //100
     public double terminalCost = 0;
     public boolean terminalTriggered = false;
     private static final double SCRUBBING_FACTOR = 0.15;
