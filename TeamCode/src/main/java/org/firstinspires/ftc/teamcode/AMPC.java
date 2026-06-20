@@ -33,11 +33,11 @@ public class AMPC {
     public double lookaheadT = 0;
     // MPC configuration
     private static final double HORIZON_SECONDS = 0.1;
-    private static final int GRID_HALF = 1; // 1 → 3×3×3 = 27 candidates
+    private static final int GRID_HALF = 2; // 1 → 3×3×3 = 27 candidates
     private static final double GRID_STEP_FRACTION = 0.2; // ±20% of max per step
     // Cost weights
     private static final double WEIGHT_LOOKAHEAD = 1.0;
-    private static final double WEIGHT_PATH = 2;
+    private static final double WEIGHT_PATH = 0.5;
     private static final double WEIGHT_HEADING = 10.0;   // radians are small; needs big weight
 
     // State carried across loops (for dynamic grid centering)
@@ -214,10 +214,10 @@ public class AMPC {
         Pose closestPath = activePath.getPath(0).getPose(currentT);
         double dxPathError = closestPath.getX() - predictedX;
         double dyPathError = closestPath.getY() - predictedY;
-//        double distPathError = Math.sqrt((dxPathError * dxPathError) + (dyPathError * dyPathError));
-        double pathHeading = closestPath.getHeading();
-        double crossTrackError = (-dxPathError * Math.sin(pathHeading)) + (dyPathError * Math.cos(pathHeading));
-        double distPathError = Math.abs(crossTrackError);
+        double distPathError = Math.sqrt((dxPathError * dxPathError) + (dyPathError * dyPathError));
+//        double pathHeading = closestPath.getHeading();
+//        double crossTrackError = (-dxPathError * Math.sin(pathHeading)) + (dyPathError * Math.cos(pathHeading));
+//        double distPathError = Math.abs(crossTrackError);
         //Cost term 3: heading error
         double headingError = Math.abs(wrapAngle(lookaheadPose.getHeading() - predictedHeading));
         // Cost term 4: smoothness, penalize change from last command
