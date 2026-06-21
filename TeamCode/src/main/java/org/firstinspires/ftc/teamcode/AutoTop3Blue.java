@@ -15,17 +15,17 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name = "Auto Top 3 Blue", group = "Autonomous")
-@Configurable // Panels
+@Configurable
 public class AutoTop3Blue extends OpMode {
-    private TelemetryManager panelsTelemetry; // Panels Telemetry instance
-    public Follower follower; // Pedro Pathing follower instance
-    private int pathState; // Current autonomous path state (state machine)
-    private Paths paths; // Paths defined in the Paths class
+    private TelemetryManager panelsTelemetry;
+    public Follower follower;
+    private int pathState;
+    private Paths paths;
     private DriveTrainHardware drive;
     private Timer pathTimer, opmodeTimer;
     public int pos = 0;
     public static double waitTime = 1;
-    private char ball1 = 'P'; // to be changed
+    private char ball1 = 'P';
     private char ball2 = 'G';
     private char ball3 = 'P';
     private char detectedBall1;
@@ -42,12 +42,16 @@ public class AutoTop3Blue extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     ColorSensingAuto colorScanner;
     public boolean ShooterSpinup = false;
-    private int seenAprilTag = -1;            // the confirmed tag ID we saw (or -1 if none)
-    private int aprilTagConfirmCount = 0;    // how many consecutive frames we saw the same tag
-    private static final int APRILTAG_CONFIRM_THRESHOLD = 3; // require N frames to confirm
+    private int seenAprilTag = -1;
+    private int aprilTagConfirmCount = 0;
+    private static final int APRILTAG_CONFIRM_THRESHOLD = 3;
     private final int[] targetTags = {1, 2, 3};
     public double EncoderZero;
-    private LightweightMPCV2 mpc;  //------ Testing
+
+    // V2 MPC stack
+    private AMPC mpc;
+    private VelocityControllerV2 controller;
+    private MecanumKinematics kinematics;
 
     @Override
     public void init() {
@@ -56,7 +60,7 @@ public class AutoTop3Blue extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(23.907, 119.235, Math.toRadians(90)));
 
-        paths = new Paths(follower); // Build paths
+        paths = new Paths(follower);
 
         detectedBall3 = 'U';
         detectedBall2 = 'U';
@@ -64,9 +68,15 @@ public class AutoTop3Blue extends OpMode {
 
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
+
         drive = new DriveTrainHardware();
         drive.init(hardwareMap);
-        mpc = new LightweightMPCV2(follower, drive, telemetry);
+
+        // V2 MPC stack
+        mpc = new AMPC(follower);
+        controller = new VelocityControllerV2(follower, mpc);
+        kinematics = new MecanumKinematics(drive, mpc, controller);
+
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         drive.kicker.setPosition(0);
@@ -75,13 +85,16 @@ public class AutoTop3Blue extends OpMode {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         colorScanner = new ColorSensingAuto(this, "Webcam 1");
-//        motor = hardwareMap.get(DcMotor.class, "intake_motor");
-        drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // Reset the motor encoder
+
+        drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         drive.intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         drive.husky.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
-
         drive.light.setPosition(1);
+
+        // Give Pinpoint IMU time to calibrate before play (robot stationary)
+        try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+        follower.updatePose();
 
         telemetry.update();
         runtime.reset();
@@ -89,22 +102,27 @@ public class AutoTop3Blue extends OpMode {
 
     @Override
     public void loop() {
-        follower.update(); // Update Pedro Pathing
-        if (follower.isBusy()) {
-            mpc.update();
-        }
-        pathState = autonomousPathUpdate(); // Update autonomous state machine
+        // V2 MPC stack: pose refresh + plan + track + drive every loop
+        follower.updatePose();
+        mpc.update();
+        controller.velocity();
+        kinematics.drive();
+
+        pathState = autonomousPathUpdate();
         colorScanner.update();
-        if (ShooterSpinup && follower.isBusy() && 0.25 <= follower.getCurrentTValue() && follower.getCurrentTValue() <= 1) {
+
+        // Shooter spinup: while a path is being driven AND we're past 25% through it
+        if (ShooterSpinup && !mpc.isPathComplete() && mpc.currentT >= 0.25) {
             drive.shooterMotor.setPower(0.75);
             ShooterSpinup = false;
         }
 
-        // Log values to Panels and Driver Station
         panelsTelemetry.debug("Path State", pathState);
         panelsTelemetry.debug("X", follower.getPose().getX());
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
+        panelsTelemetry.debug("currentT", mpc.currentT);
+        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
         panelsTelemetry.update(telemetry);
     }
 
@@ -118,45 +136,39 @@ public class AutoTop3Blue extends OpMode {
             Path1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(23.907, 119.235),
-
                                     new Pose(56.000, 88.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(67))
-
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(56.000, 88.000),
-
                                     new Pose(55.000, 89.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(67), Math.toRadians(144))
-
                     .build();
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(55.000, 89.000),
-
                                     new Pose(48.404, 119.987)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(144))
-
                     .build();
         }
     }
+
     public void setPathState(int newState) {
         pathState = newState;
         pathTimer.resetTimer();
 
-        // Reset kicker state when entering shooting states
         if (newState == 10 || newState == 11 || newState == 12) {
             kickerUp = false;
         }
     }
-    public void SpindexerLogic1(){
 
+    public void SpindexerLogic1(){
         telemetry.addData("detectedBall1", detectedBall1);
         telemetry.addData("detectedBall2", detectedBall2);
         telemetry.addData("detectedBall3", detectedBall3);
@@ -166,16 +178,13 @@ public class AutoTop3Blue extends OpMode {
 
         pos = drive.intakeMotor.getCurrentPosition();
 
-        if (detectedBall3 == ball1) {  // ball1 is in slot2
+        if (detectedBall3 == ball1) {
             int remaining = 9557 - pos;
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -186,7 +195,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 kickerUp = false;
@@ -194,16 +202,13 @@ public class AutoTop3Blue extends OpMode {
                 setPathState(pathState + 1);
             }
 
-        } else if (detectedBall2 == ball1) {  // ball1 is in slot1
+        } else if (detectedBall2 == ball1) {
             int remaining = pos - 6827;
             double power = -0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -214,7 +219,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 kickerUp = false;
@@ -222,16 +226,13 @@ public class AutoTop3Blue extends OpMode {
                 setPathState(pathState + 1);
             }
 
-        } else if (detectedBall1 == ball1) {  // ball1 is in slot0
+        } else if (detectedBall1 == ball1) {
             int remaining = 12288 - pos;
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -242,7 +243,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 kickerUp = false;
@@ -255,8 +255,8 @@ public class AutoTop3Blue extends OpMode {
             setPathState(pathState + 1);
         }
     }
-    public void SpindexerLogic2() {
 
+    public void SpindexerLogic2() {
         telemetry.addData("detectedBall1", detectedBall1);
         telemetry.addData("detectedBall2", detectedBall2);
         telemetry.addData("detectedBall3", detectedBall3);
@@ -271,15 +271,11 @@ public class AutoTop3Blue extends OpMode {
             int remaining = has180Occured ? (pos - 9557) : (9557 - pos);
             double power = has180Occured ? (-0.0005 * remaining) : (0.0005 * remaining);
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             telemetry.addData("Logic2: targeting slot2", true);
             telemetry.addData("remaining", Math.abs(remaining));
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -290,7 +286,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 kickerUp = false;
@@ -303,15 +298,11 @@ public class AutoTop3Blue extends OpMode {
             int remaining = has180Occured ? (15019 - pos) : (6827 - pos);
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             telemetry.addData("Logic2: targeting slot1", true);
             telemetry.addData("remaining", Math.abs(remaining));
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -322,7 +313,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 kickerUp = false;
@@ -334,15 +324,11 @@ public class AutoTop3Blue extends OpMode {
             int remaining = 12288 - pos;
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             telemetry.addData("Logic2: targeting slot0", true);
             telemetry.addData("remaining", Math.abs(remaining));
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -353,7 +339,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 kickerUp = false;
@@ -366,10 +351,9 @@ public class AutoTop3Blue extends OpMode {
             drive.intakeMotor.setPower(1);
             setPathState(pathState + 1);
         }
-
     }
-    public void SpindexerLogic3() {
 
+    public void SpindexerLogic3() {
         telemetry.addData("detectedBall1", detectedBall1);
         telemetry.addData("detectedBall2", detectedBall2);
         telemetry.addData("detectedBall3", detectedBall3);
@@ -382,12 +366,9 @@ public class AutoTop3Blue extends OpMode {
             int remaining = has180Occured ? (pos - 9557) : (9557 - pos);
             double power = has180Occured ? (-0.0005 * remaining) : (0.0005 * remaining);
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -398,7 +379,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 drive.spindexer.setPower(0);
@@ -412,12 +392,9 @@ public class AutoTop3Blue extends OpMode {
             int remaining = has180Occured ? (15019 - pos) : (6827 - pos);
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -428,7 +405,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 drive.spindexer.setPower(0);
@@ -442,12 +418,9 @@ public class AutoTop3Blue extends OpMode {
             int remaining = 12288 - pos;
             double power = 0.0005 * remaining;
             power = Math.max(-1, Math.min(1, power));
-
-            // Prevent stalling - use minimum power when far away
             if (Math.abs(remaining) > 10) {
                 power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
             }
-
             if (Math.abs(remaining) <= 10) {
                 drive.spindexer.setPower(0);
                 if (!kickerUp) {
@@ -458,7 +431,6 @@ public class AutoTop3Blue extends OpMode {
             } else {
                 drive.spindexer.setPower(power);
             }
-
             if (kickerUp && (runtime.seconds() - kickerStartTime) >= 0.5) {
                 drive.kicker.setPosition(kickerPos);
                 drive.spindexer.setPower(0);
@@ -474,39 +446,29 @@ public class AutoTop3Blue extends OpMode {
 
 
     public int autonomousPathUpdate() {
-        // Safety: if we're done, ensure everything stays stopped
         if (pathState == -1) {
             drive.shooterMotor.setPower(0);
             drive.spindexer.setPower(0);
             drive.intakeMotor.setPower(0);
-            drive.frontLeftDrive.setPower(0);
-            drive.backLeftDrive.setPower(0);
-            drive.frontRightDrive.setPower(0);
-            drive.backRightDrive.setPower(0);
+            // Drive motors zeroed via MPC (no active path → desiredV* = 0 → kinematics writes 0)
             return -1;
         }
 
-        // Add your state machine Here
-        // Access paths with paths.pathName
-        // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
         switch (pathState) {
             case 0:
-                drive.frontLeftDrive.setPower(0);
-                drive.backLeftDrive.setPower(0);
-                drive.frontRightDrive.setPower(0);
-                drive.backRightDrive.setPower(0);
                 drive.intakeMotor.setPower(0);
                 drive.shooterMotor.setPower(0);
                 drive.spindexer.setPower(0);
                 setPathState(1);
                 break;
+
             case 1:
                 telemetry.addData("case: ", 1);
-                follower.followPath(paths.Path1, true);
-
+                mpc.setActivePath(paths.Path1);   // ← was follower.followPath(paths.Path1, true)
                 ShooterSpinup = true;
                 setPathState(2);
                 break;
+
             case 2:
                 telemetry.addData("case: ", 2);
 
@@ -533,7 +495,6 @@ public class AutoTop3Blue extends OpMode {
                             break;
                         }
                     }
-
                     if (foundTargetThisFrame) break;
                 }
 
@@ -548,21 +509,13 @@ public class AutoTop3Blue extends OpMode {
                     telemetry.update();
 
                     if (seenAprilTag == 1) {
-                        ball1 = 'P';
-                        ball2 = 'P';
-                        ball3 = 'G';
+                        ball1 = 'P'; ball2 = 'P'; ball3 = 'G';
                     } else if (seenAprilTag == 2) {
-                        ball1 = 'P';
-                        ball2 = 'G';
-                        ball3 = 'P';
+                        ball1 = 'P'; ball2 = 'G'; ball3 = 'P';
                     } else if (seenAprilTag == 3) {
-                        ball1 = 'G';
-                        ball2 = 'P';
-                        ball3 = 'P';
+                        ball1 = 'G'; ball2 = 'P'; ball3 = 'P';
                     } else {
-                        ball1 = 'P';
-                        ball2 = 'G';
-                        ball3 = 'P';
+                        ball1 = 'P'; ball2 = 'G'; ball3 = 'P';
                         telemetry.addData("scanned", false);
                     }
                 }
@@ -571,11 +524,9 @@ public class AutoTop3Blue extends OpMode {
 
                 pos = drive.intakeMotor.getCurrentPosition();
                 if (pathTimer.getElapsedTimeSeconds() >= 2) {
-                    int remaining = 2731 - pos; //ccw
-                    double power = 0;
-                    power = (0.0005 * remaining);
-                    power = Math.max(power, -1);
-                    power = Math.min(power, 1);
+                    int remaining = 2731 - pos;
+                    double power = 0.0005 * remaining;
+                    power = Math.max(-1, Math.min(1, power));
                     if (Math.abs(remaining) > 10) {
                         power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
                     }
@@ -588,6 +539,7 @@ public class AutoTop3Blue extends OpMode {
                     drive.spindexer.setPower(power);
                 }
                 break;
+
             case 3:
                 telemetry.addData("case:", 3);
                 telemetry.addData("colorScanner.scanning (before)", colorScanner.scanning);
@@ -615,30 +567,26 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(4);
                 }
                 break;
+
             case 4:
                 telemetry.addData("case: ", 4);
                 pos = drive.intakeMotor.getCurrentPosition();
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 5462 - pos;
-                    double power = 0;
-                    power = (0.0005 * remaining);
-                    power = Math.max(power, -1);
-                    power = Math.min(power, 1);
-
+                    double power = 0.0005 * remaining;
+                    power = Math.max(-1, Math.min(1, power));
                     if (Math.abs(remaining) > 10) {
                         power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
                     }
-
                     if (Math.abs(remaining) <= 35 && pathTimer.getElapsedTimeSeconds() >= waitTime) {
                         power = 0;
                         slot1 = true;
                         setPathState(5);
                     }
-
-
                     drive.spindexer.setPower(power);
                 }
                 break;
+
             case 5:
                 if (!colorScanner.scanning && !colorScanner.colorReady) {
                     colorScanner.startScan();
@@ -655,14 +603,13 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(6);
                 }
                 break;
+
             case 6:
                 pos = drive.intakeMotor.getCurrentPosition();
                 if (pathTimer.getElapsedTimeSeconds() >= waitTime) {
                     int remaining = 8192 - pos;
-                    double power = 0;
-                    power = (0.0005 * remaining);
-                    power = Math.max(power, -1);
-                    power = Math.min(power, 1);
+                    double power = 0.0005 * remaining;
+                    power = Math.max(-1, Math.min(1, power));
                     if (Math.abs(remaining) > 10) {
                         power = Math.max(Math.abs(power), 0.1) * Math.signum(power);
                     }
@@ -671,10 +618,10 @@ public class AutoTop3Blue extends OpMode {
                         slot2 = true;
                         setPathState(7);
                     }
-
                     drive.spindexer.setPower(power);
                 }
                 break;
+
             case 7:
                 if (!colorScanner.scanning && !colorScanner.colorReady) {
                     colorScanner.startScan();
@@ -683,7 +630,6 @@ public class AutoTop3Blue extends OpMode {
                     try {
                         if (colorScanner.detectedColor != null) {
                             detectedBall3 = ColorSensingAuto.toBallChar(colorScanner.detectedColor);
-                            // Force to P if ball1 or ball2 was already G
                         } else {
                             detectedBall3 = ball3;
                         }
@@ -694,14 +640,15 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(8);
                 }
                 break;
+
             case 8:
-                // husky lens
                 setPathState(9);
                 break;
+
             case 9:
-                if (!follower.isBusy()) {
+                if (mpc.isPathComplete()) {    // ← was !follower.isBusy()
                     telemetry.addData("followPath: ", 2);
-                    follower.followPath(paths.Path2, true);
+                    mpc.setActivePath(paths.Path2);   // ← was follower.followPath(paths.Path2, true)
 
                     if (detectedBall1 == 'G') {
                         detectedBall2 = 'P';
@@ -722,6 +669,7 @@ public class AutoTop3Blue extends OpMode {
                     setPathState(10);
                 }
                 break;
+
             case 10:
                 telemetry.addData("detectedBall1", detectedBall1);
                 telemetry.addData("detectedBall2", detectedBall2);
@@ -730,37 +678,36 @@ public class AutoTop3Blue extends OpMode {
                 telemetry.addData("pos", drive.intakeMotor.getCurrentPosition());
                 telemetry.update();
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() >= waitTime) {
+                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() >= waitTime) {    // ← was !follower.isBusy()
                     SpindexerLogic1();
                 }
                 break;
+
             case 11:
                 SpindexerLogic2();
                 break;
+
             case 12:
                 SpindexerLogic3();
                 break;
+
             case 13:
                 telemetry.addData("case", 13);
                 telemetry.update();
                 setPathState(14);
                 break;
+
             case 14:
                 drive.shooterMotor.setPower(0);
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.Path3, true);
+                if (mpc.isPathComplete()) {    // ← was !follower.isBusy()
+                    mpc.setActivePath(paths.Path3);    // ← was follower.followPath(paths.Path3, true)
 
                     pos = drive.intakeMotor.getCurrentPosition();
                     if (pathTimer.getElapsedTimeSeconds() >= waitTime/2) {
-
                         int remaining = 8129 - pos;
-                        double power = 0;
-                        power = (0.0005 * remaining);
-                        power = Math.max(power, -1);
-                        power = Math.min(power, 1);
-
+                        double power = 0.0005 * remaining;
+                        power = Math.max(-1, Math.min(1, power));
                         int tolerance = 30;
-
                         drive.spindexer.setPower(power);
                         telemetry.addData("remaining: ", remaining);
 
@@ -773,18 +720,14 @@ public class AutoTop3Blue extends OpMode {
                             drive.spindexer.setPower(0);
                             setPathState(15);
                         }
-
                     }
                 }
                 break;
+
             case 15:
-                if (!follower.isBusy() && pathState != -1) {
+                if (mpc.isPathComplete() && pathState != -1) {    // ← was !follower.isBusy()
                     telemetry.addLine("Successfully (or not) completed 3 ball auto");
                     telemetry.update();
-                    drive.frontLeftDrive.setPower(0);
-                    drive.backLeftDrive.setPower(0);
-                    drive.frontRightDrive.setPower(0);
-                    drive.backRightDrive.setPower(0);
                     drive.intakeMotor.setPower(0);
                     drive.shooterMotor.setPower(0);
                     drive.spindexer.setPower(0);

@@ -54,11 +54,24 @@ public class AMPC {
     private static final double WEIGHT_SMOOTHNESS_VY = 0.0;
     private static final double WEIGHT_SMOOTHNESS_OMEGA = 0.0;   // rad/s scale, needs bigger weight
     private boolean firstLoop = true;
-    private static final double MAX_DECEL = 100;     // measured via Pedro's forwardZeroPowerAcceleration tune
+    private static final double MAX_DECEL = 100;     // 100
     private static final double WEIGHT_TERMINAL = 100;  //100
     public double terminalCost = 0;
     public boolean terminalTriggered = false;
     private static final double SCRUBBING_FACTOR = 0.15;
+    private static final double PATH_END_TOLERANCE = 1.5;  // inches
+
+    public boolean isPathComplete() {
+        if (activePath == null) return true;
+        if (currentT < 0.95) return false;
+
+        // Robot must be within tolerance of endpoint
+        Pose robot = follower.getPose();
+        Pose end = activePath.getPath(0).getPose(1.0);
+        double dx = robot.getX() - end.getX();
+        double dy = robot.getY() - end.getY();
+        return Math.sqrt(dx * dx + dy * dy) < PATH_END_TOLERANCE;
+    }
 
     public AMPC(Follower follower) {
         this.follower = follower;
@@ -68,11 +81,6 @@ public class AMPC {
         this.currentT = 0;
         this.firstLoop = true;
     }
-    // may need removal (code below)=====+
-    public boolean hasActivePath() {
-        return activePath != null;
-    }
-// may need removal (code above)======
 
     public void updateClosestT() {
         if (activePath != null) {
