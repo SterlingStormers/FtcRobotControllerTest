@@ -5,54 +5,55 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "Pose Stability Test", group = "Test")
+@TeleOp(name = "Hold Position Test", group = "Test")
 public class PoseTest extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        DriveTrainHardware drive = new DriveTrainHardware();
+        drive.init(hardwareMap);
 
         Follower follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
 
+        AMPC mpc = new AMPC(follower);   // only used for desiredV* fields
+        VelocityControllerV2 controller = new VelocityControllerV2(follower, mpc);
+        MecanumKinematics kinematics = new MecanumKinematics(drive, mpc, controller);
+
+        // Hold gains (P-only)
+        double KP_POS = 0.5;
+        double KP_HEADING = 1.0;
+
         waitForStart();
 
-        Pose lastPose = follower.getPose();
-        long lastTime = System.nanoTime();
-
         while (opModeIsActive()) {
-
-            follower.update();
-
+            follower.updatePose();
             Pose p = follower.getPose();
 
-            long now = System.nanoTime();
-            double dt = (now - lastTime) / 1e9;
-            lastTime = now;
+            // Field-frame error (target = origin)
+            double errorXField = -p.getX();
+            double errorYField = -p.getY();
 
-            double dx = p.getX() - lastPose.getX();
-            double dy = p.getY() - lastPose.getY();
+            // Rotate field error into robot frame for the velocity command
+            double heading = p.getHeading();
+            double cosH = Math.cos(heading);
+            double sinH = Math.sin(heading);
+            double cmdVx = (errorXField * cosH + errorYField * sinH) * KP_POS;
+            double cmdVy = (-errorXField * sinH + errorYField * cosH) * KP_POS;
+            double cmdOmega = -KP_HEADING * heading;
 
-            double vx = dx / dt;
-            double vy = dy / dt;
+            mpc.desiredVx = cmdVx;
+            mpc.desiredVy = cmdVy;
+            mpc.desiredOmega = cmdOmega;
 
-            lastPose = p;
+            controller.velocity();
+            kinematics.drive();
 
-            telemetry.addLine("=== POSE ===");
-            telemetry.addData("X", p.getX());
-            telemetry.addData("Y", p.getY());
-            telemetry.addData("Heading", Math.toDegrees(p.getHeading()));
-
-            telemetry.addLine("=== DELTA PER LOOP ===");
-            telemetry.addData("dX", dx);
-            telemetry.addData("dY", dy);
-
-            telemetry.addLine("=== VELOCITY ===");
-            telemetry.addData("Vx", vx);
-            telemetry.addData("Vy", vy);
-
-            telemetry.addLine("=== STABILITY CHECK ===");
-            telemetry.addData("Pose Drift Magnitude", Math.sqrt(dx*dx + dy*dy));
-
+            telemetry.addData("X (localizer)", p.getX());
+            telemetry.addData("Y (localizer)", p.getY());
+            telemetry.addData("heading deg", Math.toDegrees(heading));
+            telemetry.addData("desired Vx/Vy/Omega",
+                    "(" + cmdVx + ", " + cmdVy + ", " + cmdOmega + ")");
             telemetry.update();
         }
     }
