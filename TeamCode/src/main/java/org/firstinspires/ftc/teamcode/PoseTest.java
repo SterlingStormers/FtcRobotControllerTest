@@ -21,8 +21,8 @@ public class PoseTest extends LinearOpMode {
         MecanumKinematics kinematics = new MecanumKinematics(drive, mpc, controller);
 
         // Hold gains (P-only)
-        double KP_POS = 0.5;
-        double KP_HEADING = 1.0;
+        double KP_POS = 5;
+        double KP_HEADING = 5.0;
 
         waitForStart();
 
