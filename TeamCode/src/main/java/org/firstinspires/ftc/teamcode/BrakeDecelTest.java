@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Configurable
 public class BrakeDecelTest extends LinearOpMode {
 
-    public static double CRUISE_VEL = 40.0;        // in/s
+    public static double CRUISE_VEL = 54.8;        // in/s
     public static double ACCEL_TIME = 1.5;         // seconds at cruise before braking
     public static double STOPPED_THRESHOLD = 1.0;  // in/s — considered stopped below this
 
