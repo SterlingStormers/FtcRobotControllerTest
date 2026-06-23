@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.util.Arrays;
-
 @Autonomous(name = "Brake Decel Test", group = "Test")
 @Configurable
 public class BrakeDecelTest extends LinearOpMode {
@@ -33,13 +31,17 @@ public class BrakeDecelTest extends LinearOpMode {
         double[] decelMeasurements = new double[NUM_TRIALS];
 
         for (int i = 0; i < NUM_TRIALS; i++) {
+            double direction = (i % 2 == 0) ? 1.0 : -1.0;   // alternate fwd/back
+
             telemetry.addData("trial", (i+1) + "/" + NUM_TRIALS);
+            telemetry.addData("direction", direction > 0 ? "FORWARD" : "REVERSE");
             telemetry.update();
 
-            double cruiseVel = accelerate();
+            double cruiseVel = accelerate(direction);
             double startX = follower.getPose().getX();
-            brake();
+            brake(direction);
             stopMotors();
+            sleep(300);   // let robot fully settle before measuring final position
             double brakeDist = Math.abs(follower.getPose().getX() - startX);
 
             decelMeasurements[i] = (cruiseVel * cruiseVel) / (2 * brakeDist);
@@ -67,13 +69,15 @@ public class BrakeDecelTest extends LinearOpMode {
         follower.updatePose();
 
         telemetry.addLine("Brake Decel Test ready");
-        telemetry.addLine(NUM_TRIALS + " trials, ~5 ft clearance needed");
+        telemetry.addLine(NUM_TRIALS + " trials, alternating forward/reverse");
+        telemetry.addLine("~5 ft clearance needed (each direction)");
         telemetry.update();
     }
 
     // === Phases ===
 
-    private double accelerate() {
+    /** Accelerates to CRUISE_VEL in the given direction (+1 forward, -1 reverse). */
+    private double accelerate(double direction) {
         ElapsedTime t = new ElapsedTime();
         double lastX = follower.getPose().getX();
         double lastT = 0, v = 0, velSum = 0;
@@ -89,24 +93,28 @@ public class BrakeDecelTest extends LinearOpMode {
 
             if (now > ACCEL_TIME - 0.3) { velSum += v; velCount++; }
 
-            mpc.desiredVx = CRUISE_VEL;
+            mpc.desiredVx = CRUISE_VEL * direction;
             mpc.desiredVy = 0;
             mpc.desiredOmega = 0;
             controller.velocity();
             kinematics.drive();
 
-            telemetry.addData("phase", "ACCEL");
+            telemetry.addData("phase", "ACCEL " + (direction > 0 ? "FWD" : "REV"));
             telemetry.addData("v (in/s)", "%.2f", v);
             telemetry.update();
         }
 
-        return velCount > 0 ? velSum / velCount : v;
+        // Return signed velocity, but the measured magnitude is what matters
+        return velCount > 0 ? Math.abs(velSum / velCount) : Math.abs(v);
     }
 
-    private void brake() {
+    /** Brakes by commanding motors *opposite* to current motion. */
+    private void brake(double direction) {
         ElapsedTime t = new ElapsedTime();
         double lastX = follower.getPose().getX();
         double lastT = 0, v = 999;
+        // Brake direction is opposite to motion direction
+        double brakePower = -direction;
 
         while (opModeIsActive() && t.seconds() < 3.0) {
             follower.updatePose();
@@ -116,16 +124,17 @@ public class BrakeDecelTest extends LinearOpMode {
             lastX = x;
             lastT = now;
 
-            drive.frontLeftDrive.setPower(-1);
-            drive.frontRightDrive.setPower(-1);
-            drive.backLeftDrive.setPower(-1);
-            drive.backRightDrive.setPower(-1);
+            drive.frontLeftDrive.setPower(brakePower);
+            drive.frontRightDrive.setPower(brakePower);
+            drive.backLeftDrive.setPower(brakePower);
+            drive.backRightDrive.setPower(brakePower);
 
             telemetry.addData("phase", "BRAKE");
             telemetry.addData("v (in/s)", "%.2f", v);
             telemetry.update();
 
-            if (Math.abs(v) < STOPPED_THRESHOLD && t.seconds() > 0.2) return;
+            // Exit when velocity sign flips relative to motion direction (robot stopped or reversing)
+            if (v * direction <= STOPPED_THRESHOLD && t.seconds() > 0.2) return;
         }
     }
 
@@ -146,10 +155,7 @@ public class BrakeDecelTest extends LinearOpMode {
             sum += m;
         }
         double mean = sum / measurements.length;
-
-        // Use the WORST measured value as the ceiling, not the mean.
-        // This automatically accounts for real variance — no hand-tuning needed.
-        double recommended = min * 0.95;   // 5% margin below worst-case observed
+        double recommended = min * 0.95;
 
         while (opModeIsActive()) {
             telemetry.addLine("=== Brake Decel Test Results ===");
