@@ -205,7 +205,7 @@ public class PathTestPedro extends OpMode {
                 break;
 
             case 3:
-                if (!follower.atParametricEnd() && pathTimer.getElapsedTimeSeconds() > 0.3) {
+                if (follower.atParametricEnd() && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     follower.followPath(paths.Path3);
                     setPathState(4);
                 }
