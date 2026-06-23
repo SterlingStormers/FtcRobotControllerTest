@@ -200,8 +200,6 @@ public class AMPC {
             desiredOmega = 0;
         }
     }
-    
-
     private double evaluateCandidate(double vx, double vy, double omega, Pose robotPose) {
         // Convert robot-frame velocity to field frame for prediction
         double heading = robotPose.getHeading();
