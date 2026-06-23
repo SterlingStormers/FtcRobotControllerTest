@@ -13,6 +13,9 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.pedropathing.control.PredictiveBrakingCoefficients;
+import com.pedropathing.follower.FollowerConstants;
+
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -24,7 +27,8 @@ public class Constants {
             .translationalPIDFCoefficients(new PIDFCoefficients(0.50, 0, 0.003, 0.045))
             .headingPIDFCoefficients(new PIDFCoefficients(0.9, 0.005, 0.003, 0))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.00001, 0.6, 0.01)) // too be tuned
-            .centripetalScaling(0.001);
+            .centripetalScaling(0.001)
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.1, 0.1, 0.1));
 
 
     public static MecanumConstants driveConstants = new MecanumConstants()
