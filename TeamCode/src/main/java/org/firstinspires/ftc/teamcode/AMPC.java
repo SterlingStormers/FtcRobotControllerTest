@@ -54,7 +54,7 @@ public class AMPC {
     private static final double WEIGHT_SMOOTHNESS_VY = 0.0;
     private static final double WEIGHT_SMOOTHNESS_OMEGA = 0.0;   // rad/s scale, needs bigger weight
     private boolean firstLoop = true;
-    private static final double MAX_DECEL = 167;     // 100
+    private static final double MAX_DECEL = 183;     // 100
     private static final double WEIGHT_TERMINAL = 100;  //100
     public double terminalCost = 0;
     public boolean terminalTriggered = false;
