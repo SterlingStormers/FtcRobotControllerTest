@@ -24,18 +24,12 @@ public class Constants {
             .mass(11.34)
             .forwardZeroPowerAcceleration(-38.828716374174306)
             .lateralZeroPowerAcceleration(-62.298424084437386)
-<<<<<<< Updated upstream
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.50, 0, 0.003, 0.045))
-            .headingPIDFCoefficients(new PIDFCoefficients(0.9, 0.005, 0.003, 0))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.00001, 0.6, 0.01)) // too be tuned
-            .centripetalScaling(0.001)
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.1, 0.1, 0.1));
-=======
+
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.1, 0.1, 0.1))
             .translationalPIDFCoefficients(new PIDFCoefficients(0.09, 0, 0.007, 0.025))
             .headingPIDFCoefficients(new PIDFCoefficients(0.8, 0, 0.025, 0.03))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.03, 0, 0, 0.6, 0.00005))
             .centripetalScaling(0.001);
->>>>>>> Stashed changes
 
 
     public static MecanumConstants driveConstants = new MecanumConstants()
