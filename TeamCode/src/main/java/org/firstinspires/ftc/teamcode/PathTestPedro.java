@@ -198,21 +198,21 @@ public class PathTestPedro extends OpMode {
                 break;
 
             case 2:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 0.3) {
+                if (follower.atParametricEnd() && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     follower.followPath(paths.Path2);
                     setPathState(3);
                 }
                 break;
 
             case 3:
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 0.3) {
+                if (!follower.atParametricEnd() && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     follower.followPath(paths.Path3);
                     setPathState(4);
                 }
                 break;
 
             case 4:
-                if (!follower.isBusy() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {    // ← was !follower.isBusy()
+                if (!follower.atParametricEnd() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {    // ← was !follower.isBusy()
                     autoEndTime = runtime.seconds();
                     telemetry.addData("Total auto time", autoEndTime - autoStartTime);
                     telemetry.update();
