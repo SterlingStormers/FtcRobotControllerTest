@@ -200,21 +200,21 @@ public class PathTestMPC extends OpMode {
                 break;
 
             case 2:
-                if (mpc.isPathComplete()) {
+                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     mpc.setActivePath(paths.Path2);
                     setPathState(3);
                 }
                 break;
 
             case 3:
-                if (mpc.isPathComplete()) {
+                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     mpc.setActivePath(paths.Path3);
                     setPathState(4);
                 }
                 break;
 
             case 4:
-                if (mpc.isPathComplete() && pathState != -1) {
+                if (mpc.isPathComplete() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     autoEndTime = runtime.seconds();
                     telemetry.addData("Total auto time", autoEndTime - autoStartTime);
                     telemetry.update();// ← was !follower.isBusy()
