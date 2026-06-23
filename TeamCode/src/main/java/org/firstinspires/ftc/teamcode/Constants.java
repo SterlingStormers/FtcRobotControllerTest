@@ -21,14 +21,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(9.97903)
-            .forwardZeroPowerAcceleration(-2112.087968514545)
+            .mass(11.34)
+            .forwardZeroPowerAcceleration(-38.828716374174306)
             .lateralZeroPowerAcceleration(-62.298424084437386)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.50, 0, 0.003, 0.045))
-            .headingPIDFCoefficients(new PIDFCoefficients(0.9, 0.005, 0.003, 0))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.00001, 0.6, 0.01)) // too be tuned
-            .centripetalScaling(0.001)
-            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.1, 0.1, 0.1));
+
+            .predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.1, 0.1, 0.1))
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.09, 0, 0.007, 0.025))
+            .headingPIDFCoefficients(new PIDFCoefficients(0.8, 0, 0.025, 0.03))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.03, 0, 0, 0.6, 0.00005))
+            .centripetalScaling(0.001);
 
 
     public static MecanumConstants driveConstants = new MecanumConstants()
@@ -41,8 +42,9 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(54.799387774129556)
-            .yVelocity(45.9544057770977);
+            .xVelocity(61.25322765440452)
+            .yVelocity(45.48573507474164);
+
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(7.20472441)
