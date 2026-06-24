@@ -55,8 +55,6 @@ public class AMPCV2 {
 
     // Path length cache (computed once per setActivePath)
     private double pathLengthInches = 1.0;
-    private double predictedX = 0;
-    private double predictedY = 0;
 
     public boolean isPathComplete() {
         if (activePath == null) return true;
@@ -195,9 +193,9 @@ public class AMPCV2 {
         lastBestCost = bestCost;
     }
     private double evaluateCandidates(double vx, double vy, double omega, Pose startPose) {
-        double currentSimulatedX = startPose.getX();
-        double currentSimulatedY = startPose.getY();
-        double heading = startPose.getHeading();
+        double predictedX = startPose.getX();
+        double predictedY = startPose.getY();
+        double predictedHeading = startPose.getHeading();
         double predictedT = currentT;
 
         // Estimate how much t advances per step given this candidate's translational speed
@@ -210,32 +208,30 @@ public class AMPCV2 {
 
         for (int step = 1; step <= HORIZON_STEPS; step++) {
             // Forward-simulate one step
-            double cosH = Math.cos(heading);
-            double sinH = Math.sin(heading);
+            double cosH = Math.cos(predictedHeading);
+            double sinH = Math.sin(predictedHeading);
             double fieldVx = (vx * cosH) - (vy * sinH);
             double fieldVy = (vx * sinH) + (vy * cosH);
-            predictedX = currentSimulatedX + (fieldVx * STEP_DT);
-            predictedY = currentSimulatedY + (fieldVy * STEP_DT);
-            currentSimulatedX = predictedX;
-            currentSimulatedY = predictedY; // pick up from here
-            heading += omega * STEP_DT;
+            predictedX = predictedX + (fieldVx * STEP_DT);
+            predictedY = predictedY + (fieldVy * STEP_DT);
+            predictedHeading = predictedHeading + (omega * STEP_DT);
             predictedT = Math.min(1.0, predictedT + tAdvancePerStep);
 
-            // Per-step cost: distance from predicted position to path point at advanced tParam
-            Pose pathPointAtT = activePath.getPath(0).getPose(predictedT);
+            // Per-step cost: distance from predicted position to path point at advanced predictedT
+            Pose pathPointAtT = activePath.getPath(0).getPose(predictedT);  // will need to be changed from 0 for people with multiple paths in 1 path chain
             double dxPath = pathPointAtT.getX() - predictedX;
             double dyPath = pathPointAtT.getY() - predictedY;
-            double distPath = Math.sqrt(dxPath * dxPath + dyPath * dyPath);
+            double distPath = Math.sqrt((dxPath * dxPath) + (dyPath * dyPath));
 
             // Per-step cost: heading error against path heading at this t
-            double headingErr = Math.abs(wrapAngle(pathPointAtT.getHeading() - heading));
+            double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
 
             // Lookahead cost still uses the original lookahead pose (the "where am I heading" point)
             double dxLook = lookaheadPose.getX() - predictedX;
             double dyLook = lookaheadPose.getY() - predictedY;
             double distLook = Math.sqrt(dxLook * dxLook + dyLook * dyLook);
 
-            totalCost += WEIGHT_LOOKAHEAD * distLook + WEIGHT_PATH * distPath + WEIGHT_HEADING * headingErr;
+            totalCost += WEIGHT_LOOKAHEAD * distLook + WEIGHT_PATH * distPath + WEIGHT_HEADING * headingError;
         }
 
         // Terminal cost: can robot stop in time before path end?
