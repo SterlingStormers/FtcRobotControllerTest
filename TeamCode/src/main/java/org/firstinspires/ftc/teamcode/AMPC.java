@@ -183,6 +183,14 @@ public class AMPC {
             bestVy = pursuitVy;
             bestOmega = pursuitOmega;
         }
+        // Zero velocity escape
+        double zeroCost = evaluateCandidates(0, 0, 0, robotPose);
+        if (zeroCost < bestCost) {
+            bestCost = zeroCost;
+            bestVx = 0;
+            bestVy = 0;
+            bestOmega = 0;
+        }
 
         desiredVx = bestVx;
         desiredVy = bestVy;
@@ -198,67 +206,52 @@ public class AMPC {
         double predictedHeading = startPose.getHeading();
         double predictedT = currentT;
 
-        // Simulated velocity — will decrease if rollout needs to brake to stop in time
-        double simVx = vx;
-        double simVy = vy;
-        double simOmega = omega;
-        double simSpeed = Math.sqrt((simVx * simVx) + (simVy * simVy));
+        double speed = Math.sqrt((vx * vx) + (vy * vy));
+        double tAdvancePerStep = (speed * STEP_DT) / pathLengthInches;
+        double brakeDist = (speed * speed) / (2.0 * MAX_DECEL);
 
         double totalCost = 0;
         terminalTriggered = false;
 
-        Pose endPose = activePath.getPath(0).getPose(1.0); // will need to be changed from 0 for people with multiple paths in 1 path chain
+        Pose endPose = activePath.getPath(0).getPose(1.0);
 
         for (int step = 1; step <= HORIZON_STEPS; step++) {
-            // === Check if we need to brake this step ===
-            double dxToEnd = endPose.getX() - predictedX;
-            double dyToEnd = endPose.getY() - predictedY;
-            double distToEnd = Math.sqrt((dxToEnd * dxToEnd) + (dyToEnd * dyToEnd));
-            double brakeDistNow = (simSpeed * simSpeed) / (2.0 * MAX_DECEL);
-
-            if (brakeDistNow >= distToEnd && simSpeed > 0.01) {
-                // Apply deceleration for this step — simulate the robot braking
-                double speedReduction = MAX_DECEL * STEP_DT;
-                double newSpeed = Math.max(0, simSpeed - speedReduction);
-                double scale = newSpeed / simSpeed;
-                simVx = simVx * scale;
-                simVy = simVy * scale;
-                simOmega = simOmega * scale;   // wind down rotation alongside translation
-                simSpeed = newSpeed;
-                terminalTriggered = true;
-            }
-
-            // === Forward-simulate one step with (possibly braked) velocity ===
+            // Forward simulate (constant velocity)
             double cosH = Math.cos(predictedHeading);
             double sinH = Math.sin(predictedHeading);
-            double fieldVx = (simVx * cosH) - (simVy * sinH);
-            double fieldVy = (simVx * sinH) + (simVy * cosH);
+            double fieldVx = (vx * cosH) - (vy * sinH);
+            double fieldVy = (vx * sinH) + (vy * cosH);
             predictedX = predictedX + (fieldVx * STEP_DT);
             predictedY = predictedY + (fieldVy * STEP_DT);
-            predictedHeading = predictedHeading + (simOmega * STEP_DT);
-            predictedT = Math.min(1.0, predictedT + ((simSpeed * STEP_DT) / pathLengthInches));
+            predictedHeading = predictedHeading + (omega * STEP_DT);
+            predictedT = Math.min(1.0, predictedT + tAdvancePerStep);
 
-            // === Per-step cost ===
-            Pose pathPointAtT = activePath.getPath(0).getPose(predictedT); // will need to be changed from 0 for people with multiple paths in 1 path chain
+            // Path cost: predicted position vs path point at advanced t
+            Pose pathPointAtT = activePath.getPath(0).getPose(predictedT);
             double dxPath = pathPointAtT.getX() - predictedX;
             double dyPath = pathPointAtT.getY() - predictedY;
             double distPath = Math.sqrt((dxPath * dxPath) + (dyPath * dyPath));
 
+            // Heading cost
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
 
-            totalCost = totalCost + (WEIGHT_PATH * distPath) + (WEIGHT_HEADING * headingError);
-        }
+            // Lookahead cost: predicted position vs fixed lookahead point
+            double dxLook = lookaheadPose.getX() - predictedX;
+            double dyLook = lookaheadPose.getY() - predictedY;
+            double distLook = Math.sqrt((dxLook * dxLook) + (dyLook * dyLook));
 
-        // === Terminal cost: final safety check ===
-        // After the rollout (with simulated deceleration), are we still going to overshoot?
-        double dxFinal = endPose.getX() - predictedX;
-        double dyFinal = endPose.getY() - predictedY;
-        double finalRemaining = Math.sqrt((dxFinal * dxFinal) + (dyFinal * dyFinal));
-        double finalBrakeDist = (simSpeed * simSpeed) / (2.0 * MAX_DECEL);
+            // Per-step terminal cost (guarded)
+            double dxToEnd = endPose.getX() - predictedX;
+            double dyToEnd = endPose.getY() - predictedY;
+            double distToEnd = Math.sqrt((dxToEnd * dxToEnd) + (dyToEnd * dyToEnd));
 
-        if (finalBrakeDist > finalRemaining) {
-            totalCost = totalCost + (WEIGHT_TERMINAL * (finalBrakeDist - finalRemaining));
-            terminalTriggered = true;
+            double stepTerminalCost = 0;
+            if (brakeDist > distToEnd) {
+                stepTerminalCost = WEIGHT_TERMINAL * (brakeDist - distToEnd);
+                terminalTriggered = true;
+            }
+
+            totalCost = totalCost + (WEIGHT_LOOKAHEAD * distLook) + (WEIGHT_PATH * distPath) + (WEIGHT_HEADING * headingError) + stepTerminalCost;
         }
 
         return totalCost;
