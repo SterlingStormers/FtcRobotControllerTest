@@ -34,7 +34,7 @@ public class AMPC {
     private static final double GRID_STEP_FRACTION = 0.2;
 
     // Cost weights — applied per-step, accumulated over rollout
-    private static final double WEIGHT_LOOKAHEAD = 1.0;
+    private static final double WEIGHT_PROGRESS = 60;
     private static final double WEIGHT_PATH = 1;
     private static final double WEIGHT_HEADING = 10.0;
 
@@ -49,7 +49,7 @@ public class AMPC {
 
     private boolean firstLoop = true;
     private static final double MAX_DECEL = 210;
-    private static final double WEIGHT_TERMINAL = 100;
+    private static final double WEIGHT_TERMINAL = 10; //100
     public boolean terminalTriggered = false;
     private static final double PATH_END_TOLERANCE = 1.5;
 
@@ -235,10 +235,7 @@ public class AMPC {
             // Heading cost
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
 
-            // Lookahead cost: predicted position vs fixed lookahead point
-            double dxLook = lookaheadPose.getX() - predictedX;
-            double dyLook = lookaheadPose.getY() - predictedY;
-            double distLook = Math.sqrt((dxLook * dxLook) + (dyLook * dyLook));
+            double progressPenalty = WEIGHT_PROGRESS * (1-predictedT);
 
             // Per-step terminal cost (guarded)
             double dxToEnd = endPose.getX() - predictedX;
@@ -251,7 +248,7 @@ public class AMPC {
                 terminalTriggered = true;
             }
 
-            totalCost = totalCost + (WEIGHT_LOOKAHEAD * distLook) + (WEIGHT_PATH * distPath) + (WEIGHT_HEADING * headingError) + stepTerminalCost;
+            totalCost = totalCost  + (WEIGHT_PATH * distPath) + (WEIGHT_HEADING * headingError) + stepTerminalCost + progressPenalty;
         }
 
         return totalCost;
