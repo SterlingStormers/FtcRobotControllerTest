@@ -48,7 +48,7 @@ public class AMPC {
     public double pursuitOmega = 0;
 
     private boolean firstLoop = true;
-    private static final double MAX_DECEL = 183;
+    private static final double MAX_DECEL = 210;
     private static final double WEIGHT_TERMINAL = 100;
     public boolean terminalTriggered = false;
     private static final double PATH_END_TOLERANCE = 1.5;
