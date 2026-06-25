@@ -35,7 +35,7 @@ public class AMPC {
 
     // Cost weights — applied per-step, accumulated over rollout
     private static final double WEIGHT_LOOKAHEAD = 1.0;
-    private static final double WEIGHT_PATH = 0.5;
+    private static final double WEIGHT_PATH = 1;
     private static final double WEIGHT_HEADING = 10.0;
 
     private double lastBestVx = 0;
@@ -227,11 +227,11 @@ public class AMPC {
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
 
             // Lookahead cost still uses the original lookahead pose (the "where am I heading" point)
-            double dxLook = lookaheadPose.getX() - predictedX;
-            double dyLook = lookaheadPose.getY() - predictedY;
-            double distLook = Math.sqrt((dxLook * dxLook) + (dyLook * dyLook));
+//            double dxLook = lookaheadPose.getX() - predictedX;
+//            double dyLook = lookaheadPose.getY() - predictedY;
+//            double distLook = Math.sqrt((dxLook * dxLook) + (dyLook * dyLook));
 
-            totalCost = totalCost + (WEIGHT_LOOKAHEAD * distLook) + (WEIGHT_PATH * distPath) + (WEIGHT_HEADING * headingError);
+            totalCost = totalCost + /*(WEIGHT_LOOKAHEAD * distLook)*/ + (WEIGHT_PATH * distPath) + (WEIGHT_HEADING * headingError);
         }
 
         // Terminal cost: can robot stop in time before path end?
