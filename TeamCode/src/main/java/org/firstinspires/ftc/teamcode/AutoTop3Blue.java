@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
@@ -49,7 +48,7 @@ public class AutoTop3Blue extends OpMode {
     public double EncoderZero;
 
     // V2 MPC stack
-    private AMPC mpc;
+    private AMPCV1 mpc;
     private VelocityControllerV2 controller;
     private MecanumKinematics kinematics;
 
@@ -73,7 +72,7 @@ public class AutoTop3Blue extends OpMode {
         drive.init(hardwareMap);
 
         // V2 MPC stack
-        mpc = new AMPC(follower);
+        mpc = new AMPCV1(follower);
         controller = new VelocityControllerV2(follower, mpc);
         kinematics = new MecanumKinematics(drive, mpc, controller);
 
