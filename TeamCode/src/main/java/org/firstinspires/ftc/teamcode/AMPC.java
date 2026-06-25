@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
-
+@Configurable
 public class AMPC {
     private final Follower follower;
 
