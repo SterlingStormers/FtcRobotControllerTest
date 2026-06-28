@@ -29,13 +29,13 @@ public class AMPC {
     public double lookaheadT = 0;
 
     // === MULTI-STEP HORIZON CONFIG ===
-    private static final double STEP_DT = 0.1;           // seconds per rollout step
-    private static final int HORIZON_STEPS = 5;          // total horizon = STEP_DT * HORIZON_STEPS = 0.5s
-    private static final int GRID_HALF = 1;              // 3×3×3 = 27 candidates
+    private static final double STEP_DT = 0.1;  // seconds per rollout step
+    private static final int HORIZON_STEPS = 5;  // total horizon = STEP_DT * HORIZON_STEPS = 0.5s
+    private static final int GRID_HALF = 1;  // 3×3×3 = 27 candidates
     private static final double GRID_STEP_FRACTION = 0.2;
 
-    // Cost weights — applied per-step, accumulated over rollout
-    private static final double WEIGHT_PROGRESS = 60;
+    // Cost weights  applied per-step, accumulated over rollout
+    private static final double WEIGHT_PROGRESS = 60; //try 80
     private static final double WEIGHT_PATH = 1;
     private static final double WEIGHT_HEADING = 10.0;
 
