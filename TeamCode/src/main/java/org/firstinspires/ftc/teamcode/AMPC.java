@@ -35,7 +35,8 @@ public class AMPC {
     private static final double GRID_STEP_FRACTION = 0.2;
 
     // Cost weights  applied per-step, accumulated over rollout
-    private static final double WEIGHT_PROGRESS = 60; //try 80
+    public static double WEIGHT_PROGRESS = 60; //try 80
+    // Cost weights — applied per-step, accumulated over rollout
     private static final double WEIGHT_PATH = 1;
     private static final double WEIGHT_HEADING = 10.0;
 
@@ -49,8 +50,8 @@ public class AMPC {
     public double pursuitOmega = 0;
 
     private boolean firstLoop = true;
-    private static final double MAX_DECEL = 244; //210
-    private static final double WEIGHT_TERMINAL = 10; //100
+    public static double MAX_DECEL = 244; //210
+    public static double WEIGHT_TERMINAL = 10; //100
     public boolean terminalTriggered = false;
     private static final double PATH_END_TOLERANCE = 1.5;
 
