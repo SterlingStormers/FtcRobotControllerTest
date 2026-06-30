@@ -35,7 +35,7 @@ public class AMPC {
     private static final double GRID_STEP_FRACTION = 0.2;
 
     // Cost weights  applied per-step, accumulated over rollout
-    public static double WEIGHT_PROGRESS = 60; //try 80
+    public static double WEIGHT_PROGRESS = 80; //try 80
     // Cost weights — applied per-step, accumulated over rollout
     private static final double WEIGHT_PATH = 1;
     private static final double WEIGHT_HEADING = 10.0;
