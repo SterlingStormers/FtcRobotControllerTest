@@ -127,11 +127,13 @@ public class AdvancedPathTestMPC extends OpMode {
         panelsTelemetry.debug("currentT", mpc.currentT);
         panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
         // In the OpMode loop, after mpc.update():
-        double xError = follower.getPose().getX() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getX();
-        double yError = follower.getPose().getY() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getY();
-        double totalDrift = Math.sqrt(xError*xError + yError*yError);
-        panelsTelemetry.debug("path drift", totalDrift);
-        panelsTelemetry.update(telemetry);
+        if (mpc.getActivePath() != null) {
+            double xError = follower.getPose().getX() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getX();
+            double yError = follower.getPose().getY() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getY();
+            double totalDrift = Math.sqrt(xError * xError + yError * yError);
+            panelsTelemetry.debug("path drift", totalDrift);
+            panelsTelemetry.update(telemetry);
+        }
     }
 
 
