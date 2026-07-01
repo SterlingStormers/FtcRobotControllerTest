@@ -90,6 +90,8 @@ public class AdvancedPathTestMPC extends OpMode {
         drive.husky.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
         drive.light.setPosition(1);
 
+        Drawing.init();
+
         try { Thread.sleep(500); } catch (InterruptedException ignored) {}
         follower.updatePose();
 
@@ -106,6 +108,12 @@ public class AdvancedPathTestMPC extends OpMode {
 
         pathState = autonomousPathUpdate();
         colorScanner.update();
+
+        // Draw the path being followed + robot pose in Panels
+        Drawing.drawPath(paths.Path1, new com.bylazar.field.Style("", "#00FF00", 1));   // green path
+        Drawing.drawPoseHistory(follower.getPoseHistory());
+        Drawing.drawRobot(follower.getPose());
+        Drawing.sendPacket();
 
         if (ShooterSpinup && !mpc.isPathComplete() && mpc.currentT >= 0.25) {
             drive.shooterMotor.setPower(0.75);
