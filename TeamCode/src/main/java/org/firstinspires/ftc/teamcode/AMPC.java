@@ -218,9 +218,21 @@ public class AMPC {
 
             // Path cost: predicted position vs path point at advanced t
             Pose pathPointAtT = activePath.getPath(0).getPose(predictedT);
-            double dxPath = pathPointAtT.getX() - predictedX;
-            double dyPath = pathPointAtT.getY() - predictedY;
-            double distPath = Math.sqrt((dxPath * dxPath) + (dyPath * dyPath));
+            Pose pathPointAhead = activePath.getPath(0).getPose(Math.min(1.0, predictedT + 0.01));
+            double tangentX = pathPointAhead.getX() - pathPointAtT.getX();
+            double tangentY = pathPointAhead.getY() - pathPointAtT.getY();
+            double tangentLen = Math.sqrt(tangentX * tangentX + tangentY * tangentY);
+            if (tangentLen > 0.001) {
+                tangentX /= tangentLen;
+                tangentY /= tangentLen;
+            }
+
+            // Vector from path point to predicted robot position
+            double dx = predictedX - pathPointAtT.getX();
+            double dy = predictedY - pathPointAtT.getY();
+
+            // Cross-track = perpendicular component (magnitude of cross product with tangent)
+            double crossTrack = Math.abs(-dx * tangentY + dy * tangentX);
 
             // Heading cost
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
@@ -238,7 +250,7 @@ public class AMPC {
                 terminalTriggered = true;
             }
 
-            totalCost = totalCost  + (WEIGHT_PATH * distPath) + (WEIGHT_HEADING * headingError) + stepTerminalCost + progressPenalty;
+            totalCost = totalCost  + (WEIGHT_PATH * crossTrack) + (WEIGHT_HEADING * headingError) + stepTerminalCost + progressPenalty;
         }
 
         return totalCost;
