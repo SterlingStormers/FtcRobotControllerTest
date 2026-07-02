@@ -75,19 +75,7 @@ public class AMPC {
         activePath = path;
         currentT = 0;
         firstLoop = true;
-
-        // Estimate path length for converting predicted velocity to t-advancement during rollout
-        // Sample 20 points along the path, sum distances
-        double length = 0;
-        Pose previous = activePath.getPath(0).getPose(0); // will need to be changed from 0 for people with multiple paths in 1 path chain
-        for (int i = 1; i <= 20; i++) {
-            Pose current = activePath.getPath(0).getPose(i / 20.0); // will need to be changed from 0 for people with multiple paths in 1 path chain
-            double dx = current.getX() - previous.getX();
-            double dy = current.getY() - previous.getY();
-            length = length + Math.sqrt((dx * dx) + (dy * dy));
-            previous = current;
-        }
-        pathLengthInches = Math.max(1.0, length);   // floor to avoid divide-by-zero
+        pathLengthInches = Math.max(1.0, activePath.length());
     }
     public void updateClosestT() {
         if (activePath != null) {
