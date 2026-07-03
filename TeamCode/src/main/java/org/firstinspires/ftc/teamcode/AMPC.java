@@ -3,6 +3,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 @Configurable
 public class AMPC {
     private final Follower follower;
@@ -197,7 +198,6 @@ public class AMPC {
         double predictedT = currentT;
 
         double speed = Math.sqrt((vx * vx) + (vy * vy));
-        double tAdvancePerStep = (speed * STEP_DT) / pathLengthInches;
         double brakeDist = (speed * speed) / (2.0 * MAX_DECEL);
 
         double totalCost = 0;
@@ -206,51 +206,52 @@ public class AMPC {
         Pose endPose = activePath.getPath(0).getPose(1.0);
 
         for (int step = 1; step <= HORIZON_STEPS; step++) {
-            // Forward simulate (constant velocity)
+            // Tangent at current predictedT
+            Vector curTan = activePath.getPath(0).getTangentVector(predictedT);
+            double curTanMag = curTan.getMagnitude();
+            double curTanX = curTanMag > 0.001 ? curTan.getXComponent() / curTanMag : 1.0;
+            double curTanY = curTanMag > 0.001 ? curTan.getYComponent() / curTanMag : 0.0;
+
+            // Forward simulate
             double cosH = Math.cos(predictedHeading);
             double sinH = Math.sin(predictedHeading);
             double fieldVx = (vx * cosH) - (vy * sinH);
             double fieldVy = (vx * sinH) + (vy * cosH);
-            predictedX = predictedX + (fieldVx * STEP_DT);
-            predictedY = predictedY + (fieldVy * STEP_DT);
-            predictedHeading = predictedHeading + (omega * STEP_DT);
+
+            // Projected speed → path progress
+            double speedAlongPath = (fieldVx * curTanX) + (fieldVy * curTanY);
+            double tAdvancePerStep = (Math.max(0, speedAlongPath) * STEP_DT) / pathLengthInches;
+
+            predictedX += fieldVx * STEP_DT;
+            predictedY += fieldVy * STEP_DT;
+            predictedHeading += omega * STEP_DT;
             predictedT = Math.min(1.0, predictedT + tAdvancePerStep);
 
-            // Path cost: predicted position vs path point at advanced t
+            // Cross-track at new predictedT
             Pose pathPointAtT = activePath.getPath(0).getPose(predictedT);
-            Pose pathPointAhead = activePath.getPath(0).getPose(Math.min(1.0, predictedT + 0.01));
-            double tangentX = pathPointAhead.getX() - pathPointAtT.getX();
-            double tangentY = pathPointAhead.getY() - pathPointAtT.getY();
-            double tangentLen = Math.sqrt(tangentX * tangentX + tangentY * tangentY);
-            if (tangentLen > 0.001) {
-                tangentX /= tangentLen;
-                tangentY /= tangentLen;
-            }
+            Vector newTan = activePath.getPath(0).getTangentVector(predictedT);
+            double newTanMag = newTan.getMagnitude();
+            double newTanX = newTanMag > 0.001 ? newTan.getXComponent() / newTanMag : 1.0;
+            double newTanY = newTanMag > 0.001 ? newTan.getYComponent() / newTanMag : 0.0;
 
-            // Vector from path point to predicted robot position
             double dx = predictedX - pathPointAtT.getX();
             double dy = predictedY - pathPointAtT.getY();
+            double crossTrack = Math.abs(-dx * newTanY + dy * newTanX);
 
-            // Cross-track = perpendicular component (magnitude of cross product with tangent)
-            double crossTrack = Math.abs(-dx * tangentY + dy * tangentX);
-
-            // Heading cost
+            // Heading, progress, terminal
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
+            double progressPenalty = WEIGHT_PROGRESS * (1 - predictedT);
 
-            double progressPenalty = WEIGHT_PROGRESS * (1-predictedT);
-
-            // Per-step terminal cost (guarded)
             double dxToEnd = endPose.getX() - predictedX;
             double dyToEnd = endPose.getY() - predictedY;
             double distToEnd = Math.sqrt((dxToEnd * dxToEnd) + (dyToEnd * dyToEnd));
-
             double stepTerminalCost = 0;
             if (brakeDist > distToEnd) {
                 stepTerminalCost = WEIGHT_TERMINAL * (brakeDist - distToEnd);
                 terminalTriggered = true;
             }
 
-            totalCost = totalCost  + (WEIGHT_PATH * crossTrack) + (WEIGHT_HEADING * headingError) + stepTerminalCost + progressPenalty;
+            totalCost += (WEIGHT_PATH * crossTrack) + (WEIGHT_HEADING * headingError) + stepTerminalCost + progressPenalty;
         }
 
         return totalCost;
