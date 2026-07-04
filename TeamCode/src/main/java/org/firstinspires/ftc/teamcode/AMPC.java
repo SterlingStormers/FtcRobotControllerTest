@@ -246,11 +246,7 @@ public class AMPC {
                 terminalTriggered = true;
             }
 
-            totalCost += (WEIGHT_CROSS * crossTrack)
-                    + (WEIGHT_ALONG * alongTrack)
-                    + (WEIGHT_HEADING * headingError)
-                    + progressPenalty
-                    + stepTerminalCost;
+            totalCost += (WEIGHT_CROSS * crossTrack) + (WEIGHT_ALONG * alongTrack) + (WEIGHT_HEADING * headingError) + progressPenalty + stepTerminalCost;
         }
 
         return totalCost;
