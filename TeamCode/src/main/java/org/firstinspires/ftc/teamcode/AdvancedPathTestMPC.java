@@ -169,6 +169,9 @@ public class AdvancedPathTestMPC extends OpMode {
             telemetry.addData("=== TIMING ===", "");
             telemetry.addData("Path 1 time", "%.3f", path1EndTime - autoStartTime);
             telemetry.addData("Total time",  "%.3f", path3EndTime - autoStartTime);
+            panelsTelemetry.debug("Path State", pathState);
+            panelsTelemetry.debug("X", follower.getPose().getX());
+            panelsTelemetry.debug("Y", follower.getPose().getY());
             telemetry.update();
             drive.shooterMotor.setPower(0);
             drive.spindexer.setPower(0);
