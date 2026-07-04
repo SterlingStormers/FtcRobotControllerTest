@@ -4,6 +4,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
+
 @Configurable
 public class AMPC {
     private final Follower follower;
@@ -19,7 +20,6 @@ public class AMPC {
     private PathChain activePath = null;
     public double currentT = 0;
 
-    // Path-search resolution
     private static final int T_COARSE_STEPS = 50;
     private static final int T_FINE_STEPS = 40;
     private static final double FINE_WINDOW = 0.04;
@@ -29,16 +29,15 @@ public class AMPC {
     private static final double LOOKAHEAD_T_DELTA = 0.1;
     public double lookaheadT = 0;
 
-    // === MULTI-STEP HORIZON CONFIG ===
-    private static final double STEP_DT = 0.1;  // seconds per rollout step
-    private static final int HORIZON_STEPS = 5;  // total horizon = STEP_DT * HORIZON_STEPS = 0.5s
-    private static final int GRID_HALF = 1;  // 3×3×3 = 27 candidates
+    private static final double STEP_DT = 0.1;
+    private static final int HORIZON_STEPS = 5;
+    private static final int GRID_HALF = 1;
     private static final double GRID_STEP_FRACTION = 0.2;
 
-    // Cost weights  applied per-step, accumulated over rollout
-    public static double WEIGHT_PROGRESS = 80; //try 80
-    // Cost weights — applied per-step, accumulated over rollout
-    private static final double WEIGHT_PATH = 1;
+    // Cost weights
+    public static double WEIGHT_PROGRESS = 80;
+    public static double WEIGHT_CROSS = 1.0;   // perpendicular error (steering)
+    public static double WEIGHT_ALONG = 1.0;   // along-path mismatch (braking signal)
     private static final double WEIGHT_HEADING = 10.0;
 
     private double lastBestVx = 0;
@@ -51,43 +50,43 @@ public class AMPC {
     public double pursuitOmega = 0;
 
     private boolean firstLoop = true;
-    public static double MAX_DECEL = 244; //210
-    public static double WEIGHT_TERMINAL = 10; //100
+    public static double MAX_DECEL = 244;
+    public static double WEIGHT_TERMINAL = 10;
     public boolean terminalTriggered = false;
     private static final double PATH_END_TOLERANCE = 1.5;
 
-    // Path length cache (computed once per setActivePath)
     private double pathLengthInches = 1.0;
 
     public boolean isPathComplete() {
         if (activePath == null) return true;
         if (currentT >= 0.95) return true;
         Pose robotPose = follower.getPose();
-        Pose end = activePath.getPath(0).getPose(1.0); // will need to be changed from 0 for people with multiple paths in 1 path chain
+        Pose end = activePath.getPath(0).getPose(1.0);
         double dx = robotPose.getX() - end.getX();
         double dy = robotPose.getY() - end.getY();
         return Math.sqrt(dx * dx + dy * dy) < PATH_END_TOLERANCE;
-
     }
+
     public AMPC(Follower follower) {
         this.follower = follower;
     }
+
     public void setActivePath(PathChain path) {
         activePath = path;
         currentT = 0;
         firstLoop = true;
         pathLengthInches = Math.max(1.0, activePath.length());
     }
+
     public void updateClosestT() {
         if (activePath != null) {
-
             Pose currentPose = follower.getPose();
             double bestT = 0;
             double bestDist = Double.MAX_VALUE;
 
             for (int i = 0; i <= T_COARSE_STEPS; i++) {
                 double t = (double) i / T_COARSE_STEPS;
-                Pose samplePose = activePath.getPath(0).getPose(t); // will need to be changed from 0 for people with multiple paths in 1 path chain
+                Pose samplePose = activePath.getPath(0).getPose(t);
                 double dx = samplePose.getX() - currentPose.getX();
                 double dy = samplePose.getY() - currentPose.getY();
                 double dist = (dx * dx) + (dy * dy);
@@ -101,7 +100,7 @@ public class AMPC {
             double tMax = Math.min(1.0, bestT + FINE_WINDOW);
             for (int i = 0; i <= T_FINE_STEPS; i++) {
                 double t = tMin + ((tMax - tMin) * ((double) i / T_FINE_STEPS));
-                Pose samplePose = activePath.getPath(0).getPose(t); // will need to be changed from 0 for people with multiple paths in 1 path chain
+                Pose samplePose = activePath.getPath(0).getPose(t);
                 double dx = samplePose.getX() - currentPose.getX();
                 double dy = samplePose.getY() - currentPose.getY();
                 double dist = (dx * dx) + (dy * dy);
@@ -113,12 +112,14 @@ public class AMPC {
             currentT = bestT;
         }
     }
+
     public void updateLookahead() {
         if (activePath != null) {
             lookaheadT = Math.min(1.0, currentT + LOOKAHEAD_T_DELTA);
-            lookaheadPose = activePath.getPath(0).getPose(lookaheadT); // will need to be changed from 0 for people with multiple paths in 1 path chain
+            lookaheadPose = activePath.getPath(0).getPose(lookaheadT);
         }
     }
+
     public void updateMPC() {
         if (activePath == null) {
             desiredVx = 0;
@@ -146,7 +147,6 @@ public class AMPC {
         double bestVy = lastBestVy;
         double bestOmega = lastBestOmega;
 
-        // MULTISTEP GRID SEARCH
         for (int i = -GRID_HALF; i <= GRID_HALF; i++) {
             for (int j = -GRID_HALF; j <= GRID_HALF; j++) {
                 for (int k = -GRID_HALF; k <= GRID_HALF; k++) {
@@ -165,7 +165,6 @@ public class AMPC {
             }
         }
 
-        // Pure pursuit escape candidate (helps grid search find new basins)
         computePurePursuit(robotPose);
         double ppCost = evaluateCandidates(pursuitVx, pursuitVy, pursuitOmega, robotPose);
         if (ppCost < bestCost) {
@@ -174,7 +173,7 @@ public class AMPC {
             bestVy = pursuitVy;
             bestOmega = pursuitOmega;
         }
-        // Zero velocity escape
+
         double zeroCost = evaluateCandidates(0, 0, 0, robotPose);
         if (zeroCost < bestCost) {
             bestCost = zeroCost;
@@ -191,6 +190,7 @@ public class AMPC {
         lastBestOmega = bestOmega;
         lastBestCost = bestCost;
     }
+
     private double evaluateCandidates(double vx, double vy, double omega, Pose startPose) {
         double predictedX = startPose.getX();
         double predictedY = startPose.getY();
@@ -198,6 +198,7 @@ public class AMPC {
         double predictedT = currentT;
 
         double speed = Math.sqrt((vx * vx) + (vy * vy));
+        double tAdvancePerStep = (speed * STEP_DT) / pathLengthInches;   // V2 style
         double brakeDist = (speed * speed) / (2.0 * MAX_DECEL);
 
         double totalCost = 0;
@@ -206,48 +207,36 @@ public class AMPC {
         Pose endPose = activePath.getPath(0).getPose(1.0);
 
         for (int step = 1; step <= HORIZON_STEPS; step++) {
-            // Tangent at current predictedT
-            Vector curTan = activePath.getPath(0).getTangentVector(predictedT);
-            double curTanMag = curTan.getMagnitude();
-            double curTanX = curTanMag > 0.001 ? curTan.getXComponent() / curTanMag : 1.0;
-            double curTanY = curTanMag > 0.001 ? curTan.getYComponent() / curTanMag : 0.0;
-
-            // Forward simulate
+            // Forward simulate (constant velocity)
             double cosH = Math.cos(predictedHeading);
             double sinH = Math.sin(predictedHeading);
             double fieldVx = (vx * cosH) - (vy * sinH);
             double fieldVy = (vx * sinH) + (vy * cosH);
-
-            // Projected speed → path progress
-            double speedAlongPath = (fieldVx * curTanX) + (fieldVy * curTanY);
-            double tAdvancePerStep = (Math.max(0, speedAlongPath) * STEP_DT) / pathLengthInches;
-
             predictedX += fieldVx * STEP_DT;
             predictedY += fieldVy * STEP_DT;
             predictedHeading += omega * STEP_DT;
-            predictedT = predictedT + tAdvancePerStep;
+            predictedT = Math.min(1.0, predictedT + tAdvancePerStep);
 
-            if (predictedT >= 1.0) {
-                predictedT = 1.0;
-                predictedX = endPose.getX();
-                predictedY = endPose.getY();
-            }
-
-            // Cross-track at new predictedT
+            // Path point + tangent at advanced t
             Pose pathPointAtT = activePath.getPath(0).getPose(predictedT);
-            Vector newTan = activePath.getPath(0).getTangentVector(predictedT);
-            double newTanMag = newTan.getMagnitude();
-            double newTanX = newTanMag > 0.001 ? newTan.getXComponent() / newTanMag : 1.0;
-            double newTanY = newTanMag > 0.001 ? newTan.getYComponent() / newTanMag : 0.0;
+            Vector tangent = activePath.getPath(0).getTangentVector(predictedT);
+            double tanMag = tangent.getMagnitude();
+            double tX = tanMag > 0.001 ? tangent.getXComponent() / tanMag : 1.0;
+            double tY = tanMag > 0.001 ? tangent.getYComponent() / tanMag : 0.0;
 
+            // Decompose position error into cross-track and along-track
             double dx = predictedX - pathPointAtT.getX();
             double dy = predictedY - pathPointAtT.getY();
-            double crossTrack = Math.abs(-dx * newTanY + dy * newTanX);
+            double crossTrack = Math.abs(-dx * tY + dy * tX);   // perpendicular
+            double alongTrack = Math.abs(dx * tX + dy * tY);    // parallel to path
 
-            // Heading, progress, terminal
+            // Heading error
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
+
+            // Progress reward (drive toward endpoint)
             double progressPenalty = WEIGHT_PROGRESS * (1 - predictedT);
 
+            // Terminal cost (brake before overshoot)
             double dxToEnd = endPose.getX() - predictedX;
             double dyToEnd = endPose.getY() - predictedY;
             double distToEnd = Math.sqrt((dxToEnd * dxToEnd) + (dyToEnd * dyToEnd));
@@ -257,11 +246,16 @@ public class AMPC {
                 terminalTriggered = true;
             }
 
-            totalCost += (WEIGHT_PATH * crossTrack) + (WEIGHT_HEADING * headingError) + stepTerminalCost + progressPenalty;
+            totalCost += (WEIGHT_CROSS * crossTrack)
+                    + (WEIGHT_ALONG * alongTrack)
+                    + (WEIGHT_HEADING * headingError)
+                    + progressPenalty
+                    + stepTerminalCost;
         }
 
         return totalCost;
     }
+
     private void computePurePursuit(Pose robotPose) {
         double dxField = lookaheadPose.getX() - robotPose.getX();
         double dyField = lookaheadPose.getY() - robotPose.getY();
@@ -275,37 +269,23 @@ public class AMPC {
             pursuitVx = 0;
             pursuitVy = 0;
         } else {
-            pursuitVx = (dxRobot / dist) * maxSpeedForward; // Normalize robot-to-target vector to get direction only (unit vector) then it scales by max speed
-            pursuitVy = (dyRobot / dist) * maxSpeedForward; // should not be strafe cuz the robot cannot move equally at the same speed
-            // TODO V3: pursuitVy should scale by maxSpeedStrafe via ellipse normalization
-            // when lookahead has significant lateral component. Doesn't matter for V2
-            // straight paths where lookahead is mostly along robot's forward axis.
-//            double unitVectorX = dxRobot / dist;
-//            double unitVectorY = dyRobot / dist;
-//
-//            double scale = 1.0 / Math.sqrt(((unitVectorX / maxSpeedForward) * (unitVectorX / maxSpeedForward)) + ((unitVectorY / maxSpeedStrafe) * (unitVectorY / maxSpeedStrafe)));
-//
-//            pursuitVx = unitVectorX * scale;
-//            pursuitVy = unitVectorY * scale;
+            pursuitVx = (dxRobot / dist) * maxSpeedForward;
+            pursuitVy = (dyRobot / dist) * maxSpeedForward;
         }
 
         double headingError = wrapAngle(lookaheadPose.getHeading() - heading);
         pursuitOmega = clamp(headingError * HEADING_GAIN, -maxTurnRateRad, maxTurnRateRad);
     }
+
     private double clamp(double v, double min, double max) {
         if (v < min) return min;
         if (v > max) return max;
         return v;
     }
+
     private double wrapAngle(double angle) {
-        while (angle > Math.PI) {
-            angle = angle - (2 * Math.PI);
-        }
-
-        while (angle <= -Math.PI) {
-            angle = angle + (2 * Math.PI);
-        }
-
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle <= -Math.PI) angle += 2 * Math.PI;
         return angle;
     }
 
@@ -320,5 +300,4 @@ public class AMPC {
         updateLookahead();
         updateMPC();
     }
-
 }
