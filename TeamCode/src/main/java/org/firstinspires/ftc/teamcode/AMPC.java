@@ -225,7 +225,13 @@ public class AMPC {
             predictedX += fieldVx * STEP_DT;
             predictedY += fieldVy * STEP_DT;
             predictedHeading += omega * STEP_DT;
-            predictedT = Math.min(1.0, predictedT + tAdvancePerStep);
+            predictedT = predictedT + tAdvancePerStep;
+
+            if (predictedT >= 1.0) {
+                predictedT = 1.0;
+                predictedX = endPose.getX();
+                predictedY = endPose.getY();
+            }
 
             // Cross-track at new predictedT
             Pose pathPointAtT = activePath.getPath(0).getPose(predictedT);
