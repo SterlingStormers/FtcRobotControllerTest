@@ -36,7 +36,7 @@ public class AMPC {
 
     // Cost weights
     public static double WEIGHT_PROGRESS = 80;
-    public static double WEIGHT_CROSS = 1.0;   // perpendicular error (steering)
+    public static double WEIGHT_CROSS = 3.0;   // perpendicular error (steering)
     public static double WEIGHT_ALONG = 1.0;   // along-path mismatch (braking signal)
     private static final double WEIGHT_HEADING = 10.0;
 
