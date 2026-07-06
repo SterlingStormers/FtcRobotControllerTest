@@ -36,8 +36,9 @@ public class AMPC {
 
     // Cost weights
     public static double WEIGHT_PROGRESS = 80;
-    public static double WEIGHT_CROSS = 3.0;   // perpendicular error (steering)
-    public static double WEIGHT_ALONG = 1.0;   // along-path mismatch (braking signal)
+    public static double WEIGHT_CROSS = 3.0;
+    public static double WEIGHT_ALONG = 1.0;
+    public static double WEIGHT_TANGENT = 5.0;   // NEW: velocity direction alignment with path tangent
     private static final double WEIGHT_HEADING = 10.0;
 
     private double lastBestVx = 0;
@@ -198,7 +199,7 @@ public class AMPC {
         double predictedT = currentT;
 
         double speed = Math.sqrt((vx * vx) + (vy * vy));
-        double tAdvancePerStep = (speed * STEP_DT) / pathLengthInches;   // V2 style
+        double tAdvancePerStep = (speed * STEP_DT) / pathLengthInches;
         double brakeDist = (speed * speed) / (2.0 * MAX_DECEL);
 
         double totalCost = 0;
@@ -224,17 +225,29 @@ public class AMPC {
             double tX = tanMag > 0.001 ? tangent.getXComponent() / tanMag : 1.0;
             double tY = tanMag > 0.001 ? tangent.getYComponent() / tanMag : 0.0;
 
-            // Decompose position error into cross-track and along-track
+            // Decompose position error
             double dx = predictedX - pathPointAtT.getX();
             double dy = predictedY - pathPointAtT.getY();
-            double crossTrack = Math.abs(-dx * tY + dy * tX);   // perpendicular
-            double alongTrack = Math.abs(dx * tX + dy * tY);    // parallel to path
+            double crossTrack = Math.abs(-dx * tY + dy * tX);
+            double alongTrack = Math.abs(dx * tX + dy * tY);
 
             // Heading error
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
 
-            // Progress reward (drive toward endpoint)
+            // Progress reward
             double progressPenalty = WEIGHT_PROGRESS * (1 - predictedT);
+
+            // NEW: Tangent-alignment cost — velocity direction should match path tangent
+            double vMag = Math.sqrt(fieldVx * fieldVx + fieldVy * fieldVy);
+            double tangentAlignmentCost = 0;
+            if (vMag > 0.1) {
+                double vUnitX = fieldVx / vMag;
+                double vUnitY = fieldVy / vMag;
+                // 1 - dot: 0 when aligned, 2 when opposite direction, 1 when perpendicular
+                double alignmentError = 1.0 - (vUnitX * tX + vUnitY * tY);
+                // Multiply by vMag so faster misalignment is penalized proportionally more
+                tangentAlignmentCost = WEIGHT_TANGENT * alignmentError * vMag;
+            }
 
             // Terminal cost (brake before overshoot)
             double dxToEnd = endPose.getX() - predictedX;
@@ -246,7 +259,12 @@ public class AMPC {
                 terminalTriggered = true;
             }
 
-            totalCost += (WEIGHT_CROSS * crossTrack) + (WEIGHT_ALONG * alongTrack) + (WEIGHT_HEADING * headingError) + progressPenalty + stepTerminalCost;
+            totalCost += (WEIGHT_CROSS * crossTrack)
+                    + (WEIGHT_ALONG * alongTrack)
+                    + (WEIGHT_HEADING * headingError)
+                    + progressPenalty
+                    + tangentAlignmentCost
+                    + stepTerminalCost;
         }
 
         return totalCost;
