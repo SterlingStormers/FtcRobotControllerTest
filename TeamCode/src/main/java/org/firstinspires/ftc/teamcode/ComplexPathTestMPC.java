@@ -129,11 +129,20 @@ public class ComplexPathTestMPC extends OpMode {
         panelsTelemetry.debug("currentT", mpc.currentT);
         // In the OpMode loop, after mpc.update():
         if (mpc.getActivePath() != null) {
-            double xError = follower.getPose().getX() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getX();
-            double yError = follower.getPose().getY() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getY();
-            double totalDrift = Math.sqrt(xError * xError + yError * yError);
-            panelsTelemetry.debug("path drift", totalDrift);
-            panelsTelemetry.update(telemetry);
+            Pose robotPose = follower.getPose();
+            Pose pathPoint = mpc.getActivePath().getPath(0).getPose(mpc.currentT);
+            com.pedropathing.math.Vector tangent = mpc.getActivePath().getPath(0).getTangentVector(mpc.currentT);
+            double tx = tangent.getXComponent() / tangent.getMagnitude();
+            double ty = tangent.getYComponent() / tangent.getMagnitude();
+            double dx = robotPose.getX() - pathPoint.getX();
+            double dy = robotPose.getY() - pathPoint.getY();
+            double crossTrack = Math.abs(-dx * ty + dy * tx);
+            double alongTrack = dx * tx + dy * ty;
+            double totalDist = Math.sqrt(dx*dx + dy*dy);
+
+            panelsTelemetry.debug("cross track", crossTrack);
+            panelsTelemetry.debug("along track", alongTrack);
+            panelsTelemetry.debug("total dist", totalDist);
         }
         panelsTelemetry.update(telemetry);
     }
