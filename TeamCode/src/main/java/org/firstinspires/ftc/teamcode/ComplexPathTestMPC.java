@@ -127,6 +127,14 @@ public class ComplexPathTestMPC extends OpMode {
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.debug("currentT", mpc.currentT);
+        // In the OpMode loop, after mpc.update():
+        if (mpc.getActivePath() != null) {
+            double xError = follower.getPose().getX() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getX();
+            double yError = follower.getPose().getY() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getY();
+            double totalDrift = Math.sqrt(xError * xError + yError * yError);
+            panelsTelemetry.debug("path drift", totalDrift);
+            panelsTelemetry.update(telemetry);
+        }
         panelsTelemetry.update(telemetry);
     }
 
