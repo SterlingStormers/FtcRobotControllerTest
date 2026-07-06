@@ -142,15 +142,23 @@ public class AdvancedPathTestMPC extends OpMode {
 
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(23.907, 119.235),
-                                    new Pose(23.907, 88.000),
-                                    new Pose(56.000, 88.000)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
-
-                    .build();
+                    new BezierCurve(
+                            new Pose(24, 100),
+                            new Pose(60, 100),      // pulls east
+                            new Pose(60, 60),       // pulls south
+                            new Pose(96, 60))       // ends east
+            ).setConstantHeadingInterpolation(Math.toRadians(0)).build();
         }
+//            Path1 = follower.pathBuilder().addPath(
+//                            new BezierCurve(
+//                                    new Pose(23.907, 119.235),
+//                                    new Pose(23.907, 88.000),
+//                                    new Pose(56.000, 88.000)
+//                            )
+//                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
+//
+//                    .build();
+//        }
     }
 
     public void setPathState(int newState) {
