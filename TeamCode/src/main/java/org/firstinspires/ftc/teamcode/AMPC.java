@@ -265,13 +265,8 @@ public class AMPC {
             pursuitVx = 0;
             pursuitVy = 0;
         } else {
-            double unitVectorX = dxRobot / dist;
-            double unitVectorY = dyRobot / dist;
-
-            double scale = 1.0 / Math.sqrt((unitVectorX / maxSpeedForward) * (unitVectorX / maxSpeedForward) + (unitVectorY / maxSpeedStrafe) * (unitVectorY / maxSpeedStrafe));
-
-            pursuitVx = unitVectorX * scale;
-            pursuitVy = unitVectorY * scale;
+            pursuitVx = (dxRobot / dist) * maxSpeedForward;
+            pursuitVy = (dyRobot / dist) * maxSpeedForward;
         }
 
         double headingError = wrapAngle(lookaheadPose.getHeading() - heading);
