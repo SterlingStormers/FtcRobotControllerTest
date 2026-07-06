@@ -57,7 +57,7 @@ public class AdvancedPathTestMPC extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(23.907, 119.235, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(24, 84, Math.toRadians(0)));
 
         paths = new Paths(follower);
 
@@ -143,10 +143,10 @@ public class AdvancedPathTestMPC extends OpMode {
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
                     new BezierCurve(
-                            new Pose(24, 100),
-                            new Pose(60, 100),      // pulls east
-                            new Pose(60, 60),       // pulls south
-                            new Pose(96, 60))       // ends east
+                            new Pose(24, 84),
+                            new Pose(60, 84),       // pulls east
+                            new Pose(60, 48),       // pulls south
+                            new Pose(84, 48))       // ends east
             ).setConstantHeadingInterpolation(Math.toRadians(0)).build();
         }
 //            Path1 = follower.pathBuilder().addPath(
