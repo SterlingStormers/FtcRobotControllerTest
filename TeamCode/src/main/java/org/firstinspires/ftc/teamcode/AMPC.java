@@ -38,7 +38,7 @@ public class AMPC {
     public static double WEIGHT_PROGRESS = 80;
     public static double WEIGHT_CROSS = 3.0;
     public static double WEIGHT_ALONG = 1.0;
-    public static double WEIGHT_TANGENT = 5.0;   // NEW: velocity direction alignment with path tangent
+    public static double WEIGHT_TANGENT = 0.1;   // NEW: velocity direction alignment with path tangent
     private static final double WEIGHT_HEADING = 10.0;
 
     private double lastBestVx = 0;
@@ -259,12 +259,7 @@ public class AMPC {
                 terminalTriggered = true;
             }
 
-            totalCost += (WEIGHT_CROSS * crossTrack)
-                    + (WEIGHT_ALONG * alongTrack)
-                    + (WEIGHT_HEADING * headingError)
-                    + progressPenalty
-                    + tangentAlignmentCost
-                    + stepTerminalCost;
+            totalCost += (WEIGHT_CROSS * crossTrack) + (WEIGHT_ALONG * alongTrack) + (WEIGHT_HEADING * headingError) + progressPenalty + tangentAlignmentCost + stepTerminalCost;
         }
 
         return totalCost;
