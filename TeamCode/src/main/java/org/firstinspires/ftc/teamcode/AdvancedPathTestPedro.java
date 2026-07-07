@@ -53,7 +53,7 @@ public class AdvancedPathTestPedro extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(24, 84, Math.toRadians(0)));
+        follower.setStartingPose(new Pose(24, 60, Math.toRadians(0)));
 
 
         paths = new Paths(follower);
@@ -151,12 +151,18 @@ public class AdvancedPathTestPedro extends OpMode {
 //                            new Pose(84, 24),
 //                            new Pose(84, 84))
 //            ).setConstantHeadingInterpolation(Math.toRadians(0)).build();
+//            Path1 = follower.pathBuilder().addPath(
+//                    new BezierCurve(
+//                            new Pose(24, 84),
+//                            new Pose(24, 60),
+//                            new Pose(60, 60))
+//            ).setConstantHeadingInterpolation(Math.toRadians(0)).build();
             Path1 = follower.pathBuilder().addPath(
                     new BezierCurve(
-                            new Pose(24, 84),
                             new Pose(24, 60),
-                            new Pose(60, 60))
-            ).setConstantHeadingInterpolation(Math.toRadians(0)).build();
+                            new Pose(48, 54),       // small south bulge
+                            new Pose(72, 60))
+            ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(45)).build();
         }
     }
 
