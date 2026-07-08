@@ -250,9 +250,12 @@ public class AMPC {
             }
 
             // Terminal cost (brake before overshoot)
-            double dxToEnd = endPose.getX() - predictedX;
-            double dyToEnd = endPose.getY() - predictedY;
-            double distToEnd = Math.sqrt((dxToEnd * dxToEnd) + (dyToEnd * dyToEnd));
+            // Terminal cost (brake before overshoot)
+            // Hybrid: use arc-length remaining when far from end, Euclidean when close
+            double euclidToEnd = Math.sqrt((endPose.getX() - predictedX) * (endPose.getX() - predictedX) + (endPose.getY() - predictedY) * (endPose.getY() - predictedY));
+            double arcToEnd = pathLengthInches * (1.0 - predictedT);
+            double distToEnd = (predictedT < 0.85) ? euclidToEnd : arcToEnd;
+
             double stepTerminalCost = 0;
             if (brakeDist > distToEnd) {
                 stepTerminalCost = WEIGHT_TERMINAL * (brakeDist - distToEnd);
