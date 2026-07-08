@@ -123,9 +123,9 @@ public class ComplexPathTestMPC extends OpMode {
 //        }
 
         panelsTelemetry.debug("Path State", pathState);
-        panelsTelemetry.debug("X", follower.getPose().getX());
-        panelsTelemetry.debug("Y", follower.getPose().getY());
-        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
+//        panelsTelemetry.debug("X", follower.getPose().getX());
+//        panelsTelemetry.debug("Y", follower.getPose().getY());
+//        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.debug("currentT", mpc.currentT);
         // In the OpMode loop, after mpc.update():
         if (mpc.getActivePath() != null) {
@@ -142,7 +142,6 @@ public class ComplexPathTestMPC extends OpMode {
 
             panelsTelemetry.debug("cross track", crossTrack);
             panelsTelemetry.debug("along track", alongTrack);
-            panelsTelemetry.debug("total dist", totalDist);
             panelsTelemetry.debug("terminalTriggered", mpc.terminalTriggered);
 // Compute brakeDist in the OpMode for observation
             double speed = Math.sqrt(mpc.desiredVx * mpc.desiredVx + mpc.desiredVy * mpc.desiredVy);
@@ -153,16 +152,6 @@ public class ComplexPathTestMPC extends OpMode {
             double distToEnd = Math.sqrt(newDx * newDx + newDy * newDy);
             panelsTelemetry.debug("brakeDist", brakeDist);
             panelsTelemetry.debug("distToEnd", distToEnd);
-        }
-        // In the loop, only during Path 1 (path state 2)
-        if (pathState == 2 && mpc.getActivePath() != null) {
-            double speed = Math.sqrt(mpc.desiredVx * mpc.desiredVx + mpc.desiredVy * mpc.desiredVy);
-
-            panelsTelemetry.debug("t", mpc.currentT);
-            panelsTelemetry.debug("speed", speed);
-            panelsTelemetry.debug("terminal", mpc.terminalTriggered);
-            panelsTelemetry.debug("desiredVx", mpc.desiredVx);
-            panelsTelemetry.debug("desiredVy", mpc.desiredVy);
         }
         panelsTelemetry.update(telemetry);
     }
