@@ -143,6 +143,16 @@ public class ComplexPathTestMPC extends OpMode {
             panelsTelemetry.debug("cross track", crossTrack);
             panelsTelemetry.debug("along track", alongTrack);
             panelsTelemetry.debug("total dist", totalDist);
+            panelsTelemetry.debug("terminalTriggered", mpc.terminalTriggered);
+// Compute brakeDist in the OpMode for observation
+            double speed = Math.sqrt(mpc.desiredVx * mpc.desiredVx + mpc.desiredVy * mpc.desiredVy);
+            double brakeDist = (speed * speed) / (2 * mpc.MAX_DECEL);
+            Pose endPose = mpc.getActivePath().getPath(0).getPose(1.0);
+            double newDx = endPose.getX() - follower.getPose().getX();
+            double newDy = endPose.getY() - follower.getPose().getY();
+            double distToEnd = Math.sqrt(newDx * newDx + newDy * newDy);
+            panelsTelemetry.debug("brakeDist", brakeDist);
+            panelsTelemetry.debug("distToEnd", distToEnd);
         }
         panelsTelemetry.update(telemetry);
     }
