@@ -241,7 +241,7 @@ public class ComplexPathTestPedro extends OpMode {
 
             case 5:
                 if (follower.atParametricEnd() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
-                    path6EndTime = runtime.seconds();
+                    path4EndTime = runtime.seconds();
                     telemetry.addData("=== TIMING ===", "");
                     telemetry.addData("Path 1 time", "%.3f", path1EndTime - autoStartTime);
                     telemetry.addData("Path 2 time", "%.3f", path2EndTime - path1EndTime);
