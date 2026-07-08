@@ -254,7 +254,14 @@ public class AMPC {
             // Hybrid: use arc-length remaining when far from end, Euclidean when close
             double euclidToEnd = Math.sqrt((endPose.getX() - predictedX) * (endPose.getX() - predictedX) + (endPose.getY() - predictedY) * (endPose.getY() - predictedY));
             double arcToEnd = pathLengthInches * (1.0 - predictedT);
-            double distToEnd = (predictedT < 0.85) ? euclidToEnd : arcToEnd;
+            double distToEnd;
+            if (predictedT < 0.85) {
+                distToEnd = euclidToEnd;   // aggressive far away
+            } else if (predictedT < 0.95) {
+                distToEnd = arcToEnd;      // accurate close
+            } else {
+                distToEnd = euclidToEnd;   // switch back near endpoint to avoid stall
+            }
 
             double stepTerminalCost = 0;
             if (brakeDist > distToEnd) {
