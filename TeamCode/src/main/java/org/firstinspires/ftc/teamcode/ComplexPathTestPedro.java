@@ -56,7 +56,7 @@ public class ComplexPathTestPedro extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(23.907, 119.235, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(56, 8, Math.toRadians(90)));
 
         paths = new Paths(follower);
 
@@ -122,76 +122,57 @@ public class ComplexPathTestPedro extends OpMode {
 
 
 
+
     public static class Paths {
         public PathChain Path1;
         public PathChain Path2;
         public PathChain Path3;
         public PathChain Path4;
-        public PathChain Path5;
-        public PathChain Path6;
 
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(24.043, 119.473),
-
-                                    new Pose(56.000, 88.000)
+                            new BezierCurve(
+                                    new Pose(56.000, 8.000),
+                                    new Pose(57.724, 37.697),
+                                    new Pose(39.203, 35.300)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(67))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
 
                     .build();
 
             Path2 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(56.000, 88.000),
+                                    new Pose(39.203, 35.300),
 
-                                    new Pose(55.000, 89.000)
+                                    new Pose(12.694, 35.464)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(67), Math.toRadians(144))
+                    ).setConstantHeadingInterpolation(Math.toRadians(180))
 
                     .build();
 
             Path3 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(55.000, 89.000),
-                                    new Pose(52.927, 83.651),
-                                    new Pose(34.209, 84.135)
+                                    new Pose(12.694, 35.464),
+                                    new Pose(32.338, 35.974),
+                                    new Pose(51.160, 29.975),
+                                    new Pose(47.808, 59.380)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(180))
+                    ).setConstantHeadingInterpolation(Math.toRadians(180))
 
                     .build();
 
             Path4 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(34.209, 84.135),
+                                    new Pose(47.808, 59.380),
 
-                                    new Pose(14.684, 84.135)
+                                    new Pose(12.576, 59.243)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
-
-                    .build();
-
-            Path5 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(14.684, 84.135),
-                                    new Pose(34.209, 84.458),
-                                    new Pose(49.377, 93.816)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(142))
-
-                    .build();
-
-            Path6 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(49.377, 93.816),
-
-                                    new Pose(58.252, 114.543)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(142), Math.toRadians(142))
+                    ).setConstantHeadingInterpolation(Math.toRadians(180))
 
                     .build();
         }
     }
+
 
 
     public void setPathState(int newState) {
@@ -211,9 +192,7 @@ public class ComplexPathTestPedro extends OpMode {
             telemetry.addData("Path 2 time", "%.3f", path2EndTime - path1EndTime);
             telemetry.addData("Path 3 time", "%.3f", path3EndTime - path2EndTime);
             telemetry.addData("Path 4 time", "%.3f", path4EndTime - autoStartTime);
-            telemetry.addData("Path 5 time", "%.3f", path5EndTime - path1EndTime);
-            telemetry.addData("Path 6 time", "%.3f", path6EndTime - path2EndTime);
-            telemetry.addData("Total time",  "%.3f", path6EndTime - autoStartTime);
+            telemetry.addData("Total time",  "%.3f", path4EndTime - autoStartTime);
             telemetry.update();
             drive.shooterMotor.setPower(0);
             drive.spindexer.setPower(0);
@@ -259,23 +238,8 @@ public class ComplexPathTestPedro extends OpMode {
                 }
                 break;
 
+
             case 5:
-                if (follower.atParametricEnd() && pathTimer.getElapsedTimeSeconds() > 0.3) {
-                    path4EndTime = runtime.seconds();
-                    follower.followPath(paths.Path5);
-                    setPathState(6);
-                }
-                break;
-
-            case 6:
-                if (follower.atParametricEnd() && pathTimer.getElapsedTimeSeconds() > 0.3) {
-                    path5EndTime = runtime.seconds();
-                    follower.followPath(paths.Path6);
-                    setPathState(7);
-                }
-                break;
-
-            case 7:
                 if (follower.atParametricEnd() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     path6EndTime = runtime.seconds();
                     telemetry.addData("=== TIMING ===", "");
@@ -283,9 +247,7 @@ public class ComplexPathTestPedro extends OpMode {
                     telemetry.addData("Path 2 time", "%.3f", path2EndTime - path1EndTime);
                     telemetry.addData("Path 3 time", "%.3f", path3EndTime - path2EndTime);
                     telemetry.addData("Path 4 time", "%.3f", path4EndTime - path3EndTime);
-                    telemetry.addData("Path 5 time", "%.3f", path5EndTime - path4EndTime);
-                    telemetry.addData("Path 6 time", "%.3f", path6EndTime - path5EndTime);
-                    telemetry.addData("Total time",  "%.3f", path6EndTime - autoStartTime);
+                    telemetry.addData("Total time",  "%.3f", path4EndTime - autoStartTime);
                     telemetry.update();
                     drive.intakeMotor.setPower(0);
                     drive.shooterMotor.setPower(0);
