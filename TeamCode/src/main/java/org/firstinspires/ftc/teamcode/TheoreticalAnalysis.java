@@ -13,9 +13,9 @@ import com.pedropathing.geometry.Pose;
 public class TheoreticalAnalysis extends LinearOpMode {
 
     // Physical robot parameters — plug in measured values here
-    public static double MAX_ACCEL = 200;        // in/s² (from PhysicalLimitsTest - A test)
+    public static double MAX_ACCEL = 156.7;        // in/s² (from PhysicalLimitsTest - A test)
     public static double MAX_DECEL = 244;        // in/s² (from BrakeDecelTest)
-    public static double MAX_LAT_ACCEL = 40;     // in/s² (from PhysicalLimitsTest - B test)
+    public static double MAX_LAT_ACCEL = 300;     // in/s² (from PhysicalLimitsTest - B test)
     public static double MAX_SPEED = 61.2;       // in/s (from ForwardVelocityTuner)
 
     public static double PATH_BUFFER = 0.3;      // seconds between paths (state machine timer)
