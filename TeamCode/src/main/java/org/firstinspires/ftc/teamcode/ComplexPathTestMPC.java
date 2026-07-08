@@ -154,12 +154,15 @@ public class ComplexPathTestMPC extends OpMode {
             panelsTelemetry.debug("brakeDist", brakeDist);
             panelsTelemetry.debug("distToEnd", distToEnd);
         }
-        // In the OpMode loop:
-        if (pathState == 2) {  // during Path 1
+        // In the loop, only during Path 1 (path state 2)
+        if (pathState == 2 && mpc.getActivePath() != null) {
             double speed = Math.sqrt(mpc.desiredVx * mpc.desiredVx + mpc.desiredVy * mpc.desiredVy);
+
             panelsTelemetry.debug("t", mpc.currentT);
             panelsTelemetry.debug("speed", speed);
             panelsTelemetry.debug("terminal", mpc.terminalTriggered);
+            panelsTelemetry.debug("desiredVx", mpc.desiredVx);
+            panelsTelemetry.debug("desiredVy", mpc.desiredVy);
         }
         panelsTelemetry.update(telemetry);
     }
