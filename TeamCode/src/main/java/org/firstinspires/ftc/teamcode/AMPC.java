@@ -57,6 +57,31 @@ public class AMPC {
     private static final double PATH_END_TOLERANCE = 1.5;
 
     private double pathLengthInches = 1.0;
+    public double lastCommandedVx = 0;
+    public double lastCommandedVy = 0;
+    public double lastCommandedOmega = 0;
+    public double lastActualVx = 0;
+    public double lastActualVy = 0;
+    public double lastActualOmega = 0;
+    public double sysIDRatioVx = 1.0;
+    public double sysIDRatioVy = 1.0;
+    public double sysIDRatioOmega = 1.0;
+    public void observeSysID() {
+        lastCommandedVx = desiredVx;
+        lastCommandedVy = desiredVy;
+        lastCommandedOmega = desiredOmega;
+
+        // Convert field velocity to robot frame
+        double heading = follower.getPose().getHeading();
+        double fieldVx = follower.getVelocity().getXComponent();
+        double fieldVy = follower.getVelocity().getYComponent();
+        lastActualVx = fieldVx * Math.cos(heading) + fieldVy * Math.sin(heading);
+        lastActualVy = -fieldVx * Math.sin(heading) + fieldVy * Math.cos(heading);
+        lastActualOmega = follower.getAngularVelocity();
+        if (Math.abs(desiredVx) > 15) sysIDRatioVx = lastActualVx / desiredVx;
+        if (Math.abs(desiredVy) > 10) sysIDRatioVy = lastActualVy / desiredVy;
+        if (Math.abs(desiredOmega) > 0.5) sysIDRatioOmega = lastActualOmega / desiredOmega;
+    }
 
     public boolean isPathComplete() {
         if (activePath == null) return true;
