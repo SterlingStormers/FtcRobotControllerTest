@@ -100,7 +100,6 @@ public class PathTestMPC extends OpMode {
     public void loop() {
         follower.updatePose();
         mpc.update();
-        mpc.observeSysID();
         controller.velocity();
         kinematics.drive();
 
@@ -116,17 +115,14 @@ public class PathTestMPC extends OpMode {
 //        panelsTelemetry.debug("X", follower.getPose().getX());
 //        panelsTelemetry.debug("Y", follower.getPose().getY());
 //        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
-//        panelsTelemetry.debug("currentT", mpc.currentT);
+        panelsTelemetry.debug("currentT", mpc.currentT);
         panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
-        panelsTelemetry.debug("cmd Vx", mpc.lastCommandedVx);
-        panelsTelemetry.debug("act Vx", mpc.lastActualVx);
-        panelsTelemetry.debug("ratio Vx", mpc.sysIDRatioVx);
-        panelsTelemetry.debug("cmd Vy", mpc.lastCommandedVy);
-        panelsTelemetry.debug("act Vy", mpc.lastActualVy);
-        panelsTelemetry.debug("ratio Vy", mpc.sysIDRatioVy);
-        panelsTelemetry.debug("cmd Omega", mpc.lastCommandedOmega);
-        panelsTelemetry.debug("act Omega", mpc.lastActualOmega);
-        panelsTelemetry.debug("ratio Omega", mpc.sysIDRatioOmega);
+        panelsTelemetry.debug("raw Vx ratio", mpc.sysIDRatioVx);
+        panelsTelemetry.debug("filtered Vx", mpc.filteredRatioVx);
+        panelsTelemetry.debug("raw Vy ratio", mpc.sysIDRatioVy);
+        panelsTelemetry.debug("filtered Vy", mpc.filteredRatioVy);
+        panelsTelemetry.debug("raw omega ratio", mpc.sysIDRatioOmega);
+        panelsTelemetry.debug("filtered omega", mpc.filteredRatioOmega);
         panelsTelemetry.update(telemetry);
     }
 

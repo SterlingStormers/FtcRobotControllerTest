@@ -60,27 +60,40 @@ public class AMPC {
     public double lastCommandedVx = 0;
     public double lastCommandedVy = 0;
     public double lastCommandedOmega = 0;
-    public double lastActualVx = 0;
-    public double lastActualVy = 0;
-    public double lastActualOmega = 0;
+    public double actualVx = 0;
+    public double actualVy = 0;
+    public double actualOmega = 0;
     public double sysIDRatioVx = 1.0;
     public double sysIDRatioVy = 1.0;
     public double sysIDRatioOmega = 1.0;
+    private static final double LPF_ALPHA = 0.05;
+    public double filteredRatioVx = 1.0;
+    public double filteredRatioVy = 1.0;
+    public double filteredRatioOmega = 1.0;
     public void observeSysID() {
         lastCommandedVx = desiredVx;
         lastCommandedVy = desiredVy;
         lastCommandedOmega = desiredOmega;
 
-        // Convert field velocity to robot frame
         double heading = follower.getPose().getHeading();
         double fieldVx = follower.getVelocity().getXComponent();
         double fieldVy = follower.getVelocity().getYComponent();
-        lastActualVx = fieldVx * Math.cos(heading) + fieldVy * Math.sin(heading);
-        lastActualVy = -fieldVx * Math.sin(heading) + fieldVy * Math.cos(heading);
-        lastActualOmega = follower.getAngularVelocity();
-        if (Math.abs(desiredVx) > 15) sysIDRatioVx = lastActualVx / desiredVx;
-        if (Math.abs(desiredVy) > 10) sysIDRatioVy = lastActualVy / desiredVy;
-        if (Math.abs(desiredOmega) > 0.5) sysIDRatioOmega = lastActualOmega / desiredOmega;
+        actualVx = fieldVx * Math.cos(heading) + fieldVy * Math.sin(heading);
+        actualVy = -fieldVx * Math.sin(heading) + fieldVy * Math.cos(heading);
+        actualOmega = follower.getAngularVelocity();
+
+        if (Math.abs(desiredVx) > 5) {
+            sysIDRatioVx = actualVx / desiredVx;
+            filteredRatioVx = filteredRatioVx * (1 - LPF_ALPHA) + (sysIDRatioVx * LPF_ALPHA);
+        }
+        if (Math.abs(desiredVy) > 3) {
+            sysIDRatioVy = actualVy / desiredVy;
+            filteredRatioVy = filteredRatioVy * (1 - LPF_ALPHA) + (sysIDRatioVy * LPF_ALPHA);
+        }
+        if (Math.abs(desiredOmega) > 0.5) {
+            sysIDRatioOmega = actualOmega / desiredOmega;
+            filteredRatioOmega = filteredRatioOmega * (1 - LPF_ALPHA) + (sysIDRatioOmega * LPF_ALPHA);
+        }
     }
 
     public boolean isPathComplete() {
@@ -342,5 +355,7 @@ public class AMPC {
         updateClosestT();
         updateLookahead();
         updateMPC();
+        observeSysID();
+
     }
 }
