@@ -65,7 +65,7 @@ public class AMPC {
     public double sysIDRatioVx = 1.0;
     public double sysIDRatioVy = 1.0;
     public double sysIDRatioOmega = 1.0;
-    private static final double LPF_ALPHA = 0.05;
+    private static final double LEARNING_RATE = 0.05;
     public double filteredRatioVx = 1.0;
     public double filteredRatioVy = 1.0;
     public double filteredRatioOmega = 1.0;
@@ -83,15 +83,15 @@ public class AMPC {
 
         if (Math.abs(desiredVx) > 5) {
             sysIDRatioVx = actualVx / desiredVx;
-            filteredRatioVx = filteredRatioVx * (1 - LPF_ALPHA) + (sysIDRatioVx * LPF_ALPHA);
+            filteredRatioVx = filteredRatioVx * (1 - LEARNING_RATE) + (sysIDRatioVx * LEARNING_RATE);
         }
         if (Math.abs(desiredVy) > 3) {
             sysIDRatioVy = actualVy / desiredVy;
-            filteredRatioVy = filteredRatioVy * (1 - LPF_ALPHA) + (sysIDRatioVy * LPF_ALPHA);
+            filteredRatioVy = filteredRatioVy * (1 - LEARNING_RATE) + (sysIDRatioVy * LEARNING_RATE);
         }
         if (Math.abs(desiredOmega) > 0.5) {
             sysIDRatioOmega = actualOmega / desiredOmega;
-            filteredRatioOmega = filteredRatioOmega * (1 - LPF_ALPHA) + (sysIDRatioOmega * LPF_ALPHA);
+            filteredRatioOmega = filteredRatioOmega * (1 - LEARNING_RATE) + (sysIDRatioOmega * LEARNING_RATE);
         }
     }
 
