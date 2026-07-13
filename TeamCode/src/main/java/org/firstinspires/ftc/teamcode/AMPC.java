@@ -83,15 +83,21 @@ public class AMPC {
 
         if (Math.abs(desiredVx) > 5) {
             sysIDRatioVx = actualVx / desiredVx;
-            filteredRatioVx = filteredRatioVx * (1 - LEARNING_RATE) + (sysIDRatioVx * LEARNING_RATE);
+            if (sysIDRatioVx > 0 && sysIDRatioVx < 2) {
+                filteredRatioVx = filteredRatioVx * (1 - LEARNING_RATE) + (sysIDRatioVx * LEARNING_RATE);
+            }
         }
         if (Math.abs(desiredVy) > 3) {
             sysIDRatioVy = actualVy / desiredVy;
-            filteredRatioVy = filteredRatioVy * (1 - LEARNING_RATE) + (sysIDRatioVy * LEARNING_RATE);
+            if (sysIDRatioVy > 0 && sysIDRatioVy < 2) {
+                filteredRatioVy = filteredRatioVy * (1 - LEARNING_RATE) + (sysIDRatioVy * LEARNING_RATE);
+            }
         }
         if (Math.abs(desiredOmega) > 0.5) {
             sysIDRatioOmega = actualOmega / desiredOmega;
-            filteredRatioOmega = filteredRatioOmega * (1 - LEARNING_RATE) + (sysIDRatioOmega * LEARNING_RATE);
+            if (sysIDRatioOmega > 0 && sysIDRatioOmega < 2) {
+                filteredRatioOmega = filteredRatioOmega * (1 - LEARNING_RATE) + (sysIDRatioOmega * LEARNING_RATE);
+            }
         }
     }
 
