@@ -55,7 +55,6 @@ public class AMPC {
     public static double WEIGHT_TERMINAL = 10;
     public boolean terminalTriggered = false;
     private static final double PATH_END_TOLERANCE = 1.5;
-
     private double pathLengthInches = 1.0;
     public double lastCommandedVx = 0;
     public double lastCommandedVy = 0;
