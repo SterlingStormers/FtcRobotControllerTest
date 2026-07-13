@@ -81,19 +81,19 @@ public class AMPC {
         actualVy = -fieldVx * Math.sin(heading) + fieldVy * Math.cos(heading);
         actualOmega = follower.getAngularVelocity();
 
-        if (Math.abs(desiredVx) > 5) {
+        if ((Math.abs(desiredVx) > 5) && (Math.abs(actualVx) > 5))  {
             sysIDRatioVx = actualVx / desiredVx;
             if (sysIDRatioVx > 0 && sysIDRatioVx < 2) {
                 filteredRatioVx = filteredRatioVx * (1 - LEARNING_RATE) + (sysIDRatioVx * LEARNING_RATE);
             }
         }
-        if (Math.abs(desiredVy) > 3) {
+        if ((Math.abs(desiredVy) > 3) && (Math.abs(actualVy) > 3)) {
             sysIDRatioVy = actualVy / desiredVy;
             if (sysIDRatioVy > 0 && sysIDRatioVy < 2) {
                 filteredRatioVy = filteredRatioVy * (1 - LEARNING_RATE) + (sysIDRatioVy * LEARNING_RATE);
             }
         }
-        if (Math.abs(desiredOmega) > 0.5) {
+        if ((Math.abs(desiredOmega) > 0.5) && (Math.abs(actualOmega) > 0.5)) {
             sysIDRatioOmega = actualOmega / desiredOmega;
             if (sysIDRatioOmega > 0 && sysIDRatioOmega < 2) {
                 filteredRatioOmega = filteredRatioOmega * (1 - LEARNING_RATE) + (sysIDRatioOmega * LEARNING_RATE);
