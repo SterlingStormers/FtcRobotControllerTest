@@ -69,6 +69,16 @@ public class AMPC {
     public double filteredRatioVx = 1.0;
     public double filteredRatioVy = 1.0;
     public double filteredRatioOmega = 1.0;
+    private double baseMaxSpeedForward;
+    private double baseMaxSpeedStrafe;
+    private double baseMaxTurnRate;
+
+    public AMPC(Follower follower) {
+        this.follower = follower;
+        baseMaxSpeedForward = maxSpeedForward;
+        baseMaxSpeedStrafe = maxSpeedStrafe;
+        baseMaxTurnRate = maxTurnRateRad;
+    }
     public void observeSysID() {
         lastCommandedVx = desiredVx;
         lastCommandedVy = desiredVy;
@@ -81,24 +91,34 @@ public class AMPC {
         actualVy = -fieldVx * Math.sin(heading) + fieldVy * Math.cos(heading);
         actualOmega = follower.getAngularVelocity();
 
-        if ((Math.abs(desiredVx) > 5) && (Math.abs(actualVx) > 5))  {
+        if ((Math.abs(desiredVx) > 15) && (Math.abs(actualVx) > 15)) {
             sysIDRatioVx = actualVx / desiredVx;
-            if (sysIDRatioVx > 0 && sysIDRatioVx < 2) {
+            if (sysIDRatioVx > 0 && sysIDRatioVx < 2.0) {
                 filteredRatioVx = filteredRatioVx * (1 - LEARNING_RATE) + (sysIDRatioVx * LEARNING_RATE);
             }
         }
-        if ((Math.abs(desiredVy) > 3) && (Math.abs(actualVy) > 3)) {
+        if ((Math.abs(desiredVy) > 10) && (Math.abs(actualVy) > 10)) {
             sysIDRatioVy = actualVy / desiredVy;
-            if (sysIDRatioVy > 0 && sysIDRatioVy < 2) {
+            if (sysIDRatioVy > 0 && sysIDRatioVy < 2.0) {
                 filteredRatioVy = filteredRatioVy * (1 - LEARNING_RATE) + (sysIDRatioVy * LEARNING_RATE);
             }
         }
         if ((Math.abs(desiredOmega) > 0.5) && (Math.abs(actualOmega) > 0.5)) {
             sysIDRatioOmega = actualOmega / desiredOmega;
-            if (sysIDRatioOmega > 0 && sysIDRatioOmega < 2) {
+            if (sysIDRatioOmega > 0 && sysIDRatioOmega < 2.0) {
                 filteredRatioOmega = filteredRatioOmega * (1 - LEARNING_RATE) + (sysIDRatioOmega * LEARNING_RATE);
             }
         }
+
+        // Adaptation  overwrite max speeds with filtered ratios
+        // Clamped so bad ratios can't send max speeds to zero or infinity
+        double clampedVx = Math.max(0.7, Math.min(1.3, filteredRatioVx));
+        double clampedVy = Math.max(0.7, Math.min(1.3, filteredRatioVy));
+        double clampedOmega = Math.max(0.7, Math.min(1.3, filteredRatioOmega));
+
+        maxSpeedForward = baseMaxSpeedForward * clampedVx;
+        maxSpeedStrafe = baseMaxSpeedStrafe * clampedVy;
+        maxTurnRateRad = baseMaxTurnRate * clampedOmega;
     }
 
     public boolean isPathComplete() {
@@ -110,11 +130,6 @@ public class AMPC {
         double dy = robotPose.getY() - end.getY();
         return Math.sqrt(dx * dx + dy * dy) < PATH_END_TOLERANCE;
     }
-
-    public AMPC(Follower follower) {
-        this.follower = follower;
-    }
-
     public void setActivePath(PathChain path) {
         activePath = path;
         currentT = 0;

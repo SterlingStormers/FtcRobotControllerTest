@@ -117,12 +117,15 @@ public class PathTestMPC extends OpMode {
 //        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.debug("currentT", mpc.currentT);
         panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
-        panelsTelemetry.debug("raw Vx ratio", mpc.sysIDRatioVx);
+//        panelsTelemetry.debug("raw Vx ratio", mpc.sysIDRatioVx);
         panelsTelemetry.debug("filtered Vx", mpc.filteredRatioVx);
-        panelsTelemetry.debug("raw Vy ratio", mpc.sysIDRatioVy);
+//        panelsTelemetry.debug("raw Vy ratio", mpc.sysIDRatioVy);
         panelsTelemetry.debug("filtered Vy", mpc.filteredRatioVy);
-        panelsTelemetry.debug("raw omega ratio", mpc.sysIDRatioOmega);
+//        panelsTelemetry.debug("raw omega ratio", mpc.sysIDRatioOmega);
         panelsTelemetry.debug("filtered omega", mpc.filteredRatioOmega);
+        panelsTelemetry.debug("maxSpeedForward", mpc.maxSpeedForward);
+        panelsTelemetry.debug("maxSpeedStrafe", mpc.maxSpeedStrafe);
+        panelsTelemetry.debug("maxTurnRateRad", mpc.maxTurnRateRad);
         panelsTelemetry.update(telemetry);
     }
 
