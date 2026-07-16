@@ -35,7 +35,7 @@ public class DriveTrainHardware {
         light = hw.get(Servo.class, "bright_light");
         husky = hw.get(HuskyLens.class, "husky_lens");
 
-        //To be changed
+
 
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -45,6 +45,11 @@ public class DriveTrainHardware {
         shooterMotor.setDirection(DcMotor.Direction.REVERSE);
         spindexer.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        //To be changed
+        // Example for a 4-motor drivetrain
+        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
     }
 }
