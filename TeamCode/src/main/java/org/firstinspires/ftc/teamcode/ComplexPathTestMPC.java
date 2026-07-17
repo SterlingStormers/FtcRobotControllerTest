@@ -142,7 +142,7 @@ public class ComplexPathTestMPC extends OpMode {
 
             panelsTelemetry.debug("cross track", crossTrack);
             panelsTelemetry.debug("along track", alongTrack);
-            panelsTelemetry.debug("terminalTriggered", mpc.terminalTriggered);
+//            panelsTelemetry.debug("terminalTriggered", mpc.terminalTriggered);
 // Compute brakeDist in the OpMode for observation
             double speed = Math.sqrt(mpc.desiredVx * mpc.desiredVx + mpc.desiredVy * mpc.desiredVy);
             double brakeDist = (speed * speed) / (2 * mpc.MAX_DECEL);
@@ -150,9 +150,19 @@ public class ComplexPathTestMPC extends OpMode {
             double newDx = endPose.getX() - follower.getPose().getX();
             double newDy = endPose.getY() - follower.getPose().getY();
             double distToEnd = Math.sqrt(newDx * newDx + newDy * newDy);
-            panelsTelemetry.debug("brakeDist", brakeDist);
-            panelsTelemetry.debug("distToEnd", distToEnd);
+
         }
+        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
+//        panelsTelemetry.debug("raw Vx ratio", mpc.sysIDRatioVx);
+//        panelsTelemetry.debug("filtered Vx", mpc.filteredRatioVx);
+////        panelsTelemetry.debug("raw Vy ratio", mpc.sysIDRatioVy);
+//        panelsTelemetry.debug("filtered Vy", mpc.filteredRatioVy);
+////        panelsTelemetry.debug("raw omega ratio", mpc.sysIDRatioOmega);
+//        panelsTelemetry.debug("filtered omega", mpc.filteredRatioOmega);
+        panelsTelemetry.debug("maxSpeedForward", mpc.maxSpeedForward);
+        panelsTelemetry.debug("maxSpeedStrafe", mpc.maxSpeedStrafe);
+        panelsTelemetry.debug("maxTurnRateRad", mpc.maxTurnRateRad);
+        panelsTelemetry.update(telemetry);
         panelsTelemetry.update(telemetry);
     }
 

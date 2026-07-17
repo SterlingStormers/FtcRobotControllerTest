@@ -116,9 +116,9 @@ public class AMPC {
         double clampedVy = Math.max(0.7, Math.min(1.3, filteredRatioVy));
         double clampedOmega = Math.max(0.7, Math.min(1.3, filteredRatioOmega));
 
-//        maxSpeedForward = baseMaxSpeedForward * clampedVx;
-//        maxSpeedStrafe = baseMaxSpeedStrafe * clampedVy;
-//        maxTurnRateRad = baseMaxTurnRate * clampedOmega;
+        maxSpeedForward = baseMaxSpeedForward * clampedVx;
+        maxSpeedStrafe = baseMaxSpeedStrafe * clampedVy;
+        maxTurnRateRad = baseMaxTurnRate * clampedOmega;
     }
 
     public boolean isPathComplete() {
