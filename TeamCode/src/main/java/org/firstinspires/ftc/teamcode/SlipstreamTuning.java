@@ -30,27 +30,14 @@ public class SlipstreamTuning extends SelectableOpMode {
     @IgnoreConfigurable
     public static TelemetryManager panel;
 
-    public SlipstreamTuning() {
-        super("Select a Slipstream Tuning OpMode", s -> {
-            s.folder("Automatic", a -> {
-                a.add("Max Speed Forward Test", MaxSpeedForwardTest::new);
-                a.add("Max Speed Strafe Test", MaxSpeedStrafeTest::new);
-                a.add("Max Turn Rate Test", MaxTurnRateTest::new);
-            });
-        });
-    }
+    public SlipstreamTuning() {super("Select a Slipstream Tuning OpMode", s -> {s.folder("Automatic", a -> {a.add("Max Speed Forward Test", MaxSpeedForwardTest::new);a.add("Max Speed Strafe Test", MaxSpeedStrafeTest::new);a.add("Max Turn Rate Test", MaxTurnRateTest::new);});});}
 
     @Override
     public void onSelect() {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
 
-        motors = new DcMotor[]{
-                hardwareMap.get(DcMotor.class, SlipstreamConstants.leftFrontMotorName),
-                hardwareMap.get(DcMotor.class, SlipstreamConstants.rightFrontMotorName),
-                hardwareMap.get(DcMotor.class, SlipstreamConstants.leftBackMotorName),
-                hardwareMap.get(DcMotor.class, SlipstreamConstants.rightBackMotorName)
-        };
+        motors = new DcMotor[]{hardwareMap.get(DcMotor.class, SlipstreamConstants.leftFrontMotorName), hardwareMap.get(DcMotor.class, SlipstreamConstants.rightFrontMotorName), hardwareMap.get(DcMotor.class, SlipstreamConstants.leftBackMotorName), hardwareMap.get(DcMotor.class, SlipstreamConstants.rightBackMotorName)};
 
         motors[0].setDirection(SlipstreamConstants.leftFrontDirection);
         motors[1].setDirection(SlipstreamConstants.rightFrontDirection);
