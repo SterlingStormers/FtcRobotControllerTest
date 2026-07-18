@@ -103,10 +103,13 @@ class MaxSpeedForwardTest extends OpMode {
 
     @Override
     public void loop() {
-        if (stopping) return;
+        if (stopping) {
+            stopMotors();  // keep enforcing 0 power
+            return;
+        }
         if (gamepad1.bWasPressed()) {
             stopMotors();
-            requestOpModeStop();
+            stopping = true;
             return;
         }
 
