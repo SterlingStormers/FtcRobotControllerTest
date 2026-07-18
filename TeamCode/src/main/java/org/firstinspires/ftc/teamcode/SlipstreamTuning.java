@@ -31,7 +31,12 @@ public class SlipstreamTuning extends SelectableOpMode {
     public static TelemetryManager panel;
 
     public SlipstreamTuning() {
-        super("Select a Slipstream Tuning OpMode", s -> {s.folder("Automatic", a -> {a.add("Max Speed Forward Test", MaxSpeedForwardTest::new);});});
+        super("Select a Slipstream Tuning OpMode", s -> {
+            s.folder("Automatic", a -> {
+                a.add("Max Speed Forward Test", MaxSpeedForwardTest::new);
+                a.add("Max Speed Strafe Test", MaxSpeedStrafeTest::new);
+            });
+        });
     }
 
     @Override
@@ -80,7 +85,6 @@ class MaxSpeedForwardTest extends OpMode {
     private boolean measuring = true;
     private boolean stopping = false;
 
-
     @Override
     public void init() {}
 
@@ -90,6 +94,7 @@ class MaxSpeedForwardTest extends OpMode {
         panel.debug("Runs the robot forward at full power for " + TARGET_DISTANCE + " inches.");
         panel.debug("Averages the last " + SAMPLE_WINDOW + " velocity samples during cruise.");
         panel.debug("Result -> SlipstreamConstants.maxSpeedForward");
+        panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
         panel.debug("B on gamepad 1: stop");
         panel.update(telemetry);
         follower.updatePose();
@@ -104,7 +109,7 @@ class MaxSpeedForwardTest extends OpMode {
     @Override
     public void loop() {
         if (stopping) {
-            stopMotors();  // keep enforcing 0 power
+            stopMotors();
             return;
         }
         if (gamepad1.bWasPressed()) {
@@ -133,6 +138,74 @@ class MaxSpeedForwardTest extends OpMode {
             panel.debug("Max Forward Velocity: " + result + " in/s");
             panel.debug("Distance covered: " + distanceCovered + " inches");
             panel.debug("Copy value to SlipstreamConstants.maxSpeedForward");
+            panel.update(telemetry);
+        }
+    }
+}
+
+class MaxSpeedStrafeTest extends OpMode {
+    public static double TARGET_DISTANCE = 48;
+    public static int SAMPLE_WINDOW = 10;
+    private final double[] recentSpeeds = new double[SAMPLE_WINDOW];
+    private int sampleIndex = 0;
+    private double startY;
+    private boolean measuring = true;
+    private boolean stopping = false;
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void init_loop() {
+        panel.debug("Max Speed Strafe Test");
+        panel.debug("Runs the robot right (strafe) at full power for " + TARGET_DISTANCE + " inches.");
+        panel.debug("Averages the last " + SAMPLE_WINDOW + " velocity samples during cruise.");
+        panel.debug("Result -> SlipstreamConstants.maxSpeedStrafe");
+        panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
+        panel.debug("B on gamepad 1: stop");
+        panel.update(telemetry);
+        follower.updatePose();
+    }
+
+    @Override
+    public void start() {
+        follower.updatePose();
+        startY = follower.getPose().getY();
+    }
+
+    @Override
+    public void loop() {
+        if (stopping) {
+            stopMotors();
+            return;
+        }
+        if (gamepad1.bWasPressed()) {
+            stopMotors();
+            stopping = true;
+            return;
+        }
+
+        follower.updatePose();
+        double distanceCovered = Math.abs(follower.getPose().getY() - startY);
+
+        if (measuring && distanceCovered >= TARGET_DISTANCE) {
+            stopMotors();
+            measuring = false;
+        }
+
+        if (measuring) {
+            // Right strafe mecanum mixing: fl=+, fr=-, bl=-, br=+
+            setPowers(1.0, -1.0, -1.0, 1.0);
+            recentSpeeds[sampleIndex] = Math.abs(follower.getVelocity().getYComponent());
+            sampleIndex = (sampleIndex + 1) % SAMPLE_WINDOW;
+        } else {
+            double sum = 0;
+            for (double s : recentSpeeds) sum += s;
+            double result = sum / SAMPLE_WINDOW;
+
+            panel.debug("Max Strafe Velocity: " + result + " in/s");
+            panel.debug("Distance covered: " + distanceCovered + " inches");
+            panel.debug("Copy value to SlipstreamConstants.maxSpeedStrafe");
             panel.update(telemetry);
         }
     }
