@@ -35,6 +35,7 @@ public class SlipstreamTuning extends SelectableOpMode {
             s.folder("Automatic", a -> {
                 a.add("Max Speed Forward Test", MaxSpeedForwardTest::new);
                 a.add("Max Speed Strafe Test", MaxSpeedStrafeTest::new);
+                a.add("Max Turn Rate Test", MaxTurnRateTest::new);
             });
         });
     }
@@ -194,7 +195,6 @@ class MaxSpeedStrafeTest extends OpMode {
         }
 
         if (measuring) {
-            // Right strafe mecanum mixing: fl=+, fr=-, bl=-, br=+
             setPowers(1.0, -1.0, -1.0, 1.0);
             recentSpeeds[sampleIndex] = Math.abs(follower.getVelocity().getYComponent());
             sampleIndex = (sampleIndex + 1) % SAMPLE_WINDOW;
@@ -206,6 +206,76 @@ class MaxSpeedStrafeTest extends OpMode {
             panel.debug("Max Strafe Velocity: " + result + " in/s");
             panel.debug("Distance covered: " + distanceCovered + " inches");
             panel.debug("Copy value to SlipstreamConstants.maxSpeedStrafe");
+            panel.update(telemetry);
+        }
+    }
+}
+
+class MaxTurnRateTest extends OpMode {
+    public static double TARGET_ROTATIONS = 3.0;   // number of full 2π turns
+    public static int SAMPLE_WINDOW = 10;
+    private final double[] recentOmegas = new double[SAMPLE_WINDOW];
+    private int sampleIndex = 0;
+    private double startHeading;
+    private boolean measuring = true;
+    private boolean stopping = false;
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void init_loop() {
+        panel.debug("Max Turn Rate Test");
+        panel.debug("Spins the robot counterclockwise at full power for " + TARGET_ROTATIONS + " full rotations.");
+        panel.debug("Averages the last " + SAMPLE_WINDOW + " angular velocity samples during cruise.");
+        panel.debug("Result -> SlipstreamConstants.maxTurnRate");
+        panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
+        panel.debug("Ensure at least 3 feet of clearance around the robot.");
+        panel.debug("B on gamepad 1: stop");
+        panel.update(telemetry);
+        follower.updatePose();
+    }
+
+    @Override
+    public void start() {
+        follower.updatePose();
+        startHeading = follower.getTotalHeading();
+    }
+
+    @Override
+    public void loop() {
+        if (stopping) {
+            stopMotors();
+            return;
+        }
+        if (gamepad1.bWasPressed()) {
+            stopMotors();
+            stopping = true;
+            return;
+        }
+
+        follower.updatePose();
+        double turnedRadians = Math.abs(follower.getTotalHeading() - startHeading);
+        double targetRadians = TARGET_ROTATIONS * 2 * Math.PI;
+
+        if (measuring && turnedRadians >= targetRadians) {
+            stopMotors();
+            measuring = false;
+        }
+
+        if (measuring) {
+            // Counterclockwise turn: left side backward, right side forward
+            setPowers(-1.0, 1.0, -1.0, 1.0);
+            recentOmegas[sampleIndex] = Math.abs(follower.getAngularVelocity());
+            sampleIndex = (sampleIndex + 1) % SAMPLE_WINDOW;
+        } else {
+            double sum = 0;
+            for (double o : recentOmegas) sum += o;
+            double result = sum / SAMPLE_WINDOW;
+
+            panel.debug("Max Turn Rate: " + result + " rad/s");
+            panel.debug("Rotations completed: " + (turnedRadians / (2 * Math.PI)));
+            panel.debug("Copy value to SlipstreamConstants.maxTurnRate");
             panel.update(telemetry);
         }
     }
