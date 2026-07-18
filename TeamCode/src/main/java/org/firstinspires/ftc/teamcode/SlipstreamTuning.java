@@ -27,7 +27,6 @@ public class SlipstreamTuning extends SelectableOpMode {
 
     public static Follower follower;
     public static DcMotor[] motors;
-
     @IgnoreConfigurable
     public static TelemetryManager panel;
 
@@ -75,11 +74,12 @@ public class SlipstreamTuning extends SelectableOpMode {
 class MaxSpeedForwardTest extends OpMode {
     public static double TARGET_DISTANCE = 48;
     public static int SAMPLE_WINDOW = 10;
-
     private final double[] recentSpeeds = new double[SAMPLE_WINDOW];
     private int sampleIndex = 0;
     private double startX;
     private boolean measuring = true;
+    private boolean stopping = false;
+
 
     @Override
     public void init() {}
@@ -92,24 +92,25 @@ class MaxSpeedForwardTest extends OpMode {
         panel.debug("Result -> SlipstreamConstants.maxSpeedForward");
         panel.debug("B on gamepad 1: stop");
         panel.update(telemetry);
-        follower.update();
+        follower.updatePose();
     }
 
     @Override
     public void start() {
-        follower.update();
+        follower.updatePose();
         startX = follower.getPose().getX();
     }
 
     @Override
     public void loop() {
+        if (stopping) return;
         if (gamepad1.bWasPressed()) {
             stopMotors();
             requestOpModeStop();
             return;
         }
 
-        follower.update();
+        follower.updatePose();
         double distanceCovered = Math.abs(follower.getPose().getX() - startX);
 
         if (measuring && distanceCovered >= TARGET_DISTANCE) {
