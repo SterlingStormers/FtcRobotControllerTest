@@ -75,7 +75,7 @@ public class ComplexPathTestMPC extends OpMode {
 
         mpc = new AMPC(follower);
         controller = new VelocityControllerV2(follower, mpc);
-        kinematics = new MecanumKinematics(drive, mpc, controller);
+//        kinematics = new MecanumKinematics(drive, mpc, controller);
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();
@@ -128,30 +128,30 @@ public class ComplexPathTestMPC extends OpMode {
 //        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
         panelsTelemetry.debug("currentT", mpc.currentT);
         // In the OpMode loop, after mpc.update():
-        if (mpc.getActivePath() != null) {
-            Pose robotPose = follower.getPose();
-            Pose pathPoint = mpc.getActivePath().getPath(0).getPose(mpc.currentT);
-            com.pedropathing.math.Vector tangent = mpc.getActivePath().getPath(0).getTangentVector(mpc.currentT);
-            double tx = tangent.getXComponent() / tangent.getMagnitude();
-            double ty = tangent.getYComponent() / tangent.getMagnitude();
-            double dx = robotPose.getX() - pathPoint.getX();
-            double dy = robotPose.getY() - pathPoint.getY();
-            double crossTrack = Math.abs(-dx * ty + dy * tx);
-            double alongTrack = dx * tx + dy * ty;
-            double totalDist = Math.sqrt(dx*dx + dy*dy);
-
-            panelsTelemetry.debug("cross track", crossTrack);
-            panelsTelemetry.debug("along track", alongTrack);
-//            panelsTelemetry.debug("terminalTriggered", mpc.terminalTriggered);
-// Compute brakeDist in the OpMode for observation
-            double speed = Math.sqrt(mpc.desiredVx * mpc.desiredVx + mpc.desiredVy * mpc.desiredVy);
-            double brakeDist = (speed * speed) / (2 * mpc.MAX_DECEL);
-            Pose endPose = mpc.getActivePath().getPath(0).getPose(1.0);
-            double newDx = endPose.getX() - follower.getPose().getX();
-            double newDy = endPose.getY() - follower.getPose().getY();
-            double distToEnd = Math.sqrt(newDx * newDx + newDy * newDy);
-
-        }
+//        if (mpc.getActivePath() != null) {
+//            Pose robotPose = follower.getPose();
+//            Pose pathPoint = mpc.getActivePath().getPath(0).getPose(mpc.currentT);
+//            com.pedropathing.math.Vector tangent = mpc.getActivePath().getPath(0).getTangentVector(mpc.currentT);
+//            double tx = tangent.getXComponent() / tangent.getMagnitude();
+//            double ty = tangent.getYComponent() / tangent.getMagnitude();
+//            double dx = robotPose.getX() - pathPoint.getX();
+//            double dy = robotPose.getY() - pathPoint.getY();
+//            double crossTrack = Math.abs(-dx * ty + dy * tx);
+//            double alongTrack = dx * tx + dy * ty;
+//            double totalDist = Math.sqrt(dx*dx + dy*dy);
+//
+//            panelsTelemetry.debug("cross track", crossTrack);
+//            panelsTelemetry.debug("along track", alongTrack);
+////            panelsTelemetry.debug("terminalTriggered", mpc.terminalTriggered);
+//// Compute brakeDist in the OpMode for observation
+//            double speed = Math.sqrt(mpc.desiredVx * mpc.desiredVx + mpc.desiredVy * mpc.desiredVy);
+//            double brakeDist = (speed * speed) / (2 * mpc.MAX_DECEL);
+//            Pose endPose = mpc.getActivePath().getPath(0).getPose(1.0);
+//            double newDx = endPose.getX() - follower.getPose().getX();
+//            double newDy = endPose.getY() - follower.getPose().getY();
+//            double distToEnd = Math.sqrt(newDx * newDx + newDy * newDy);
+//
+//        }
         panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
 //        panelsTelemetry.debug("raw Vx ratio", mpc.sysIDRatioVx);
 //        panelsTelemetry.debug("filtered Vx", mpc.filteredRatioVx);

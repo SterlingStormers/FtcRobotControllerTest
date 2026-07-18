@@ -72,7 +72,7 @@ public class PathTestMPC extends OpMode {
 
         mpc = new AMPC(follower);
         controller = new VelocityControllerV2(follower, mpc);
-        kinematics = new MecanumKinematics(drive, mpc, controller);
+//        kinematics = new MecanumKinematics(drive, mpc, controller);
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();

@@ -19,7 +19,7 @@ public class KinematicsTest extends LinearOpMode {
 
         VelocityControllerV2 controller = new VelocityControllerV2(follower, mpc);
 
-        MecanumKinematics kinematics = new MecanumKinematics(drive, mpc, controller);
+//        MecanumKinematics kinematics = new MecanumKinematics(drive, mpc, controller);
 
         waitForStart();
 
@@ -50,7 +50,7 @@ public class KinematicsTest extends LinearOpMode {
                 telemetry.addLine("Stopped");
             }
             controller.velocity(); //must come first
-            kinematics.drive();
+//            kinematics.drive();
             telemetry.addData("desired vx", mpc.desiredVx);
             telemetry.addData("actual vx", controller.actualVx);
             telemetry.addData("desired vy", mpc.desiredVy);

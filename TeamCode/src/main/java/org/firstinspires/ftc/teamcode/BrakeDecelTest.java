@@ -68,7 +68,7 @@ public class BrakeDecelTest extends LinearOpMode {
 
         mpc = new AMPC(follower);
         controller = new VelocityControllerV2(follower, mpc);
-        kinematics = new MecanumKinematics(drive, mpc, controller);
+//        kinematics = new MecanumKinematics(drive, mpc, controller);
 
         sleep(500);
         follower.updatePose();

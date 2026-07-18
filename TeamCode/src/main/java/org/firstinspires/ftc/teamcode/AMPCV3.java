@@ -5,58 +5,57 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 
-/**
- * @author Sahaj Patel - 23345 Sterling Stormers
- * @version 4.0, 7/17/2026
- */
-
-@Configurable   //remove before release
-public class AMPC {  // Version 1.4.0
+@Configurable
+public class AMPCV3 {
     private final Follower follower;
-    private final double baseMaxSpeedForward;
-    private final double baseMaxSpeedStrafe;
-    private final double baseMaxTurnRate;
+
+    public double maxSpeedForward = 61.2;
+    public double maxSpeedStrafe = 45.5;
+    public double maxTurnRateRad = 4.0;
+
+    public double desiredVx = 0;
+    public double desiredVy = 0;
+    public double desiredOmega = 0;
+
     private PathChain activePath = null;
-    private double lastBestVx = 0;
-    private double lastBestVy = 0;
-    private double lastBestOmega = 0;
-    private double pursuitVx = 0;
-    private double pursuitVy = 0;
-    private double pursuitOmega = 0;
-    private boolean firstLoop = true;
-    private double pathLengthInches = 1.0;
+    public double currentT = 0;
+
     private static final int T_COARSE_STEPS = 50;
     private static final int T_FINE_STEPS = 40;
     private static final double FINE_WINDOW = 0.04;
     private static final double HEADING_GAIN = 2;
+
+    public PathChain getActivePath() { return activePath; }
     private static final double LOOKAHEAD_T_DELTA = 0.1;
+    public double lookaheadT = 0;
+
     private static final double STEP_DT = 0.1;
     private static final int HORIZON_STEPS = 5;
     private static final int GRID_HALF = 1;
     private static final double GRID_STEP_FRACTION = 0.2;
-    private static final double WEIGHT_PROGRESS = 80;
-    private static final double WEIGHT_CROSS = 3.0;
-    private static final double WEIGHT_ALONG = 1.0;
-    private static final double WEIGHT_TANGENT = 0.1;
+
+    // Cost weights
+    public static double WEIGHT_PROGRESS = 80;
+    public static double WEIGHT_CROSS = 3.0;
+    public static double WEIGHT_ALONG = 1.0;
+    public static double WEIGHT_TANGENT = 0.1;   // NEW: velocity direction alignment with path tangent
     private static final double WEIGHT_HEADING = 10.0;
-    private static final double WEIGHT_TERMINAL = 10;
-    private static final double PATH_END_TOLERANCE = 1.5;
-    private static final double LEARNING_RATE = 0.05;
-    public double maxSpeedForward;
-    public double maxSpeedStrafe;
-    public double maxTurnRateRad;
 
-    public double desiredVx = 0;
-
-    public double desiredVy = 0;
-
-    public double desiredOmega = 0;
-
-    public double currentT = 0;
-    public double lookaheadT = 0;
-    public Pose lookaheadPose = new Pose(0, 0, 0);
+    private double lastBestVx = 0;
+    private double lastBestVy = 0;
+    private double lastBestOmega = 0;
     public double lastBestCost = 0;
+    public Pose lookaheadPose = new Pose(0, 0, 0);
+    public double pursuitVx = 0;
+    public double pursuitVy = 0;
+    public double pursuitOmega = 0;
+
+    private boolean firstLoop = true;
+    public static double MAX_DECEL = 244;
+    public static double WEIGHT_TERMINAL = 10;
     public boolean terminalTriggered = false;
+    private static final double PATH_END_TOLERANCE = 1.5;
+    private double pathLengthInches = 1.0;
     public double lastCommandedVx = 0;
     public double lastCommandedVy = 0;
     public double lastCommandedOmega = 0;
@@ -66,18 +65,19 @@ public class AMPC {  // Version 1.4.0
     public double sysIDRatioVx = 1.0;
     public double sysIDRatioVy = 1.0;
     public double sysIDRatioOmega = 1.0;
+    private static final double LEARNING_RATE = 0.05;
     public double filteredRatioVx = 1.0;
     public double filteredRatioVy = 1.0;
     public double filteredRatioOmega = 1.0;
+    private double baseMaxSpeedForward;
+    private double baseMaxSpeedStrafe;
+    private double baseMaxTurnRate;
 
-    public AMPC(Follower follower) {
+    public AMPCV3(Follower follower) {
         this.follower = follower;
-        this.baseMaxSpeedForward = SlipstreamConstants.maxSpeedForward;
-        this.baseMaxSpeedStrafe = SlipstreamConstants.maxSpeedStrafe;
-        this.baseMaxTurnRate = SlipstreamConstants.maxTurnRate;
-        this.maxSpeedForward = baseMaxSpeedForward;
-        this.maxSpeedStrafe = baseMaxSpeedStrafe;
-        this.maxTurnRateRad = baseMaxTurnRate;
+        baseMaxSpeedForward = maxSpeedForward;
+        baseMaxSpeedStrafe = maxSpeedStrafe;
+        baseMaxTurnRate = maxTurnRateRad;
     }
     public void observeSysID() {
         lastCommandedVx = desiredVx;
@@ -258,7 +258,7 @@ public class AMPC {  // Version 1.4.0
 
         double speed = Math.sqrt((vx * vx) + (vy * vy));
         double tAdvancePerStep = (speed * STEP_DT) / pathLengthInches;
-        double brakeDist = (speed * speed) / (2.0 * SlipstreamConstants.maxDecel);
+        double brakeDist = (speed * speed) / (2.0 * MAX_DECEL);
 
         double totalCost = 0;
         terminalTriggered = false;
@@ -295,27 +295,30 @@ public class AMPC {  // Version 1.4.0
             // Progress reward
             double progressPenalty = WEIGHT_PROGRESS * (1 - predictedT);
 
-            //  Tangent-alignment cost: velocity direction should match path tangent
+            // NEW: Tangent-alignment cost — velocity direction should match path tangent
             double vMag = Math.sqrt(fieldVx * fieldVx + fieldVy * fieldVy);
             double tangentAlignmentCost = 0;
             if (vMag > 0.1) {
                 double vUnitX = fieldVx / vMag;
                 double vUnitY = fieldVy / vMag;
+                // 1 - dot: 0 when aligned, 2 when opposite direction, 1 when perpendicular
                 double alignmentError = 1.0 - (vUnitX * tX + vUnitY * tY);
+                // Multiply by vMag so faster misalignment is penalized proportionally more
                 tangentAlignmentCost = WEIGHT_TANGENT * alignmentError * vMag;
             }
 
             // Terminal cost (brake before overshoot)
-            // Hybrid: use arc length remaining when far from end, Euclidean when close
+            // Terminal cost (brake before overshoot)
+            // Hybrid: use arc-length remaining when far from end, Euclidean when close
             double euclidToEnd = Math.sqrt((endPose.getX() - predictedX) * (endPose.getX() - predictedX) + (endPose.getY() - predictedY) * (endPose.getY() - predictedY));
             double arcToEnd = pathLengthInches * (1.0 - predictedT);
             double distToEnd;
             if (predictedT < 0.85) {
-                distToEnd = euclidToEnd;  // aggressive far away
+                distToEnd = euclidToEnd;   // aggressive far away
             } else if (predictedT < 0.95) {
-                distToEnd = arcToEnd; // accurate close
+                distToEnd = arcToEnd;      // accurate close
             } else {
-                distToEnd = euclidToEnd; // switch back near endpoint to avoid stall
+                distToEnd = euclidToEnd;   // switch back near endpoint to avoid stall
             }
             double stepTerminalCost = 0;
             if (brakeDist > distToEnd) {
@@ -373,5 +376,6 @@ public class AMPC {  // Version 1.4.0
         updateLookahead();
         updateMPC();
         observeSysID();
+
     }
 }

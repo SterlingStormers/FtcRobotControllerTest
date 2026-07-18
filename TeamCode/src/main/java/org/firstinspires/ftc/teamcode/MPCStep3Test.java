@@ -17,7 +17,7 @@ public class MPCStep3Test extends LinearOpMode {
 
         AMPC mpc = new AMPC(follower);
         VelocityControllerV2 controller = new VelocityControllerV2(follower, mpc);
-        MecanumKinematics kinematics = new MecanumKinematics(drive, mpc, controller);
+//        MecanumKinematics kinematics = new MecanumKinematics(drive, mpc, controller);
 
         PathChain testPath = follower.pathBuilder()
                 .addPath(new BezierLine(new Pose(0, 0), new Pose(50, 0)))
@@ -36,7 +36,7 @@ public class MPCStep3Test extends LinearOpMode {
             follower.updatePose();
             mpc.update();
             controller.velocity();
-            kinematics.drive();
+//            kinematics.drive();
 
             Pose pose = follower.getPose();
             telemetry.addData("robot", "(" + pose.getX() + ", " + pose.getY() + ", " + Math.toDegrees(pose.getHeading()) + "°)");
