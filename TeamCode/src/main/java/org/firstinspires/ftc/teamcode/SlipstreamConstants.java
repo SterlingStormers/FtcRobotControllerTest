@@ -14,10 +14,10 @@ import com.bylazar.configurables.annotations.Configurable;
 public class SlipstreamConstants {
 
     // Motor names
-    public static String leftFrontMotorName = "name";
-    public static String rightFrontMotorName = "name";
-    public static String leftBackMotorName = "name";
-    public static String rightBackMotorName = "name";
+    public static String leftFrontMotorName = "front_left_drive";
+    public static String rightFrontMotorName = "front_right_drive";
+    public static String leftBackMotorName = "back_left_drive";
+    public static String rightBackMotorName = "back_right_drive";
 
     /**
      * Note: Slipstream is strictly for motor mode set to FLOAT
