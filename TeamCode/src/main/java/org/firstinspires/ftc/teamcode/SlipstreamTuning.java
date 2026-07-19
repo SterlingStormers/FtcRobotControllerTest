@@ -1,25 +1,24 @@
 package org.firstinspires.ftc.teamcode;
+
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.follower;
-import static org.firstinspires.ftc.teamcode.SlipstreamTuning.motors;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.panel;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.setPowers;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.stopMotors;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.telemetry.SelectableOpMode;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import java.util.List;
 
-/**
- * @author Sahaj Patel - 23345 Sterling Stormers
- * @version 1.0, 7/19/2026
- */
+import java.util.List;
 
 @Configurable
 @TeleOp(name = "Slipstream Tuning", group = "Slipstream")
@@ -30,14 +29,28 @@ public class SlipstreamTuning extends SelectableOpMode {
     @IgnoreConfigurable
     public static TelemetryManager panel;
 
-    public SlipstreamTuning() {super("Select a Slipstream Tuning OpMode", s -> {s.folder("Automatic", a -> {a.add("Max Speed Forward Test", MaxSpeedForwardTest::new);a.add("Max Speed Strafe Test", MaxSpeedStrafeTest::new);a.add("Max Turn Rate Test", MaxTurnRateTest::new);});});}
+    public SlipstreamTuning() {
+        super("Select a Slipstream Tuning OpMode", s -> {
+            s.folder("Automatic", a -> {
+                a.add("Max Speed Forward Test", MaxSpeedForwardTest::new);
+                a.add("Max Speed Strafe Test", MaxSpeedStrafeTest::new);
+                a.add("Max Turn Rate Test", MaxTurnRateTest::new);
+                a.add("Brake Decel Test", MaxDecelTest::new);
+            });
+        });
+    }
 
     @Override
     public void onSelect() {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
 
-        motors = new DcMotor[]{hardwareMap.get(DcMotor.class, SlipstreamConstants.leftFrontMotorName), hardwareMap.get(DcMotor.class, SlipstreamConstants.rightFrontMotorName), hardwareMap.get(DcMotor.class, SlipstreamConstants.leftBackMotorName), hardwareMap.get(DcMotor.class, SlipstreamConstants.rightBackMotorName)};
+        motors = new DcMotor[]{
+                hardwareMap.get(DcMotor.class, SlipstreamConstants.leftFrontMotorName),
+                hardwareMap.get(DcMotor.class, SlipstreamConstants.rightFrontMotorName),
+                hardwareMap.get(DcMotor.class, SlipstreamConstants.leftBackMotorName),
+                hardwareMap.get(DcMotor.class, SlipstreamConstants.rightBackMotorName)
+        };
 
         motors[0].setDirection(SlipstreamConstants.leftFrontDirection);
         motors[1].setDirection(SlipstreamConstants.rightFrontDirection);
@@ -63,11 +76,6 @@ public class SlipstreamTuning extends SelectableOpMode {
         setPowers(0, 0, 0, 0);
     }
 }
-
-/**
- * @author Sahaj Patel - 23345 Sterling Stormers
- * @version 1.0, 7/19/2026
- */
 
 class MaxSpeedForwardTest extends OpMode {
     public static double TARGET_DISTANCE = 48;
@@ -136,11 +144,6 @@ class MaxSpeedForwardTest extends OpMode {
     }
 }
 
-/**
- * @author Sahaj Patel - 23345 Sterling Stormers
- * @version 1.0, 7/19/2026
- */
-
 class MaxSpeedStrafeTest extends OpMode {
     public static double TARGET_DISTANCE = 48;
     public static int SAMPLE_WINDOW = 10;
@@ -208,13 +211,8 @@ class MaxSpeedStrafeTest extends OpMode {
     }
 }
 
-/**
- * @author Sahaj Patel - 23345 Sterling Stormers
- * @version 1.0, 7/19/2026
- */
-
 class MaxTurnRateTest extends OpMode {
-    public static double TARGET_ROTATIONS = 3.0;   // number of full 2π turns
+    public static double TARGET_ROTATIONS = 3.0;
     public static int SAMPLE_WINDOW = 10;
     private final double[] recentOmegas = new double[SAMPLE_WINDOW];
     private int sampleIndex = 0;
@@ -266,7 +264,6 @@ class MaxTurnRateTest extends OpMode {
         }
 
         if (measuring) {
-            // Counterclockwise turn: left side backward, right side forward
             setPowers(-1.0, 1.0, -1.0, 1.0);
             recentOmegas[sampleIndex] = Math.abs(follower.getAngularVelocity());
             sampleIndex = (sampleIndex + 1) % SAMPLE_WINDOW;
@@ -280,5 +277,177 @@ class MaxTurnRateTest extends OpMode {
             panel.debug("Copy value to SlipstreamConstants.maxTurnRate");
             panel.update(telemetry);
         }
+    }
+}
+
+class MaxDecelTest extends OpMode {
+    public static double ACCEL_TIME_SECONDS = 1.5;
+    public static double PAUSE_BETWEEN_SECONDS = 1.5;
+    public static int NUM_TRIALS = 3;
+    public static double STOPPED_THRESHOLD = 1.0;   // in/s below which we consider stopped
+
+    private enum Phase { ACCEL, BRAKE, PAUSE, DONE }
+    private Phase phase = Phase.ACCEL;
+    private int currentTrial = 0;
+    private double direction = 1.0;
+
+    private long phaseStartNs;
+    private double cruiseVelSum = 0;
+    private int cruiseVelCount = 0;
+    private double lastX;
+    private long lastSampleNs;
+    private double measuredCruiseVel;
+    private double brakeStartX;
+
+    private final double[] decelMeasurements = new double[NUM_TRIALS];
+    private boolean stopping = false;
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void init_loop() {
+        panel.debug("Brake Decel Test");
+        panel.debug("Runs " + NUM_TRIALS + " trials alternating forward/reverse.");
+        panel.debug("Accelerates for " + ACCEL_TIME_SECONDS + " seconds, then actively brakes at full reverse power.");
+        panel.debug("Alternating direction lets you use less runway (bounces back and forth).");
+        panel.debug("Result -> SlipstreamConstants.maxDecel (uses min * 0.95 for safety buffer)");
+        panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
+        panel.debug("Ensure at least 5 feet of clearance in both directions.");
+        panel.debug("B on gamepad 1: stop");
+        panel.update(telemetry);
+        follower.updatePose();
+    }
+
+    @Override
+    public void start() {
+        follower.updatePose();
+        currentTrial = 0;
+        phase = Phase.ACCEL;
+        beginAccel();
+    }
+
+    private void beginAccel() {
+        direction = (currentTrial % 2 == 0) ? 1.0 : -1.0;
+        phaseStartNs = System.nanoTime();
+        cruiseVelSum = 0;
+        cruiseVelCount = 0;
+        lastX = follower.getPose().getX();
+        lastSampleNs = phaseStartNs;
+    }
+
+    @Override
+    public void loop() {
+        if (stopping) {
+            stopMotors();
+            return;
+        }
+        if (gamepad1.bWasPressed()) {
+            stopMotors();
+            stopping = true;
+            return;
+        }
+
+        follower.updatePose();
+        double elapsed = (System.nanoTime() - phaseStartNs) / 1e9;
+        double currentX = follower.getPose().getX();
+
+        switch (phase) {
+            case ACCEL: {
+                // Full power in direction
+                double power = direction;
+                setPowers(power, power, power, power);
+
+                // Sample velocity in last 0.3s of accel window
+                long now = System.nanoTime();
+                double sampleDt = (now - lastSampleNs) / 1e9;
+                if (sampleDt > 0.02) {
+                    double v = (currentX - lastX) / sampleDt;
+                    if (elapsed > ACCEL_TIME_SECONDS - 0.3) {
+                        cruiseVelSum += Math.abs(v);
+                        cruiseVelCount++;
+                    }
+                    lastX = currentX;
+                    lastSampleNs = now;
+                }
+
+                if (elapsed >= ACCEL_TIME_SECONDS) {
+                    measuredCruiseVel = cruiseVelCount > 0 ? cruiseVelSum / cruiseVelCount : 0;
+                    brakeStartX = currentX;
+                    // Active brake: full reverse
+                    double brakePower = -direction;
+                    setPowers(brakePower, brakePower, brakePower, brakePower);
+                    phaseStartNs = System.nanoTime();
+                    phase = Phase.BRAKE;
+                }
+                break;
+            }
+
+            case BRAKE: {
+                // Compute instantaneous velocity for stop detection
+                long now = System.nanoTime();
+                double sampleDt = (now - lastSampleNs) / 1e9;
+                double v = sampleDt > 0.001 ? (currentX - lastX) / sampleDt : 0;
+                lastX = currentX;
+                lastSampleNs = now;
+
+                // Stopped when velocity in the brake direction is small enough
+                boolean stopped = Math.abs(v) <= STOPPED_THRESHOLD && elapsed > 0.2;
+                boolean brakeTimeout = elapsed > 3.0;
+
+                if (stopped || brakeTimeout) {
+                    stopMotors();
+                    double brakeDist = Math.abs(currentX - brakeStartX);
+                    if (brakeDist > 0.1) {
+                        decelMeasurements[currentTrial] = (measuredCruiseVel * measuredCruiseVel) / (2 * brakeDist);
+                    }
+                    currentTrial++;
+                    phaseStartNs = System.nanoTime();
+                    phase = Phase.PAUSE;
+                }
+                break;
+            }
+
+            case PAUSE: {
+                stopMotors();
+                if (elapsed >= PAUSE_BETWEEN_SECONDS) {
+                    if (currentTrial >= NUM_TRIALS) {
+                        phase = Phase.DONE;
+                    } else {
+                        beginAccel();
+                        phase = Phase.ACCEL;
+                    }
+                }
+                break;
+            }
+
+            case DONE: {
+                stopMotors();
+                double min = decelMeasurements[0], max = decelMeasurements[0], sum = 0;
+                for (double d : decelMeasurements) {
+                    min = Math.min(min, d);
+                    max = Math.max(max, d);
+                    sum += d;
+                }
+                double mean = sum / decelMeasurements.length;
+                double recommended = min * 0.95;
+
+                panel.debug("Brake Decel Results");
+                for (int i = 0; i < decelMeasurements.length; i++) {
+                    panel.debug("Trial " + (i + 1) + ": " + decelMeasurements[i] + " in/s^2");
+                }
+                panel.debug("Min: " + min);
+                panel.debug("Max: " + max);
+                panel.debug("Mean: " + mean);
+                panel.debug("Recommended maxDecel: " + recommended);
+                panel.debug("Copy recommended value to SlipstreamConstants.maxDecel");
+                panel.update(telemetry);
+                break;
+            }
+        }
+
+        panel.debug("Phase: " + phase + " Trial: " + (currentTrial + 1) + "/" + NUM_TRIALS);
+        panel.debug("Direction: " + (direction > 0 ? "FORWARD" : "REVERSE"));
+        panel.update(telemetry);
     }
 }
