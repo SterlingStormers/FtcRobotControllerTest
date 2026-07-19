@@ -7,7 +7,7 @@ import com.bylazar.configurables.annotations.Configurable;
  *
  * All values here are what teams need to set for their robot.
  * Ensure all constants are calibrated and tuned at max battery voltage.
- * Panels Accessible
+ * Panels Live-Tuning Enabled
  * For additional information, visit our documentation.
  */
 
