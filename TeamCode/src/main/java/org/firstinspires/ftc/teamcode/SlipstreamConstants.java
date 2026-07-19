@@ -32,8 +32,9 @@ public class SlipstreamConstants {
 
     // Physical limits
     public static double maxSpeedForward = 61.2;    // Maximum forward velocity in inches/second. Measure with SlipstreamMaxSpeedForwardTest.
+
     public static double maxSpeedStrafe = 45.5;    // Maximum strafe velocity in inches/second. Measure with SlipstreamMaxSpeedStrafeTest.
-    public static double maxTurnRate = 4.0;    // Maximum turn velocity in inches/second. Measure with SlipstreamMaxSpeedTurnTest.
+    public static double maxTurnRate = 4.0;    // Maximum turn velocity in radians/second. Measure with SlipstreamMaxSpeedTurnTest.
     public static double maxDecel = 244;    // Maximum deceleration. Measure with SlipstreamBrakeDecelTest.
 
     /**
