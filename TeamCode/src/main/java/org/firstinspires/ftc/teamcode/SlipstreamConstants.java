@@ -6,6 +6,7 @@ import com.bylazar.configurables.annotations.Configurable;
  * User-facing configuration for Slipstream.
  *
  * All values here are what teams need to set for their robot.
+ * Ensure all constants are calibrated and tuned at max battery voltage.
  * Panels Accessible
  * For additional information, visit our documentation.
  */
