@@ -3,6 +3,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.bylazar.configurables.annotations.Configurable;
 
 /**
+ * @author Sahaj Patel - 23345 Sterling Stormers
+ * @version 1.0, 7/17/2026
+ */
+
+/**
  * User-facing configuration for Slipstream.
  *
  * All values here are what teams need to set for their robot.

@@ -1,25 +1,25 @@
 package org.firstinspires.ftc.teamcode;
-
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.follower;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.motors;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.panel;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.setPowers;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.stopMotors;
-
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.telemetry.SelectableOpMode;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
 import java.util.List;
+
+/**
+ * @author Sahaj Patel - 23345 Sterling Stormers
+ * @version 1.0, 7/19/2026
+ */
 
 @Configurable
 @TeleOp(name = "Slipstream Tuning", group = "Slipstream")
@@ -63,6 +63,11 @@ public class SlipstreamTuning extends SelectableOpMode {
         setPowers(0, 0, 0, 0);
     }
 }
+
+/**
+ * @author Sahaj Patel - 23345 Sterling Stormers
+ * @version 1.0, 7/19/2026
+ */
 
 class MaxSpeedForwardTest extends OpMode {
     public static double TARGET_DISTANCE = 48;
@@ -131,6 +136,11 @@ class MaxSpeedForwardTest extends OpMode {
     }
 }
 
+/**
+ * @author Sahaj Patel - 23345 Sterling Stormers
+ * @version 1.0, 7/19/2026
+ */
+
 class MaxSpeedStrafeTest extends OpMode {
     public static double TARGET_DISTANCE = 48;
     public static int SAMPLE_WINDOW = 10;
@@ -197,6 +207,11 @@ class MaxSpeedStrafeTest extends OpMode {
         }
     }
 }
+
+/**
+ * @author Sahaj Patel - 23345 Sterling Stormers
+ * @version 1.0, 7/19/2026
+ */
 
 class MaxTurnRateTest extends OpMode {
     public static double TARGET_ROTATIONS = 3.0;   // number of full 2π turns
