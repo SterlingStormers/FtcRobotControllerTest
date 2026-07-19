@@ -35,7 +35,12 @@ public class SlipstreamTuning extends SelectableOpMode {
                 a.add("Max Speed Forward Test", MaxSpeedForwardTest::new);
                 a.add("Max Speed Strafe Test", MaxSpeedStrafeTest::new);
                 a.add("Max Turn Rate Test", MaxTurnRateTest::new);
-                a.add("Brake Decel Test", MaxDecelTest::new);
+                a.add("Max Decel Test", MaxDecelTest::new);
+            });
+            s.folder("PIDF", p -> {
+                p.add("Vx PIDF Tuner", VxPIDFTuner::new);
+                p.add("Vy PIDF Tuner", VyPIDFTuner::new);
+                p.add("Omega PIDF Tuner", OmegaPIDFTuner::new);
             });
         });
     }
@@ -109,15 +114,8 @@ class MaxSpeedForwardTest extends OpMode {
 
     @Override
     public void loop() {
-        if (stopping) {
-            stopMotors();
-            return;
-        }
-        if (gamepad1.bWasPressed()) {
-            stopMotors();
-            stopping = true;
-            return;
-        }
+        if (stopping) { stopMotors(); return; }
+        if (gamepad1.bWasPressed()) { stopMotors(); stopping = true; return; }
 
         follower.updatePose();
         double distanceCovered = Math.abs(follower.getPose().getX() - startX);
@@ -135,7 +133,6 @@ class MaxSpeedForwardTest extends OpMode {
             double sum = 0;
             for (double s : recentSpeeds) sum += s;
             double result = sum / SAMPLE_WINDOW;
-
             panel.debug("Max Forward Velocity: " + result + " in/s");
             panel.debug("Distance covered: " + distanceCovered + " inches");
             panel.debug("Copy value to SlipstreamConstants.maxSpeedForward");
@@ -176,15 +173,8 @@ class MaxSpeedStrafeTest extends OpMode {
 
     @Override
     public void loop() {
-        if (stopping) {
-            stopMotors();
-            return;
-        }
-        if (gamepad1.bWasPressed()) {
-            stopMotors();
-            stopping = true;
-            return;
-        }
+        if (stopping) { stopMotors(); return; }
+        if (gamepad1.bWasPressed()) { stopMotors(); stopping = true; return; }
 
         follower.updatePose();
         double distanceCovered = Math.abs(follower.getPose().getY() - startY);
@@ -202,7 +192,6 @@ class MaxSpeedStrafeTest extends OpMode {
             double sum = 0;
             for (double s : recentSpeeds) sum += s;
             double result = sum / SAMPLE_WINDOW;
-
             panel.debug("Max Strafe Velocity: " + result + " in/s");
             panel.debug("Distance covered: " + distanceCovered + " inches");
             panel.debug("Copy value to SlipstreamConstants.maxSpeedStrafe");
@@ -244,15 +233,8 @@ class MaxTurnRateTest extends OpMode {
 
     @Override
     public void loop() {
-        if (stopping) {
-            stopMotors();
-            return;
-        }
-        if (gamepad1.bWasPressed()) {
-            stopMotors();
-            stopping = true;
-            return;
-        }
+        if (stopping) { stopMotors(); return; }
+        if (gamepad1.bWasPressed()) { stopMotors(); stopping = true; return; }
 
         follower.updatePose();
         double turnedRadians = Math.abs(follower.getTotalHeading() - startHeading);
@@ -271,7 +253,6 @@ class MaxTurnRateTest extends OpMode {
             double sum = 0;
             for (double o : recentOmegas) sum += o;
             double result = sum / SAMPLE_WINDOW;
-
             panel.debug("Max Turn Rate: " + result + " rad/s");
             panel.debug("Rotations completed: " + (turnedRadians / (2 * Math.PI)));
             panel.debug("Copy value to SlipstreamConstants.maxTurnRate");
@@ -284,7 +265,7 @@ class MaxDecelTest extends OpMode {
     public static double ACCEL_TIME_SECONDS = 1.5;
     public static double PAUSE_BETWEEN_SECONDS = 1.5;
     public static int NUM_TRIALS = 3;
-    public static double STOPPED_THRESHOLD = 1.0;   // in/s below which we consider stopped
+    public static double STOPPED_THRESHOLD = 1.0;
 
     private enum Phase { ACCEL, BRAKE, PAUSE, DONE }
     private Phase phase = Phase.ACCEL;
@@ -307,11 +288,10 @@ class MaxDecelTest extends OpMode {
 
     @Override
     public void init_loop() {
-        panel.debug("Brake Decel Test");
+        panel.debug("Max Decel Test");
         panel.debug("Runs " + NUM_TRIALS + " trials alternating forward/reverse.");
         panel.debug("Accelerates for " + ACCEL_TIME_SECONDS + " seconds, then actively brakes at full reverse power.");
-        panel.debug("Alternating direction lets you use less runway (bounces back and forth).");
-        panel.debug("Result -> SlipstreamConstants.maxDecel (uses min * 0.95 for safety buffer)");
+        panel.debug("Result -> SlipstreamConstants.maxDecel");
         panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
         panel.debug("Ensure at least 5 feet of clearance in both directions.");
         panel.debug("B on gamepad 1: stop");
@@ -338,15 +318,8 @@ class MaxDecelTest extends OpMode {
 
     @Override
     public void loop() {
-        if (stopping) {
-            stopMotors();
-            return;
-        }
-        if (gamepad1.bWasPressed()) {
-            stopMotors();
-            stopping = true;
-            return;
-        }
+        if (stopping) { stopMotors(); return; }
+        if (gamepad1.bWasPressed()) { stopMotors(); stopping = true; return; }
 
         follower.updatePose();
         double elapsed = (System.nanoTime() - phaseStartNs) / 1e9;
@@ -354,11 +327,8 @@ class MaxDecelTest extends OpMode {
 
         switch (phase) {
             case ACCEL: {
-                // Full power in direction
                 double power = direction;
                 setPowers(power, power, power, power);
-
-                // Sample velocity in last 0.3s of accel window
                 long now = System.nanoTime();
                 double sampleDt = (now - lastSampleNs) / 1e9;
                 if (sampleDt > 0.02) {
@@ -370,11 +340,9 @@ class MaxDecelTest extends OpMode {
                     lastX = currentX;
                     lastSampleNs = now;
                 }
-
                 if (elapsed >= ACCEL_TIME_SECONDS) {
                     measuredCruiseVel = cruiseVelCount > 0 ? cruiseVelSum / cruiseVelCount : 0;
                     brakeStartX = currentX;
-                    // Active brake: full reverse
                     double brakePower = -direction;
                     setPowers(brakePower, brakePower, brakePower, brakePower);
                     phaseStartNs = System.nanoTime();
@@ -382,19 +350,14 @@ class MaxDecelTest extends OpMode {
                 }
                 break;
             }
-
             case BRAKE: {
-                // Compute instantaneous velocity for stop detection
                 long now = System.nanoTime();
                 double sampleDt = (now - lastSampleNs) / 1e9;
                 double v = sampleDt > 0.001 ? (currentX - lastX) / sampleDt : 0;
                 lastX = currentX;
                 lastSampleNs = now;
-
-                // Stopped when velocity in the brake direction is small enough
                 boolean stopped = Math.abs(v) <= STOPPED_THRESHOLD && elapsed > 0.2;
                 boolean brakeTimeout = elapsed > 3.0;
-
                 if (stopped || brakeTimeout) {
                     stopMotors();
                     double brakeDist = Math.abs(currentX - brakeStartX);
@@ -407,7 +370,6 @@ class MaxDecelTest extends OpMode {
                 }
                 break;
             }
-
             case PAUSE: {
                 stopMotors();
                 if (elapsed >= PAUSE_BETWEEN_SECONDS) {
@@ -420,7 +382,6 @@ class MaxDecelTest extends OpMode {
                 }
                 break;
             }
-
             case DONE: {
                 stopMotors();
                 double min = decelMeasurements[0], max = decelMeasurements[0], sum = 0;
@@ -431,8 +392,7 @@ class MaxDecelTest extends OpMode {
                 }
                 double mean = sum / decelMeasurements.length;
                 double recommended = min * 0.95;
-
-                panel.debug("Brake Decel Results");
+                panel.debug("Max Decel Results");
                 for (int i = 0; i < decelMeasurements.length; i++) {
                     panel.debug("Trial " + (i + 1) + ": " + decelMeasurements[i] + " in/s^2");
                 }
@@ -448,6 +408,266 @@ class MaxDecelTest extends OpMode {
 
         panel.debug("Phase: " + phase + " Trial: " + (currentTrial + 1) + "/" + NUM_TRIALS);
         panel.debug("Direction: " + (direction > 0 ? "FORWARD" : "REVERSE"));
+        panel.update(telemetry);
+    }
+}
+
+/**
+ * Alternates between +TARGET and -TARGET forward velocity every SWITCH_INTERVAL seconds.
+ * Runs inline Vx PIDF reading LIVE from SlipstreamConstants.
+ * User adjusts vxKp, vxKi, vxKd, vxKf in Panels while watching Error graph.
+ */
+class VxPIDFTuner extends OpMode {
+    public static double TARGET_VELOCITY = 25;
+    public static double SWITCH_INTERVAL_SECONDS = 1.5;
+
+    private double integral = 0;
+    private double lastError = 0;
+    private long lastTimeNs = 0;
+    private long phaseStartMs = 0;
+    private double sign = 1;
+    private boolean stopping = false;
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void init_loop() {
+        panel.debug("Vx PIDF Tuner");
+        panel.debug("Alternates between +" + TARGET_VELOCITY + " and -" + TARGET_VELOCITY + " in/s forward every " + SWITCH_INTERVAL_SECONDS + " seconds.");
+        panel.debug("Adjust vxKp, vxKi, vxKd, vxKf in Panels while watching Error.");
+        panel.debug("Goal: small error, no oscillation, quick settling.");
+        panel.debug("Ensure ample forward and backward clearance.");
+        panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
+        panel.debug("B on gamepad 1: stop");
+        panel.update(telemetry);
+        follower.updatePose();
+    }
+
+    @Override
+    public void start() {
+        integral = 0;
+        lastError = 0;
+        lastTimeNs = 0;
+        phaseStartMs = System.currentTimeMillis();
+        sign = 1;
+    }
+
+    @Override
+    public void loop() {
+        if (stopping) { stopMotors(); return; }
+        if (gamepad1.bWasPressed()) { stopMotors(); stopping = true; return; }
+
+        follower.updatePose();
+
+        // Switch direction
+        if (System.currentTimeMillis() - phaseStartMs > SWITCH_INTERVAL_SECONDS * 1000) {
+            sign = -sign;
+            phaseStartMs = System.currentTimeMillis();
+            integral = 0;
+            lastError = 0;
+        }
+        double desired = sign * TARGET_VELOCITY;
+
+        // Robot-frame Vx
+        double h = follower.getPose().getHeading();
+        double fieldVx = follower.getVelocity().getXComponent();
+        double fieldVy = follower.getVelocity().getYComponent();
+        double actualVx = fieldVx * Math.cos(h) + fieldVy * Math.sin(h);
+
+        // PIDF (live from SlipstreamConstants)
+        long now = System.nanoTime();
+        double dt = (lastTimeNs == 0) ? 0.02 : (now - lastTimeNs) / 1e9;
+        lastTimeNs = now;
+
+        double error = desired - actualVx;
+        integral += error * dt;
+        double derivative = (error - lastError) / dt;
+        lastError = error;
+
+        double effort = SlipstreamConstants.vxKf * desired + SlipstreamConstants.vxKp * error + SlipstreamConstants.vxKi * integral + SlipstreamConstants.vxKd * derivative;
+
+        double norm = effort / SlipstreamConstants.maxSpeedForward;
+        norm = Math.max(-1.0, Math.min(1.0, norm));
+        setPowers(norm, norm, norm, norm);
+
+        panel.debug("Desired Vx: " + desired);
+        panel.debug("Actual Vx: " + actualVx);
+        panel.addData("Zero Line", 0);
+        panel.addData("Error", error);
+        panel.update(telemetry);
+    }
+}
+
+/**
+ * Alternates between +TARGET and -TARGET strafe velocity every SWITCH_INTERVAL seconds.
+ * Runs inline Vy PIDF reading LIVE from SlipstreamConstants.
+ * User adjusts vyKp, vyKi, vyKd, vyKf in Panels while watching Error graph.
+ */
+class VyPIDFTuner extends OpMode {
+    public static double TARGET_VELOCITY = 20;
+    public static double SWITCH_INTERVAL_SECONDS = 1.5;
+
+    private double integral = 0;
+    private double lastError = 0;
+    private long lastTimeNs = 0;
+    private long phaseStartMs = 0;
+    private double sign = 1;
+    private boolean stopping = false;
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void init_loop() {
+        panel.debug("Vy PIDF Tuner");
+        panel.debug("Alternates between +" + TARGET_VELOCITY + " and -" + TARGET_VELOCITY + " in/s strafe every " + SWITCH_INTERVAL_SECONDS + " seconds.");
+        panel.debug("Adjust vyKp, vyKi, vyKd, vyKf in Panels while watching Error.");
+        panel.debug("Goal: small error, no oscillation, quick settling.");
+        panel.debug("Ensure ample left and right clearance.");
+        panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
+        panel.debug("B on gamepad 1: stop");
+        panel.update(telemetry);
+        follower.updatePose();
+    }
+
+    @Override
+    public void start() {
+        integral = 0;
+        lastError = 0;
+        lastTimeNs = 0;
+        phaseStartMs = System.currentTimeMillis();
+        sign = 1;
+    }
+
+    @Override
+    public void loop() {
+        if (stopping) { stopMotors(); return; }
+        if (gamepad1.bWasPressed()) { stopMotors(); stopping = true; return; }
+
+        follower.updatePose();
+
+        if (System.currentTimeMillis() - phaseStartMs > SWITCH_INTERVAL_SECONDS * 1000) {
+            sign = -sign;
+            phaseStartMs = System.currentTimeMillis();
+            integral = 0;
+            lastError = 0;
+        }
+        double desired = sign * TARGET_VELOCITY;
+
+        double h = follower.getPose().getHeading();
+        double fieldVx = follower.getVelocity().getXComponent();
+        double fieldVy = follower.getVelocity().getYComponent();
+        double actualVy = -fieldVx * Math.sin(h) + fieldVy * Math.cos(h);
+
+        long now = System.nanoTime();
+        double dt = (lastTimeNs == 0) ? 0.02 : (now - lastTimeNs) / 1e9;
+        lastTimeNs = now;
+
+        double error = desired - actualVy;
+        integral += error * dt;
+        double derivative = (error - lastError) / dt;
+        lastError = error;
+
+        double effort = SlipstreamConstants.vyKf * desired
+                + SlipstreamConstants.vyKp * error
+                + SlipstreamConstants.vyKi * integral
+                + SlipstreamConstants.vyKd * derivative;
+
+        double norm = effort / SlipstreamConstants.maxSpeedStrafe;
+        norm = Math.max(-1.0, Math.min(1.0, norm));
+        // Right strafe mixing: fl=+, fr=-, bl=-, br=+
+        setPowers(norm, -norm, -norm, norm);
+
+        panel.debug("Desired Vy: " + desired);
+        panel.debug("Actual Vy: " + actualVy);
+        panel.addData("Zero Line", 0);
+        panel.addData("Error", error);
+        panel.update(telemetry);
+    }
+}
+
+/**
+ * Alternates between +TARGET and -TARGET angular velocity every SWITCH_INTERVAL seconds.
+ * Runs inline Omega PIDF reading LIVE from SlipstreamConstants.
+ * User adjusts omegaKp, omegaKi, omegaKd, omegaKf in Panels while watching Error graph.
+ */
+class OmegaPIDFTuner extends OpMode {
+    public static double TARGET_OMEGA = 2.0;
+    public static double SWITCH_INTERVAL_SECONDS = 1.5;
+
+    private double integral = 0;
+    private double lastError = 0;
+    private long lastTimeNs = 0;
+    private long phaseStartMs = 0;
+    private double sign = 1;
+    private boolean stopping = false;
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void init_loop() {
+        panel.debug("Omega PIDF Tuner");
+        panel.debug("Alternates between +" + TARGET_OMEGA + " and -" + TARGET_OMEGA + " rad/s turn every " + SWITCH_INTERVAL_SECONDS + " seconds.");
+        panel.debug("Adjust omegaKp, omegaKi, omegaKd, omegaKf in Panels while watching Error.");
+        panel.debug("Goal: small error, no oscillation, quick settling.");
+        panel.debug("Ensure at least 3 feet of clearance around the robot.");
+        panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
+        panel.debug("B on gamepad 1: stop");
+        panel.update(telemetry);
+        follower.updatePose();
+    }
+
+    @Override
+    public void start() {
+        integral = 0;
+        lastError = 0;
+        lastTimeNs = 0;
+        phaseStartMs = System.currentTimeMillis();
+        sign = 1;
+    }
+
+    @Override
+    public void loop() {
+        if (stopping) { stopMotors(); return; }
+        if (gamepad1.bWasPressed()) { stopMotors(); stopping = true; return; }
+
+        follower.updatePose();
+
+        if (System.currentTimeMillis() - phaseStartMs > SWITCH_INTERVAL_SECONDS * 1000) {
+            sign = -sign;
+            phaseStartMs = System.currentTimeMillis();
+            integral = 0;
+            lastError = 0;
+        }
+        double desired = sign * TARGET_OMEGA;
+
+        double actualOmega = follower.getAngularVelocity();
+
+        long now = System.nanoTime();
+        double dt = (lastTimeNs == 0) ? 0.02 : (now - lastTimeNs) / 1e9;
+        lastTimeNs = now;
+
+        double error = desired - actualOmega;
+        integral += error * dt;
+        double derivative = (error - lastError) / dt;
+        lastError = error;
+
+        double effort = SlipstreamConstants.omegaKf * desired
+                + SlipstreamConstants.omegaKp * error
+                + SlipstreamConstants.omegaKi * integral
+                + SlipstreamConstants.omegaKd * derivative;
+
+        double norm = effort / SlipstreamConstants.maxTurnRate;
+        norm = Math.max(-1.0, Math.min(1.0, norm));
+        // Counterclockwise turn: fl=-, fr=+, bl=-, br=+
+        setPowers(-norm, norm, -norm, norm);
+
+        panel.debug("Desired Omega: " + desired);
+        panel.debug("Actual Omega: " + actualOmega);
+        panel.addData("Zero Line", 0);
+        panel.addData("Error", error);
         panel.update(telemetry);
     }
 }
