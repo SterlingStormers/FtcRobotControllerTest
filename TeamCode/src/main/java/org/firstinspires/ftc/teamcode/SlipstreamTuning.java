@@ -1,23 +1,18 @@
 package org.firstinspires.ftc.teamcode;
-
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.follower;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.panel;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.setPowers;
 import static org.firstinspires.ftc.teamcode.SlipstreamTuning.stopMotors;
-
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.telemetry.SelectableOpMode;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
 import java.util.List;
 
 @Configurable
@@ -266,12 +261,10 @@ class MaxDecelTest extends OpMode {
     public static double PAUSE_BETWEEN_SECONDS = 1.5;
     public static int NUM_TRIALS = 3;
     public static double STOPPED_THRESHOLD = 1.0;
-
     private enum Phase { ACCEL, BRAKE, PAUSE, DONE }
     private Phase phase = Phase.ACCEL;
     private int currentTrial = 0;
     private double direction = 1.0;
-
     private long phaseStartNs;
     private double cruiseVelSum = 0;
     private int cruiseVelCount = 0;
@@ -279,7 +272,6 @@ class MaxDecelTest extends OpMode {
     private long lastSampleNs;
     private double measuredCruiseVel;
     private double brakeStartX;
-
     private final double[] decelMeasurements = new double[NUM_TRIALS];
     private boolean stopping = false;
 
