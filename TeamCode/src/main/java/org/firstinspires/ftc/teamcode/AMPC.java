@@ -17,6 +17,9 @@ public class AMPC {  // Version 1.4.0
     private final double baseMaxSpeedStrafe;
     private final double baseMaxTurnRate;
     private PathChain activePath = null;
+    public PathChain getActivePath() {
+        return activePath;
+    }
     private double lastBestVx = 0;
     private double lastBestVy = 0;
     private double lastBestOmega = 0;

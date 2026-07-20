@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode;
+
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
@@ -17,8 +18,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Autonomous(name = "Complex Path Test MPC", group = "Autonomous")
 @Configurable
 public class ComplexPathTestMPC extends OpMode {
+    public static boolean useSlipstream = true;
+
     private TelemetryManager panelsTelemetry;
     public Follower follower;
+    private Slipstream slip;
     private int pathState;
     private Paths paths;
     private DriveTrainHardware drive;
@@ -42,23 +46,18 @@ public class ComplexPathTestMPC extends OpMode {
     private final int[] targetTags = {1, 2, 3};
     public double EncoderZero;
 
-    // Per-path timing
     private double autoStartTime = -1;
     private double path1EndTime = -1;
     private double path2EndTime = -1;
     private double path3EndTime = -1;
     private double path4EndTime = -1;
-    private double path5EndTime = -1;
-    private double path6EndTime = -1;
-    private AMPC mpc;
-    private VelocityControllerV2 controller;
-    private MecanumKinematics kinematics;
 
     @Override
     public void init() {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
+        slip = new Slipstream(follower, hardwareMap);
         follower.setStartingPose(new Pose(56, 8, Math.toRadians(90)));
 
         paths = new Paths(follower);
@@ -73,17 +72,11 @@ public class ComplexPathTestMPC extends OpMode {
         drive = new DriveTrainHardware();
         drive.init(hardwareMap);
 
-        mpc = new AMPC(follower);
-        controller = new VelocityControllerV2(follower, mpc);
-//        kinematics = new MecanumKinematics(drive, mpc, controller);
-
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         drive.kicker.setPosition(0);
         pos = drive.intakeMotor.getCurrentPosition();
         kickerPos = drive.kicker.getPosition();
-        pathTimer = new Timer();
-        opmodeTimer = new Timer();
         colorScanner = new ColorSensingAuto(this, "Webcam 1");
 
         drive.intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -103,71 +96,29 @@ public class ComplexPathTestMPC extends OpMode {
 
     @Override
     public void loop() {
-        follower.updatePose();
-        mpc.update();
-        controller.velocity();
-        kinematics.drive();
+        if (useSlipstream) {
+            slip.update();
+        } else {
+            follower.update();
+        }
 
         pathState = autonomousPathUpdate();
         colorScanner.update();
 
-        // Draw the path being followed + robot pose in Panels
-        Drawing.drawPath(paths.Path1, new com.bylazar.field.Style("", "#00FF00", 1));   // green path
+        Drawing.drawPath(paths.Path1, new com.bylazar.field.Style("", "#00FF00", 1));
         Drawing.drawPoseHistory(follower.getPoseHistory());
         Drawing.drawRobot(follower.getPose());
         Drawing.sendPacket();
 
-//        if (ShooterSpinup && !follower.isBusy() && follower.getCurrentTValue() >= 0.25) {
-//            drive.shooterMotor.setPower(0.75);
-//            ShooterSpinup = false;
-//        }
-
+        panelsTelemetry.debug("Mode", useSlipstream ? "Slipstream" : "Pedro");
         panelsTelemetry.debug("Path State", pathState);
-//        panelsTelemetry.debug("X", follower.getPose().getX());
-//        panelsTelemetry.debug("Y", follower.getPose().getY());
-//        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
-        panelsTelemetry.debug("currentT", mpc.currentT);
-        // In the OpMode loop, after mpc.update():
-//        if (mpc.getActivePath() != null) {
-//            Pose robotPose = follower.getPose();
-//            Pose pathPoint = mpc.getActivePath().getPath(0).getPose(mpc.currentT);
-//            com.pedropathing.math.Vector tangent = mpc.getActivePath().getPath(0).getTangentVector(mpc.currentT);
-//            double tx = tangent.getXComponent() / tangent.getMagnitude();
-//            double ty = tangent.getYComponent() / tangent.getMagnitude();
-//            double dx = robotPose.getX() - pathPoint.getX();
-//            double dy = robotPose.getY() - pathPoint.getY();
-//            double crossTrack = Math.abs(-dx * ty + dy * tx);
-//            double alongTrack = dx * tx + dy * ty;
-//            double totalDist = Math.sqrt(dx*dx + dy*dy);
-//
-//            panelsTelemetry.debug("cross track", crossTrack);
-//            panelsTelemetry.debug("along track", alongTrack);
-////            panelsTelemetry.debug("terminalTriggered", mpc.terminalTriggered);
-//// Compute brakeDist in the OpMode for observation
-//            double speed = Math.sqrt(mpc.desiredVx * mpc.desiredVx + mpc.desiredVy * mpc.desiredVy);
-//            double brakeDist = (speed * speed) / (2 * mpc.MAX_DECEL);
-//            Pose endPose = mpc.getActivePath().getPath(0).getPose(1.0);
-//            double newDx = endPose.getX() - follower.getPose().getX();
-//            double newDy = endPose.getY() - follower.getPose().getY();
-//            double distToEnd = Math.sqrt(newDx * newDx + newDy * newDy);
-//
-//        }
-        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
-//        panelsTelemetry.debug("raw Vx ratio", mpc.sysIDRatioVx);
-//        panelsTelemetry.debug("filtered Vx", mpc.filteredRatioVx);
-////        panelsTelemetry.debug("raw Vy ratio", mpc.sysIDRatioVy);
-//        panelsTelemetry.debug("filtered Vy", mpc.filteredRatioVy);
-////        panelsTelemetry.debug("raw omega ratio", mpc.sysIDRatioOmega);
-//        panelsTelemetry.debug("filtered omega", mpc.filteredRatioOmega);
-        panelsTelemetry.debug("maxSpeedForward", mpc.maxSpeedForward);
-        panelsTelemetry.debug("maxSpeedStrafe", mpc.maxSpeedStrafe);
-        panelsTelemetry.debug("maxTurnRateRad", mpc.maxTurnRateRad);
-        panelsTelemetry.update(telemetry);
+        panelsTelemetry.debug("currentT", slip.ampc.currentT);
+        panelsTelemetry.debug("desired V", "(" + slip.ampc.desiredVx + ", " + slip.ampc.desiredVy + ", " + slip.ampc.desiredOmega + ")");
+        panelsTelemetry.debug("maxSpeedForward", slip.ampc.maxSpeedForward);
+        panelsTelemetry.debug("maxSpeedStrafe", slip.ampc.maxSpeedStrafe);
+        panelsTelemetry.debug("maxTurnRateRad", slip.ampc.maxTurnRateRad);
         panelsTelemetry.update(telemetry);
     }
-
-
-
 
     public static class Paths {
         public PathChain Path1;
@@ -177,49 +128,37 @@ public class ComplexPathTestMPC extends OpMode {
 
         public Paths(Follower follower) {
             Path1 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(56.000, 8.000),
-                                    new Pose(57.724, 37.697),
-                                    new Pose(39.203, 35.300)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
-
-                    .build();
+                    new BezierCurve(
+                            new Pose(56.000, 8.000),
+                            new Pose(57.724, 37.697),
+                            new Pose(39.203, 35.300)
+                    )
+            ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180)).build();
 
             Path2 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(39.203, 35.300),
-
-                                    new Pose(12.694, 35.464)
-                            )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
-
-                    .build();
+                    new BezierLine(
+                            new Pose(39.203, 35.300),
+                            new Pose(12.694, 35.464)
+                    )
+            ).setConstantHeadingInterpolation(Math.toRadians(180)).build();
 
             Path3 = follower.pathBuilder().addPath(
-                            new BezierCurve(
-                                    new Pose(12.694, 35.464),
-                                    new Pose(32.338, 35.974),
-                                    new Pose(51.160, 29.975),
-                                    new Pose(47.808, 59.380)
-                            )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
-
-                    .build();
+                    new BezierCurve(
+                            new Pose(12.694, 35.464),
+                            new Pose(32.338, 35.974),
+                            new Pose(51.160, 29.975),
+                            new Pose(47.808, 59.380)
+                    )
+            ).setConstantHeadingInterpolation(Math.toRadians(180)).build();
 
             Path4 = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(47.808, 59.380),
-
-                                    new Pose(12.576, 59.243)
-                            )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
-
-                    .build();
+                    new BezierLine(
+                            new Pose(47.808, 59.380),
+                            new Pose(12.576, 59.243)
+                    )
+            ).setConstantHeadingInterpolation(Math.toRadians(180)).build();
         }
     }
-
-
 
     public void setPathState(int newState) {
         pathState = newState;
@@ -229,7 +168,6 @@ public class ComplexPathTestMPC extends OpMode {
             kickerUp = false;
         }
     }
-
 
     public int autonomousPathUpdate() {
         if (pathState == -1) {
@@ -256,36 +194,36 @@ public class ComplexPathTestMPC extends OpMode {
 
             case 1:
                 if (autoStartTime < 0) autoStartTime = runtime.seconds();
-                mpc.setActivePath(paths.Path1);
+                follower.followPath(paths.Path1);
                 setPathState(2);
                 break;
 
             case 2:
-                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     path1EndTime = runtime.seconds();
-                    mpc.setActivePath(paths.Path2);
+                    follower.followPath(paths.Path2);
                     setPathState(3);
                 }
                 break;
 
             case 3:
-                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     path2EndTime = runtime.seconds();
-                    mpc.setActivePath(paths.Path3);
+                    follower.followPath(paths.Path3);
                     setPathState(4);
                 }
                 break;
 
             case 4:
-                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     path3EndTime = runtime.seconds();
-                    mpc.setActivePath(paths.Path4);
+                    follower.followPath(paths.Path4);
                     setPathState(5);
                 }
                 break;
 
             case 5:
-                if (mpc.isPathComplete() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
+                if (!follower.isBusy() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
                     path4EndTime = runtime.seconds();
                     telemetry.addData("=== TIMING ===", "");
                     telemetry.addData("Path 1 time", "%.3f", path1EndTime - autoStartTime);
