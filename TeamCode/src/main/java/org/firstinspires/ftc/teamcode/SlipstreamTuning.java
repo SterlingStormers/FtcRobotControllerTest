@@ -15,6 +15,31 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import java.util.List;
 
+//use these constants for later
+//package com.slipstream.tuning;
+//
+//import static com.slipstream.tuning.SlipstreamTuning.follower;
+//import static com.slipstream.tuning.SlipstreamTuning.panel;
+//import static com.slipstream.tuning.SlipstreamTuning.setPowers;
+//import static com.slipstream.tuning.SlipstreamTuning.stopMotors;
+//
+//import com.slipstream.SlipstreamConstants;
+//
+//import com.bylazar.configurables.annotations.Configurable;
+//import com.bylazar.configurables.annotations.IgnoreConfigurable;
+//import com.bylazar.telemetry.PanelsTelemetry;
+//import com.bylazar.telemetry.TelemetryManager;
+//
+//import com.pedropathing.follower.Follower;
+//import com.pedropathing.geometry.Pose;
+//import com.pedropathing.telemetry.SelectableOpMode;
+//
+//import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+//import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+//import com.qualcomm.robotcore.hardware.DcMotor;
+//
+//import java.util.List;
+
 /**
  * @author Sahaj Patel - 23345 Sterling Stormers
  * @version 1.0, 7/19/2026

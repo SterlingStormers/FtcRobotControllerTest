@@ -1,11 +1,16 @@
 package org.firstinspires.ftc.teamcode;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+/**
+ * @author Sahaj Patel - 23345 Sterling Stormers
+ * @version 1.0, 7/20/2026
+ */
+
 public class Slipstream {
     public Follower follower;
+
     public AMPC ampc;
     public VelocityControllerV2 controller;
     public MecanumKinematics kinematics;
