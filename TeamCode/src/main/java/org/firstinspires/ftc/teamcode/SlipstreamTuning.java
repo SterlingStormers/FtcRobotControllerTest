@@ -648,7 +648,6 @@ class VyPIDFTuner extends OpMode {
 class OmegaPIDFTuner extends OpMode {
     public static double TARGET_OMEGA = 2.0;
     public static double SWITCH_INTERVAL_SECONDS = 1.5;
-
     private double integral = 0;
     private double lastError = 0;
     private long lastTimeNs = 0;
