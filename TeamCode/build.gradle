@@ -32,7 +32,7 @@ dependencies {
 
     implementation 'com.bylazar:fullpanels:1.0.12'
 
-    implementation 'com.github.helotyr:Slipstream:v1.0.1'
+    implementation 'com.github.helotyr:Slipstream:main-SNAPSHOT'
 }
 
 repositories {
