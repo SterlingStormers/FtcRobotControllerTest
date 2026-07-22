@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode;
-
+import com.slipstream.Slipstream;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
@@ -57,7 +57,8 @@ public class ComplexPathTestMPC extends OpMode {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         follower = Constants.createFollower(hardwareMap);
-        slip = new Slipstream(follower, hardwareMap);
+        slip = new Slipstream(follower, hardwareMap, new SlipstreamConstants());
+        slip.useSlipstream = true;
         follower.setStartingPose(new Pose(56, 8, Math.toRadians(90)));
 
         paths = new Paths(follower);
@@ -96,11 +97,7 @@ public class ComplexPathTestMPC extends OpMode {
 
     @Override
     public void loop() {
-        if (useSlipstream) {
-            slip.update();
-        } else {
-            follower.update();
-        }
+        slip.update();
 
         pathState = autonomousPathUpdate();
         colorScanner.update();
@@ -110,13 +107,13 @@ public class ComplexPathTestMPC extends OpMode {
         Drawing.drawRobot(follower.getPose());
         Drawing.sendPacket();
 
-        panelsTelemetry.debug("Mode", useSlipstream ? "Slipstream" : "Pedro");
-        panelsTelemetry.debug("Path State", pathState);
-        panelsTelemetry.debug("currentT", slip.ampc.currentT);
-        panelsTelemetry.debug("desired V", "(" + slip.ampc.desiredVx + ", " + slip.ampc.desiredVy + ", " + slip.ampc.desiredOmega + ")");
-        panelsTelemetry.debug("maxSpeedForward", slip.ampc.maxSpeedForward);
-        panelsTelemetry.debug("maxSpeedStrafe", slip.ampc.maxSpeedStrafe);
-        panelsTelemetry.debug("maxTurnRateRad", slip.ampc.maxTurnRateRad);
+//        panelsTelemetry.debug("Mode", useSlipstream ? "Slipstream" : "Pedro");
+//        panelsTelemetry.debug("Path State", pathState);
+//        panelsTelemetry.debug("currentT", slip.ampc.currentT);
+//        panelsTelemetry.debug("desired V", "(" + slip.ampc.desiredVx + ", " + slip.ampc.desiredVy + ", " + slip.ampc.desiredOmega + ")");
+//        panelsTelemetry.debug("maxSpeedForward", slip.ampc.maxSpeedForward);
+//        panelsTelemetry.debug("maxSpeedStrafe", slip.ampc.maxSpeedStrafe);
+//        panelsTelemetry.debug("maxTurnRateRad", slip.ampc.maxTurnRateRad);
         panelsTelemetry.update(telemetry);
     }
 

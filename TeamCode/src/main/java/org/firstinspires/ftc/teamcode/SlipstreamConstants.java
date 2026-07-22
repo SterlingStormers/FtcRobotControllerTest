@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode;
+import com.slipstream.SlipstreamConfig;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.bylazar.configurables.annotations.Configurable;
 
 /**
  * @author Sahaj Patel - 23345 Sterling Stormers
@@ -16,54 +16,54 @@ import com.bylazar.configurables.annotations.Configurable;
  * For additional information, visit our documentation.
  */
 
-@Configurable
-public class SlipstreamConstants {
+public class SlipstreamConstants extends SlipstreamConfig {
+    public SlipstreamConstants() {
 
-    // Motor names
-    public static String leftFrontMotorName = "front_left_drive";
-    public static String rightFrontMotorName = "front_right_drive";
-    public static String leftBackMotorName = "back_left_drive";
-    public static String rightBackMotorName = "back_right_drive";
+        // Motor names
+        leftFrontMotorName = "name";
+        rightFrontMotorName = "name";
+        leftBackMotorName = "name";
+        rightBackMotorName = "name";
 
-    /**
-     * Note: Slipstream is strictly for motor mode set to FLOAT
-     * This is automatically handled by the Kinematics.
-     */
+        /**
+         * Note: Slipstream is strictly for motor mode set to FLOAT
+         * This is automatically handled by the Kinematics.
+         */
 
-    // Motor directions
-    public static DcMotorSimple.Direction leftFrontDirection = DcMotorSimple.Direction.REVERSE;
-    public static DcMotorSimple.Direction rightFrontDirection = DcMotorSimple.Direction.FORWARD;
-    public static DcMotorSimple.Direction leftBackDirection = DcMotorSimple.Direction.REVERSE;
-    public static DcMotorSimple.Direction rightBackDirection = DcMotorSimple.Direction.FORWARD;
+        // Motor directions
+        leftFrontDirection = DcMotorSimple.Direction.REVERSE;
+        rightFrontDirection = DcMotorSimple.Direction.FORWARD;
+        leftBackDirection = DcMotorSimple.Direction.REVERSE;
+        rightBackDirection = DcMotorSimple.Direction.FORWARD;
 
-    // Physical limits
-    public static double maxSpeedForward = 61.2;    // Maximum forward velocity in inches/second. Measure with SlipstreamMaxSpeedForwardTest.
+        // Physical limits
+        maxSpeedForward = 0.0;    // Maximum forward velocity in inches/second. Measure with SlipstreamMaxSpeedForwardTest.
+        maxSpeedStrafe = 0.0;    // Maximum strafe velocity in inches/second. Measure with SlipstreamMaxSpeedStrafeTest.
+        maxTurnRate = 0.0;    // Maximum turn velocity in radians/second. Measure with SlipstreamMaxSpeedTurnTest.
+        maxDecel = 0;    // Maximum deceleration. Measure with SlipstreamBrakeDecelTest.
 
-    public static double maxSpeedStrafe = 45.5;    // Maximum strafe velocity in inches/second. Measure with SlipstreamMaxSpeedStrafeTest.
-    public static double maxTurnRate = 4.0;    // Maximum turn velocity in radians/second. Measure with SlipstreamMaxSpeedTurnTest.
-    public static double maxDecel = 244;    // Maximum deceleration. Measure with SlipstreamBrakeDecelTest.
+        /**
+         * Note: These are stock PIDF values.
+         * Tuning these values is optional and can be done for additional performance.
+         * Visit documentation to learn how to tune PIDF values.
+         */
 
-    /**
-     * Note: These are stock PIDF values.
-     * Tuning these values is optional and can be done for additional performance.
-     * Visit documentation to learn how to tune PIDF values.
-     */
+        // Forward velocity PIDF
+        vxKp = 0.05;
+        vxKi = 0.0;
+        vxKd = 0.0;
+        vxKf = 1.0;
 
-    // Forward velocity PIDF
-    public static double vxKp = 0.05;
-    public static double vxKi = 0.0;
-    public static double vxKd = 0.0;
-    public static double vxKf = 1.0;
+        // Strafe velocity PIDF
+        vyKp = 0.05;
+        vyKi = 0.0;
+        vyKd = 0.0;
+        vyKf = 1.0;
 
-    // Strafe velocity PIDF
-    public static double vyKp = 0.05;
-    public static double vyKi = 0.0;
-    public static double vyKd = 0.0;
-    public static double vyKf = 1.0;
-
-    // Angular velocity PIDF
-    public static double omegaKp = 0.2;
-    public static double omegaKi = 0.0;
-    public static double omegaKd = 0.0;
-    public static double omegaKf = 1.0;
+        // Angular velocity PIDF
+        omegaKp = 0.2;
+        omegaKi = 0.0;
+        omegaKd = 0.0;
+        omegaKf = 1.0;
+    }
 }
