@@ -42,9 +42,9 @@ public class AdvancedPathTestMPC extends OpMode {
     private final int[] targetTags = {1, 2, 3};
     public double EncoderZero;
 
-    private AMPC mpc;
-    private VelocityControllerV2 controller;
-    private MecanumKinematics kinematics;
+//    private AMPC mpc;
+//    private VelocityControllerV2 controller;
+//    private MecanumKinematics kinematics;
 
     // Per-path timing
     private double autoStartTime = -1;
@@ -72,8 +72,8 @@ public class AdvancedPathTestMPC extends OpMode {
         drive = new DriveTrainHardware();
         drive.init(hardwareMap);
 
-        mpc = new AMPC(follower);
-        controller = new VelocityControllerV2(follower, mpc);
+//        mpc = new AMPC(follower);
+//        controller = new VelocityControllerV2(follower, mpc);
 //        kinematics = new MecanumKinematics(drive, mpc, controller);
 
         pathTimer = new Timer();
@@ -103,9 +103,9 @@ public class AdvancedPathTestMPC extends OpMode {
     @Override
     public void loop() {
         follower.updatePose();
-        mpc.update();
-        controller.velocity();
-        kinematics.drive();
+//        mpc.update();
+//        controller.velocity();
+//        kinematics.drive();
 
         pathState = autonomousPathUpdate();
         colorScanner.update();
@@ -116,17 +116,17 @@ public class AdvancedPathTestMPC extends OpMode {
         Drawing.drawRobot(follower.getPose());
         Drawing.sendPacket();
 
-        if (ShooterSpinup && !mpc.isPathComplete() && mpc.currentT >= 0.25) {
-            drive.shooterMotor.setPower(0.75);
-            ShooterSpinup = false;
-        }
+//        if (ShooterSpinup && !mpc.isPathComplete() && mpc.currentT >= 0.25) {
+//            drive.shooterMotor.setPower(0.75);
+//            ShooterSpinup = false;
+//        }
 
         panelsTelemetry.debug("Path State", pathState);
         panelsTelemetry.debug("X", follower.getPose().getX());
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
-        panelsTelemetry.debug("currentT", mpc.currentT);
-        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
+//        panelsTelemetry.debug("currentT", mpc.currentT);
+//        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
         // In the OpMode loop, after mpc.update():
 //        if (mpc.getActivePath() != null) {
 //            double xError = follower.getPose().getX() - mpc.getActivePath().getPath(0).getPose(mpc.currentT).getX();
@@ -231,22 +231,22 @@ public class AdvancedPathTestMPC extends OpMode {
 
             case 1:
                 if (autoStartTime < 0) autoStartTime = runtime.seconds();
-                mpc.setActivePath(paths.Path1);
+//                mpc.setActivePath(paths.Path1);
                 setPathState(2);
                 break;
 
             case 2:
-                if (mpc.isPathComplete() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
-                    path3EndTime = runtime.seconds();
-                    telemetry.addData("=== TIMING ===", "");
-                    telemetry.addData("Path 1 time", "%.3f", path1EndTime - autoStartTime);
-                    telemetry.addData("Total time",  "%.3f", path3EndTime - autoStartTime);
-                    telemetry.update();
-                    drive.intakeMotor.setPower(0);
-                    drive.shooterMotor.setPower(0);
-                    drive.spindexer.setPower(0);
-                    setPathState(-1);
-                }
+////                if (mpc.isPathComplete() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
+//                    path3EndTime = runtime.seconds();
+//                    telemetry.addData("=== TIMING ===", "");
+//                    telemetry.addData("Path 1 time", "%.3f", path1EndTime - autoStartTime);
+//                    telemetry.addData("Total time",  "%.3f", path3EndTime - autoStartTime);
+//                    telemetry.update();
+//                    drive.intakeMotor.setPower(0);
+//                    drive.shooterMotor.setPower(0);
+//                    drive.spindexer.setPower(0);
+//                    setPathState(-1);
+//                }
                 break;
         }
         return pathState;

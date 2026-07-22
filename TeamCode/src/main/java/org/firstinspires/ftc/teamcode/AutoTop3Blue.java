@@ -48,9 +48,9 @@ public class AutoTop3Blue extends OpMode {
     public double EncoderZero;
 
     // V2 MPC stack
-    private AMPC mpc;
-    private VelocityControllerV2 controller;
-    private MecanumKinematics kinematics;
+//    private AMPC mpc;
+//    private VelocityControllerV2 controller;
+//    private MecanumKinematics kinematics;
 
     @Override
     public void init() {
@@ -71,9 +71,9 @@ public class AutoTop3Blue extends OpMode {
         drive = new DriveTrainHardware();
         drive.init(hardwareMap);
 
-        // V2 MPC stack
-        mpc = new AMPC(follower);
-        controller = new VelocityControllerV2(follower, mpc);
+//        // V2 MPC stack
+//        mpc = new AMPC(follower);
+//        controller = new VelocityControllerV2(follower, mpc);
 //        kinematics = new MecanumKinematics(drive, mpc, controller);
 
         pathTimer = new Timer();
@@ -103,25 +103,25 @@ public class AutoTop3Blue extends OpMode {
     public void loop() {
         // V2 MPC stack: pose refresh + plan + track + drive every loop
         follower.updatePose();
-        mpc.update();
-        controller.velocity();
-        kinematics.drive();
+//        mpc.update();
+//        controller.velocity();
+//        kinematics.drive();
 
         pathState = autonomousPathUpdate();
         colorScanner.update();
 
-        // Shooter spinup: while a path is being driven AND we're past 25% through it
-        if (ShooterSpinup && !mpc.isPathComplete() && mpc.currentT >= 0.25) {
-            drive.shooterMotor.setPower(0.75);
-            ShooterSpinup = false;
-        }
+//        // Shooter spinup: while a path is being driven AND we're past 25% through it
+//        if (ShooterSpinup && !mpc.isPathComplete() && mpc.currentT >= 0.25) {
+//            drive.shooterMotor.setPower(0.75);
+//            ShooterSpinup = false;
+//        }
 
         panelsTelemetry.debug("Path State", pathState);
         panelsTelemetry.debug("X", follower.getPose().getX());
         panelsTelemetry.debug("Y", follower.getPose().getY());
         panelsTelemetry.debug("Heading", follower.getPose().getHeading());
-        panelsTelemetry.debug("currentT", mpc.currentT);
-        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
+//        panelsTelemetry.debug("currentT", mpc.currentT);
+//        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
         panelsTelemetry.update(telemetry);
     }
 
@@ -440,7 +440,7 @@ public class AutoTop3Blue extends OpMode {
                 break;
 
             case 1:
-                mpc.setActivePath(paths.Path1);   // ← was follower.followPath(paths.Path1, true)
+//                mpc.setActivePath(paths.Path1);   // ← was follower.followPath(paths.Path1, true)
                 ShooterSpinup = true;
                 setPathState(2);
                 break;
@@ -606,36 +606,36 @@ public class AutoTop3Blue extends OpMode {
                 break;
 
             case 9:
-                if (mpc.isPathComplete()) {    // ← was !follower.isBusy()
-                    mpc.setActivePath(paths.Path2);   // ← was follower.followPath(paths.Path2, true)
-
-                    if (detectedBall1 == 'G') {
-                        detectedBall2 = 'P';
-                        detectedBall3 = 'P';
-                    } else {
-                        detectedBall1 = 'P';
-                        if (detectedBall2 == 'G') {
-                            detectedBall3 = 'P';
-                        } else {
-                            detectedBall2 = 'P';
-                            detectedBall3 = 'G';
-                        }
-                    }
-                    if (detectedBall1 == 'P' && detectedBall2 == 'P' && detectedBall3 == 'P')  {
-                        detectedBall1 = 'G';
-                    }
-
-                    setPathState(10);
-                }
+//                if (mpc.isPathComplete()) {    // ← was !follower.isBusy()
+//                    mpc.setActivePath(paths.Path2);   // ← was follower.followPath(paths.Path2, true)
+//
+//                    if (detectedBall1 == 'G') {
+//                        detectedBall2 = 'P';
+//                        detectedBall3 = 'P';
+//                    } else {
+//                        detectedBall1 = 'P';
+//                        if (detectedBall2 == 'G') {
+//                            detectedBall3 = 'P';
+//                        } else {
+//                            detectedBall2 = 'P';
+//                            detectedBall3 = 'G';
+//                        }
+//                    }
+//                    if (detectedBall1 == 'P' && detectedBall2 == 'P' && detectedBall3 == 'P')  {
+//                        detectedBall1 = 'G';
+//                    }
+//
+//                    setPathState(10);
+//                }
                 break;
 
             case 10:
 
 
-                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() >= waitTime) {    // ← was !follower.isBusy()
-                    SpindexerLogic1();
-                }
-                break;
+//                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() >= waitTime) {    // ← was !follower.isBusy()
+//                    SpindexerLogic1();
+//                }
+//                break;
 
             case 11:
                 SpindexerLogic2();
@@ -651,36 +651,36 @@ public class AutoTop3Blue extends OpMode {
 
             case 14:
                 drive.shooterMotor.setPower(0);
-                if (mpc.isPathComplete()) {    // ← was !follower.isBusy()
-                    mpc.setActivePath(paths.Path3);    // ← was follower.followPath(paths.Path3, true)
-
-                    pos = drive.intakeMotor.getCurrentPosition();
-                    if (pathTimer.getElapsedTimeSeconds() >= waitTime/2) {
-                        int remaining = 8129 - pos;
-                        double power = 0.0005 * remaining;
-                        power = Math.max(-1, Math.min(1, power));
-                        int tolerance = 30;
-                        drive.spindexer.setPower(power);
-
-                        double timeoutSec = 0.85;
-                        if (Math.abs(remaining) <= tolerance && pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
-                            drive.spindexer.setPower(0);
-                            setPathState(15);
-                        } else if (pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
-                            drive.spindexer.setPower(0);
-                            setPathState(15);
-                        }
-                    }
-                }
+//                if (mpc.isPathComplete()) {    // ← was !follower.isBusy()
+//                    mpc.setActivePath(paths.Path3);    // ← was follower.followPath(paths.Path3, true)
+//
+//                    pos = drive.intakeMotor.getCurrentPosition();
+//                    if (pathTimer.getElapsedTimeSeconds() >= waitTime/2) {
+//                        int remaining = 8129 - pos;
+//                        double power = 0.0005 * remaining;
+//                        power = Math.max(-1, Math.min(1, power));
+//                        int tolerance = 30;
+//                        drive.spindexer.setPower(power);
+//
+//                        double timeoutSec = 0.85;
+//                        if (Math.abs(remaining) <= tolerance && pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+//                            drive.spindexer.setPower(0);
+//                            setPathState(15);
+//                        } else if (pathTimer.getElapsedTimeSeconds() >= timeoutSec) {
+//                            drive.spindexer.setPower(0);
+//                            setPathState(15);
+//                        }
+//                    }
+//                }
                 break;
 
             case 15:
-                if (mpc.isPathComplete() && pathState != -1) {    // ← was !follower.isBusy()
-                    drive.intakeMotor.setPower(0);
-                    drive.shooterMotor.setPower(0);
-                    drive.spindexer.setPower(0);
-                    setPathState(-1);
-                }
+//                if (mpc.isPathComplete() && pathState != -1) {    // ← was !follower.isBusy()
+//                    drive.intakeMotor.setPower(0);
+//                    drive.shooterMotor.setPower(0);
+//                    drive.spindexer.setPower(0);
+//                    setPathState(-1);
+//                }
                 break;
         }
         return pathState;

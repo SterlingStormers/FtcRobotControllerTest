@@ -41,9 +41,9 @@ public class PathTestMPC extends OpMode {
     private final int[] targetTags = {1, 2, 3};
     public double EncoderZero;
 
-    private AMPC mpc;
-    private VelocityControllerV2 controller;
-    private MecanumKinematics kinematics;
+//    private AMPC mpc;
+//    private VelocityControllerV2 controller;
+//    private MecanumKinematics kinematics;
 
     // Per-path timing
     private double autoStartTime = -1;
@@ -70,8 +70,8 @@ public class PathTestMPC extends OpMode {
         drive = new DriveTrainHardware();
         drive.init(hardwareMap);
 
-        mpc = new AMPC(follower);
-        controller = new VelocityControllerV2(follower, mpc);
+//        mpc = new AMPC(follower);
+//        controller = new VelocityControllerV2(follower, mpc);
 //        kinematics = new MecanumKinematics(drive, mpc, controller);
 
         pathTimer = new Timer();
@@ -99,33 +99,33 @@ public class PathTestMPC extends OpMode {
     @Override
     public void loop() {
         follower.updatePose();
-        mpc.update();
-        controller.velocity();
-        kinematics.drive();
+//        mpc.update();
+//        controller.velocity();
+//        kinematics.drive();
 
         pathState = autonomousPathUpdate();
         colorScanner.update();
 
-        if (ShooterSpinup && !mpc.isPathComplete() && mpc.currentT >= 0.25) {
-            drive.shooterMotor.setPower(0.75);
-            ShooterSpinup = false;
-        }
+//        if (ShooterSpinup && !mpc.isPathComplete() && mpc.currentT >= 0.25) {
+//            drive.shooterMotor.setPower(0.75);
+//            ShooterSpinup = false;
+//        }
 
         panelsTelemetry.debug("Path State", pathState);
 //        panelsTelemetry.debug("X", follower.getPose().getX());
 //        panelsTelemetry.debug("Y", follower.getPose().getY());
 //        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
-        panelsTelemetry.debug("currentT", mpc.currentT);
-        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
-//        panelsTelemetry.debug("raw Vx ratio", mpc.sysIDRatioVx);
-        panelsTelemetry.debug("filtered Vx", mpc.filteredRatioVx);
-//        panelsTelemetry.debug("raw Vy ratio", mpc.sysIDRatioVy);
-        panelsTelemetry.debug("filtered Vy", mpc.filteredRatioVy);
-//        panelsTelemetry.debug("raw omega ratio", mpc.sysIDRatioOmega);
-        panelsTelemetry.debug("filtered omega", mpc.filteredRatioOmega);
-        panelsTelemetry.debug("maxSpeedForward", mpc.maxSpeedForward);
-        panelsTelemetry.debug("maxSpeedStrafe", mpc.maxSpeedStrafe);
-        panelsTelemetry.debug("maxTurnRateRad", mpc.maxTurnRateRad);
+//        panelsTelemetry.debug("currentT", mpc.currentT);
+//        panelsTelemetry.debug("desired V", "(" + mpc.desiredVx + ", " + mpc.desiredVy + ", " + mpc.desiredOmega + ")");
+////        panelsTelemetry.debug("raw Vx ratio", mpc.sysIDRatioVx);
+//        panelsTelemetry.debug("filtered Vx", mpc.filteredRatioVx);
+////        panelsTelemetry.debug("raw Vy ratio", mpc.sysIDRatioVy);
+//        panelsTelemetry.debug("filtered Vy", mpc.filteredRatioVy);
+////        panelsTelemetry.debug("raw omega ratio", mpc.sysIDRatioOmega);
+//        panelsTelemetry.debug("filtered omega", mpc.filteredRatioOmega);
+//        panelsTelemetry.debug("maxSpeedForward", mpc.maxSpeedForward);
+//        panelsTelemetry.debug("maxSpeedStrafe", mpc.maxSpeedStrafe);
+//        panelsTelemetry.debug("maxTurnRateRad", mpc.maxTurnRateRad);
         panelsTelemetry.update(telemetry);
     }
 
@@ -197,40 +197,40 @@ public class PathTestMPC extends OpMode {
 
             case 1:
                 if (autoStartTime < 0) autoStartTime = runtime.seconds();
-                mpc.setActivePath(paths.Path1);
+//                mpc.setActivePath(paths.Path1);
                 setPathState(2);
                 break;
 
             case 2:
-                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
-                    path1EndTime = runtime.seconds();
-                    mpc.setActivePath(paths.Path2);
-                    setPathState(3);
-                }
+//                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
+//                    path1EndTime = runtime.seconds();
+//                    mpc.setActivePath(paths.Path2);
+//                    setPathState(3);
+//                }
                 break;
 
             case 3:
-                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
-                    path2EndTime = runtime.seconds();
-                    mpc.setActivePath(paths.Path3);
-                    setPathState(4);
-                }
+//                if (mpc.isPathComplete() && pathTimer.getElapsedTimeSeconds() > 0.3) {
+//                    path2EndTime = runtime.seconds();
+//                    mpc.setActivePath(paths.Path3);
+//                    setPathState(4);
+//                }
                 break;
 
             case 4:
-                if (mpc.isPathComplete() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
-                    path3EndTime = runtime.seconds();
-                    telemetry.addData("=== TIMING ===", "");
-                    telemetry.addData("Path 1 time", "%.3f", path1EndTime - autoStartTime);
-                    telemetry.addData("Path 2 time", "%.3f", path2EndTime - path1EndTime);
-                    telemetry.addData("Path 3 time", "%.3f", path3EndTime - path2EndTime);
-                    telemetry.addData("Total time",  "%.3f", path3EndTime - autoStartTime);
-                    telemetry.update();
-                    drive.intakeMotor.setPower(0);
-                    drive.shooterMotor.setPower(0);
-                    drive.spindexer.setPower(0);
-                    setPathState(-1);
-                }
+//                if (mpc.isPathComplete() && pathState != -1 && pathTimer.getElapsedTimeSeconds() > 0.3) {
+//                    path3EndTime = runtime.seconds();
+//                    telemetry.addData("=== TIMING ===", "");
+//                    telemetry.addData("Path 1 time", "%.3f", path1EndTime - autoStartTime);
+//                    telemetry.addData("Path 2 time", "%.3f", path2EndTime - path1EndTime);
+//                    telemetry.addData("Path 3 time", "%.3f", path3EndTime - path2EndTime);
+//                    telemetry.addData("Total time",  "%.3f", path3EndTime - autoStartTime);
+//                    telemetry.update();
+//                    drive.intakeMotor.setPower(0);
+//                    drive.shooterMotor.setPower(0);
+//                    drive.spindexer.setPower(0);
+//                    setPathState(-1);
+//                }
                 break;
         }
         return pathState;
