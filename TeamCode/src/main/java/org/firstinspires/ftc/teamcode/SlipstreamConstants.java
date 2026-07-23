@@ -20,10 +20,10 @@ public class SlipstreamConstants extends SlipstreamConfig {
     public SlipstreamConstants() {
 
         // Motor names
-        leftFrontMotorName = "name";
-        rightFrontMotorName = "name";
-        leftBackMotorName = "name";
-        rightBackMotorName = "name";
+        leftFrontMotorName = "front_left_drive";
+        rightFrontMotorName = "front_right_drive";
+        leftBackMotorName = "back_left_drive";
+        rightBackMotorName = "back_right_drive";
 
         /**
          * Note: Slipstream is strictly for motor mode set to FLOAT
@@ -37,10 +37,10 @@ public class SlipstreamConstants extends SlipstreamConfig {
         rightBackDirection = DcMotorSimple.Direction.FORWARD;
 
         // Physical limits
-        maxSpeedForward = 0.0;    // Maximum forward velocity in inches/second. Measure with SlipstreamMaxSpeedForwardTest.
-        maxSpeedStrafe = 0.0;    // Maximum strafe velocity in inches/second. Measure with SlipstreamMaxSpeedStrafeTest.
-        maxTurnRate = 0.0;    // Maximum turn velocity in radians/second. Measure with SlipstreamMaxSpeedTurnTest.
-        maxDecel = 0;    // Maximum deceleration. Measure with SlipstreamBrakeDecelTest.
+        maxSpeedForward = 61.2;    // Maximum forward velocity in inches/second. Measure with SlipstreamMaxSpeedForwardTest.
+        maxSpeedStrafe = 45.5;    // Maximum strafe velocity in inches/second. Measure with SlipstreamMaxSpeedStrafeTest.
+        maxTurnRate = 4.0;    // Maximum turn velocity in radians/second. Measure with SlipstreamMaxSpeedTurnTest.
+        maxDecel = 244;    // Maximum deceleration. Measure with SlipstreamBrakeDecelTest.
 
         /**
          * Note: These are stock PIDF values.
