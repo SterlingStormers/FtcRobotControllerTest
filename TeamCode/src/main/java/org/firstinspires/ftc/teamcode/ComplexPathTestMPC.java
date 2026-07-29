@@ -18,7 +18,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Autonomous(name = "Complex Path Test MPC", group = "Autonomous")
 @Configurable
 public class ComplexPathTestMPC extends OpMode {
-    public static boolean useSlipstream = true;
+//    public static boolean useSlipstream = true;
 
     private TelemetryManager panelsTelemetry;
     public Follower follower;
