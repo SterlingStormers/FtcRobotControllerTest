@@ -89,7 +89,7 @@ public class ComplexPathTestMPC extends OpMode {
         Drawing.init();
 
         try { Thread.sleep(500); } catch (InterruptedException ignored) {}
-        follower.updatePose();
+//        follower.updatePose();
 
         telemetry.update();
         runtime.reset();
