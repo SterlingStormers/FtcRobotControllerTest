@@ -38,10 +38,10 @@ class AMPC {  // Version 1.4.0
     private static final int HORIZON_STEPS = 5;
     private static final int GRID_HALF = 1;
     private static final double GRID_STEP_FRACTION = 0.2;
-    private static final double WEIGHT_PROGRESS = 80;
+    private static final double WEIGHT_PROGRESS = 140; //80, 100
     private static final double WEIGHT_CROSS = 3.0;
     private static final double WEIGHT_ALONG = 1.0;
-    private static final double WEIGHT_TANGENT = 0.1;
+    private static final double WEIGHT_TANGENT = 0.0; //0.1
     private static final double WEIGHT_HEADING = 10.0;
     private static final double WEIGHT_TERMINAL = 10;
     private static final double PATH_END_TOLERANCE = 1.5;
@@ -311,9 +311,9 @@ class AMPC {  // Version 1.4.0
             double euclidToEnd = Math.sqrt((endPose.getX() - predictedX) * (endPose.getX() - predictedX) + (endPose.getY() - predictedY) * (endPose.getY() - predictedY));
             double arcToEnd = pathLengthInches * (1.0 - predictedT);
             double distToEnd;
-            if (predictedT < 0.85) {
-                distToEnd = euclidToEnd;  // aggressive far away
-            } else if (predictedT < 0.95) {
+            if (predictedT < 0.70) { //0.85
+                distToEnd = euclidToEnd;  // accurate
+            } else if (predictedT < 0.90) { // 0.95, 0.92
                 distToEnd = arcToEnd; // accurate close
             } else {
                 distToEnd = euclidToEnd; // switch back near endpoint to avoid stall
