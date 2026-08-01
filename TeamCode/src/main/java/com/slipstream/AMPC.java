@@ -295,6 +295,9 @@ class AMPC {  // Version 1.4.0
             tangentAlignmentCost = WEIGHT_TANGENT * alignmentError * startVMag;
         }
 
+        double frozenX = startPose.getX();
+        double frozenY = startPose.getY();
+
         for (int step = 1; step <= HORIZON_STEPS; step++) {
             // Forward simulate (constant velocity)
             double cosH = Math.cos(predictedHeading);
@@ -306,6 +309,9 @@ class AMPC {  // Version 1.4.0
             predictedHeading += omega * STEP_DT;
             predictedT = Math.min(1.0, predictedT + tAdvancePerStep);
 
+            frozenX += startFieldVx * STEP_DT;
+            frozenY += startFieldVy * STEP_DT;
+
             // Path point + tangent at advanced t
             Pose pathPointAtT = activePath.getPath(0).getPose(predictedT);
             Vector tangent = activePath.getPath(0).getTangentVector(predictedT);
@@ -314,8 +320,8 @@ class AMPC {  // Version 1.4.0
             double tY = tanMag > 0.001 ? tangent.getYComponent() / tanMag : 0.0;
 
             // Decompose position error
-            double dx = predictedX - pathPointAtT.getX();
-            double dy = predictedY - pathPointAtT.getY();
+            double dx = frozenX - pathPointAtT.getX();
+            double dy = frozenY - pathPointAtT.getY();
             double crossTrack = Math.abs(-dx * tY + dy * tX);
             double alongTrack = Math.abs(dx * tX + dy * tY);
 
