@@ -316,7 +316,7 @@ class AMPC {  // Version 1.4.0
             // Decompose position error
             double dx = predictedX - pathPointAtT.getX();
             double dy = predictedY - pathPointAtT.getY();
-            double crossTrack = -dx * tY + dy * tX;
+            double crossTrack = Math.abs(-dx * tY + dy * tX);
             double alongTrack = Math.abs(dx * tX + dy * tY);
 
             // Heading error
@@ -343,7 +343,7 @@ class AMPC {  // Version 1.4.0
                 terminalTriggered = true;
             }
 
-            totalCost += (WEIGHT_CROSS * crossTrack * crossTrack) + (WEIGHT_ALONG * alongTrack) + (WEIGHT_HEADING * headingError) + progressPenalty + tangentAlignmentCost + stepTerminalCost;
+            totalCost += (WEIGHT_CROSS * crossTrack) + (WEIGHT_ALONG * alongTrack) + (WEIGHT_HEADING * headingError) + progressPenalty + tangentAlignmentCost + stepTerminalCost;
         }
 
         return totalCost;
