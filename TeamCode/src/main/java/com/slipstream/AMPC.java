@@ -41,7 +41,7 @@ class AMPC {  // Version 1.4.0
     private static final double WEIGHT_PROGRESS = 140; //80, 100
     private static final double WEIGHT_CROSS = 3.0;
     private static final double WEIGHT_ALONG = 1.0;
-    private static final double WEIGHT_TANGENT = 0.0; //0.1
+    private static final double WEIGHT_TANGENT = 0.1; //0.1
     private static final double WEIGHT_HEADING = 10.0;
     private static final double WEIGHT_TERMINAL = 10;
     private static final double PATH_END_TOLERANCE = 1.5;
@@ -266,6 +266,35 @@ class AMPC {  // Version 1.4.0
 
         Pose endPose = activePath.getPath(0).getPose(1.0);
 
+        // Tangent alignment cost
+        double startCosH = Math.cos(follower.getPose().getHeading());
+        double startSinH = Math.sin(follower.getPose().getHeading());
+        double startFieldVx = (vx * startCosH) - (vy * startSinH);
+        double startFieldVy = (vx * startSinH) + (vy * startCosH);
+        double startVMag = Math.sqrt(startFieldVx * startFieldVx + startFieldVy * startFieldVy);
+
+        double tangentAlignmentCost = 0;
+        if (startVMag > 0.1) {
+            Vector startTangent = activePath.getPath(0).getTangentVector(currentT);
+            double startTanMag = startTangent.getMagnitude();
+            double startTX;
+            if (startTanMag > 0.001) {
+                startTX = startTangent.getXComponent() / startTanMag;
+            } else {
+                startTX = 1.0;
+            }
+            double startTY;
+            if (startTanMag > 0.001) {
+                startTY = startTangent.getYComponent() / startTanMag;
+            } else {
+                startTY = 0.0;
+            }
+            double vUnitX = startFieldVx / startVMag;
+            double vUnitY = startFieldVy / startVMag;
+            double alignmentError = 1.0 - (vUnitX * startTX + vUnitY * startTY);
+            tangentAlignmentCost = WEIGHT_TANGENT * alignmentError * startVMag;
+        }
+
         for (int step = 1; step <= HORIZON_STEPS; step++) {
             // Forward simulate (constant velocity)
             double cosH = Math.cos(predictedHeading);
@@ -295,16 +324,6 @@ class AMPC {  // Version 1.4.0
 
             // Progress reward
             double progressPenalty = WEIGHT_PROGRESS * (1 - predictedT);
-
-            //  Tangent-alignment cost: velocity direction should match path tangent
-            double vMag = Math.sqrt(fieldVx * fieldVx + fieldVy * fieldVy);
-            double tangentAlignmentCost = 0;
-            if (vMag > 0.1) {
-                double vUnitX = fieldVx / vMag;
-                double vUnitY = fieldVy / vMag;
-                double alignmentError = 1.0 - (vUnitX * tX + vUnitY * tY);
-                tangentAlignmentCost = WEIGHT_TANGENT * alignmentError * vMag;
-            }
 
             // Terminal cost (brake before overshoot)
             // Hybrid: use arc length remaining when far from end, Euclidean when close
