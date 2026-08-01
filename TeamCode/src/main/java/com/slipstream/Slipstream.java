@@ -112,8 +112,7 @@ public class Slipstream {
     private void logProgress() {
         if (!logInitialized || ampc.getActivePath() == null) return;
         double currentT = ampc.currentT;
-        while (nextTThresholdIndex < loggedTThresholds.length &&
-                currentT >= loggedTThresholds[nextTThresholdIndex]) {
+        while (nextTThresholdIndex < loggedTThresholds.length && currentT >= loggedTThresholds[nextTThresholdIndex]) {
             logEvent("progress");
             nextTThresholdIndex++;
         }
@@ -126,12 +125,7 @@ public class Slipstream {
             double actualVx = controller != null ? controller.actualVx : 0;
             double actualVy = controller != null ? controller.actualVy : 0;
             double actualOmega = controller != null ? controller.actualOmega : 0;
-            logWriter.println(String.format("%s,%.3f,%d,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.3f,%.3f,%.3f",
-                    event, time, pathIndex, ampc.currentT,
-                    follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(),
-                    ampc.desiredVx, ampc.desiredVy, ampc.desiredOmega,
-                    actualVx, actualVy, actualOmega,
-                    ampc.sysIDRatioVx, ampc.sysIDRatioVy, ampc.sysIDRatioOmega));
+            logWriter.println(String.format("%s,%.3f,%d,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.3f,%.3f,%.3f", event, time, pathIndex, ampc.currentT, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), ampc.desiredVx, ampc.desiredVy, ampc.desiredOmega, actualVx, actualVy, actualOmega, ampc.sysIDRatioVx, ampc.sysIDRatioVy, ampc.sysIDRatioOmega));
             logWriter.flush();
         } catch (Exception e) {
             android.util.Log.e("Slipstream", "Logging error", e);
@@ -141,7 +135,8 @@ public class Slipstream {
     public void finish() {
         if (!logInitialized) return;
         try {
-            double totalTime = (System.nanoTime() - autoStartNs) / 1e9;
+            double totalTime = 0;
+            for (Double d : pathDurations) totalTime += d;
             logWriter.println("");
             logWriter.println("=== SUMMARY ===");
             logWriter.println("path,duration_s");
