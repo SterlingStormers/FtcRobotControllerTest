@@ -257,6 +257,9 @@ class AMPC {  // Version 1.4.0
         double predictedHeading = startPose.getHeading();
         double predictedT = currentT;
 
+        double pathFrameX = startPose.getX();
+        double pathFrameY = startPose.getY();
+
         double speed = Math.sqrt((vx * vx) + (vy * vy));
         double tAdvancePerStep = (speed * STEP_DT) / pathLengthInches;
         double brakeDist = (speed * speed) / (2.0 * config.maxDecel);
@@ -296,7 +299,17 @@ class AMPC {  // Version 1.4.0
         }
 
         for (int step = 1; step <= HORIZON_STEPS; step++) {
-            // Forward simulate (constant velocity)
+            // cross track stuff
+            Pose pathPointCurrentT = activePath.getPath(0).getPose(predictedT);
+            double pathHeading = pathPointCurrentT.getHeading();
+            double pathCosH = Math.cos(pathHeading);
+            double pathSinH = Math.sin(pathHeading);
+            double pathFrameFieldVx = (vx * pathCosH) - (vy * pathSinH);
+            double pathFrameFieldVy = (vx * pathSinH) + (vy * pathCosH);
+            pathFrameX += pathFrameFieldVx * STEP_DT;
+            pathFrameY += pathFrameFieldVy * STEP_DT;
+
+            // Original predicted motion
             double cosH = Math.cos(predictedHeading);
             double sinH = Math.sin(predictedHeading);
             double fieldVx = (vx * cosH) - (vy * sinH);
@@ -314,8 +327,8 @@ class AMPC {  // Version 1.4.0
             double tY = tanMag > 0.001 ? tangent.getYComponent() / tanMag : 0.0;
 
             // Decompose position error
-            double dx = predictedX - pathPointAtT.getX();
-            double dy = predictedY - pathPointAtT.getY();
+            double dx = pathFrameX - pathPointAtT.getX();
+            double dy = pathFrameY - pathPointAtT.getY();
             double crossTrack = Math.abs(-dx * tY + dy * tX);
             double alongTrack = Math.abs(dx * tX + dy * tY);
 
