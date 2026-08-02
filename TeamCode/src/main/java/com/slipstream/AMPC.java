@@ -257,8 +257,22 @@ class AMPC {  // Version 1.4.0
         double predictedHeading = startPose.getHeading();
         double predictedT = currentT;
 
+        // Convert candidate velocity to world frame at robot's current heading
+        double startCosH = Math.cos(follower.getPose().getHeading());
+        double startSinH = Math.sin(follower.getPose().getHeading());
+        double startFieldVx = (vx * startCosH) - (vy * startSinH);
+        double startFieldVy = (vx * startSinH) + (vy * startCosH);
+
+        // Get path tangent at current t
+        Vector currentTangent = activePath.getPath(0).getTangentVector(currentT);
+        double currentTanMag = currentTangent.getMagnitude();
+        double currentTX = currentTanMag > 0.001 ? currentTangent.getXComponent() / currentTanMag : 1.0;
+        double currentTY = currentTanMag > 0.001 ? currentTangent.getYComponent() / currentTanMag : 0.0;
+
+        double alongPathSpeed = startFieldVx * currentTX + startFieldVy * currentTY;
+        double tAdvancePerStep = (Math.max(0, alongPathSpeed) * STEP_DT) / pathLengthInches;
+
         double speed = Math.sqrt((vx * vx) + (vy * vy));
-        double tAdvancePerStep = (speed * STEP_DT) / pathLengthInches;
         double brakeDist = (speed * speed) / (2.0 * config.maxDecel);
 
         double totalCost = 0;
@@ -267,12 +281,7 @@ class AMPC {  // Version 1.4.0
         Pose endPose = activePath.getPath(0).getPose(1.0);
 
         // Tangent alignment cost
-        double startCosH = Math.cos(follower.getPose().getHeading());
-        double startSinH = Math.sin(follower.getPose().getHeading());
-        double startFieldVx = (vx * startCosH) - (vy * startSinH);
-        double startFieldVy = (vx * startSinH) + (vy * startCosH);
         double startVMag = Math.sqrt(startFieldVx * startFieldVx + startFieldVy * startFieldVy);
-
         double tangentAlignmentCost = 0;
         if (startVMag > 0.1) {
             Vector startTangent = activePath.getPath(0).getTangentVector(currentT);
