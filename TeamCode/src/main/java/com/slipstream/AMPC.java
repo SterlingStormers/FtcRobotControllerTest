@@ -42,7 +42,7 @@ class AMPC {  // Version 1.4.0
     private static final double WEIGHT_CROSS = 3.0;
     private static final double WEIGHT_ALONG = 1.0;
     private static final double WEIGHT_TANGENT = 0.1; //0.1
-    private static final double WEIGHT_HEADING = 10.0;
+    private static final double WEIGHT_HEADING = 20.0; //10
     private static final double WEIGHT_TERMINAL = 10;
     private static final double PATH_END_TOLERANCE = 1.5;
     private static final double LEARNING_RATE = 0.05;
