@@ -77,9 +77,7 @@ class AMPC {  // Version 1.4.0
     private double brakeStartX;
     private double brakeStartY;
     private double brakeStartSpeed;
-    private double brakeStartPredicted;
     private static final double BRAKE_LEARNING_RATE = 0.10;
-    private static final double BRAKE_START_SPEED_THRESHOLD = 20.0;
     private static final double BRAKE_END_SPEED_THRESHOLD = 3.0;
     private static final double BRAKE_SCALE_MIN = 0.5;
     private static final double BRAKE_SCALE_MAX = 2.0;
@@ -138,36 +136,29 @@ class AMPC {  // Version 1.4.0
         double actualSpeed = Math.hypot(actualVx, actualVy);
         Pose currentPose = follower.getPose();
 
-        if (terminalTriggered && !lastTerminalTriggered && actualSpeed > BRAKE_START_SPEED_THRESHOLD) {
+        if (terminalTriggered && !lastTerminalTriggered) {
             brakeStartX = currentPose.getX();
             brakeStartY = currentPose.getY();
             brakeStartSpeed = actualSpeed;
-            brakeStartPredicted = kLinearScale * K_LINEAR * actualSpeed
-                    + kQuadraticScale * K_QUADRATIC * actualSpeed * actualSpeed;
         }
 
         if (lastTerminalTriggered && actualSpeed <= BRAKE_END_SPEED_THRESHOLD) {
-            double actualBrakeDist = Math.hypot(
-                    currentPose.getX() - brakeStartX,
-                    currentPose.getY() - brakeStartY
-            );
+            double actualBrakeDist = Math.hypot(currentPose.getX() - brakeStartX, currentPose.getY() - brakeStartY);
 
-            if (brakeStartPredicted > 0.5 && actualBrakeDist > 0.5) {
+            if (actualBrakeDist > 0.5) {
                 double linearContribution = kLinearScale * K_LINEAR * brakeStartSpeed;
                 double quadraticContribution = kQuadraticScale * K_QUADRATIC * brakeStartSpeed * brakeStartSpeed;
                 double totalPredicted = linearContribution + quadraticContribution;
 
-                if (totalPredicted > 0.001) {
-                    double linearWeight = linearContribution / totalPredicted;
-                    double quadraticWeight = quadraticContribution / totalPredicted;
-                    double ratio = actualBrakeDist / totalPredicted;
+                double linearWeight = linearContribution / totalPredicted;
+                double quadraticWeight = quadraticContribution / totalPredicted;
+                double ratio = actualBrakeDist / totalPredicted;
 
-                    kLinearScale += BRAKE_LEARNING_RATE * linearWeight * (ratio - 1.0);
-                    kQuadraticScale += BRAKE_LEARNING_RATE * quadraticWeight * (ratio - 1.0);
+                kLinearScale += BRAKE_LEARNING_RATE * linearWeight * (ratio - 1.0);
+                kQuadraticScale += BRAKE_LEARNING_RATE * quadraticWeight * (ratio - 1.0);
 
-                    kLinearScale = Math.max(BRAKE_SCALE_MIN, Math.min(BRAKE_SCALE_MAX, kLinearScale));
-                    kQuadraticScale = Math.max(BRAKE_SCALE_MIN, Math.min(BRAKE_SCALE_MAX, kQuadraticScale));
-                }
+                kLinearScale = Math.max(BRAKE_SCALE_MIN, Math.min(BRAKE_SCALE_MAX, kLinearScale));
+                kQuadraticScale = Math.max(BRAKE_SCALE_MIN, Math.min(BRAKE_SCALE_MAX, kQuadraticScale));
             }
         }
 
