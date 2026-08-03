@@ -299,7 +299,17 @@ class MaxDecelTest extends OpMode {
     private long lastSampleNs;
     private double measuredCruiseVel;
     private double brakeStartX;
-    private final double[] decelMeasurements = new double[NUM_TRIALS];
+    // Old:
+    // private final double[] decelMeasurements = new double[NUM_TRIALS];
+
+    // New:
+    private static class BrakeSample {
+        double velocity;      // absolute value, in/s
+        double distanceCovered; // from brakeStartX, absolute, inches
+        BrakeSample(double v, double d) { this.velocity = v; this.distanceCovered = d; }
+    }
+    private final java.util.List<java.util.List<BrakeSample>> trialSamples = new java.util.ArrayList<>();
+    private java.util.List<BrakeSample> currentTrialSamples;
     private boolean stopping = false;
 
     @Override
@@ -333,6 +343,7 @@ class MaxDecelTest extends OpMode {
         cruiseVelCount = 0;
         lastX = follower.getPose().getX();
         lastSampleNs = phaseStartNs;
+        currentTrialSamples = new java.util.ArrayList<>();  // ADD THIS
     }
 
     @Override
@@ -373,15 +384,26 @@ class MaxDecelTest extends OpMode {
                 long now = System.nanoTime();
                 double sampleDt = (now - lastSampleNs) / 1e9;
                 double v = sampleDt > 0.001 ? (currentX - lastX) / sampleDt : 0;
+                double absV = Math.abs(v);
+                double distanceCovered = Math.abs(currentX - brakeStartX);
+
+                // Sample if velocity is in usable range
+                if (absV >= 3.0 && absV <= 0.95 * measuredCruiseVel) {
+                    currentTrialSamples.add(new BrakeSample(absV, distanceCovered));
+                }
+
                 lastX = currentX;
                 lastSampleNs = now;
-                boolean stopped = Math.abs(v) <= STOPPED_THRESHOLD && elapsed > 0.2;
+
+                boolean stopped = absV <= STOPPED_THRESHOLD && elapsed > 0.2;
                 boolean brakeTimeout = elapsed > 3.0;
                 if (stopped || brakeTimeout) {
                     stopMotors();
-                    double brakeDist = Math.abs(currentX - brakeStartX);
-                    if (brakeDist > 0.1) {
-                        decelMeasurements[currentTrial] = (measuredCruiseVel * measuredCruiseVel) / (2 * brakeDist);
+                    double brakeDist = distanceCovered;
+                    if (brakeDist > 0.1 && !currentTrialSamples.isEmpty()) {
+                        // Save this trial's samples with the trial's totalBrakeDist stored implicitly
+                        // (we'll compute "remaining" in DONE phase using each list's last-distance)
+                        trialSamples.add(currentTrialSamples);
                     }
                     currentTrial++;
                     phaseStartNs = System.nanoTime();
@@ -403,23 +425,75 @@ class MaxDecelTest extends OpMode {
             }
             case DONE: {
                 stopMotors();
-                double min = decelMeasurements[0], max = decelMeasurements[0], sum = 0;
-                for (double d : decelMeasurements) {
-                    min = Math.min(min, d);
-                    max = Math.max(max, d);
-                    sum += d;
+
+                // Combine all samples from all trials, computing "remaining" for each
+                java.util.List<BrakeSample> allSamples = new java.util.ArrayList<>();
+                for (java.util.List<BrakeSample> trial : trialSamples) {
+                    // The last sample in each trial gives us that trial's total brake distance
+                    double totalBrakeDist = 0;
+                    for (BrakeSample s : trial) {
+                        if (s.distanceCovered > totalBrakeDist) totalBrakeDist = s.distanceCovered;
+                    }
+                    // Convert each sample from (v, distanceCovered) to (v, remaining)
+                    for (BrakeSample s : trial) {
+                        double remaining = totalBrakeDist - s.distanceCovered;
+                        allSamples.add(new BrakeSample(s.velocity, remaining));
+                    }
                 }
-                double mean = sum / decelMeasurements.length;
-                double recommended = min * 0.95;
-                panel.debug("Max Decel Results");
-                for (int i = 0; i < decelMeasurements.length; i++) {
-                    panel.debug("Trial " + (i + 1) + ": " + decelMeasurements[i] + " in/s^2");
+
+                if (allSamples.size() < 10) {
+                    panel.debug("ERROR: Not enough samples (" + allSamples.size() + "). Rerun test.");
+                    panel.update(telemetry);
+                    break;
                 }
-                panel.debug("Min: " + min);
-                panel.debug("Max: " + max);
-                panel.debug("Mean: " + mean);
-                panel.debug("Recommended maxDecel: " + recommended);
-                panel.debug("Copy recommended value to SlipstreamConstants.maxDecel");
+
+                // Least-squares fit: remaining = kLinear * v + kQuadratic * v²
+                double S1 = 0, S2 = 0, S3 = 0, T1 = 0, T2 = 0;
+                for (BrakeSample s : allSamples) {
+                    double v = s.velocity;
+                    double v2 = v * v;
+                    S1 += v2;
+                    S2 += v * v2;
+                    S3 += v2 * v2;
+                    T1 += v * s.distanceCovered;      // note: s.distanceCovered NOW holds "remaining"
+                    T2 += v2 * s.distanceCovered;
+                }
+                double det = S1 * S3 - S2 * S2;
+                if (Math.abs(det) < 1e-9) {
+                    panel.debug("ERROR: Fit failed (singular matrix). Rerun test.");
+                    panel.update(telemetry);
+                    break;
+                }
+                double kLinear = (T1 * S3 - T2 * S2) / det;
+                double kQuadratic = (S1 * T2 - S2 * T1) / det;
+
+                // Compute R² for fit quality
+                double meanRemaining = 0;
+                for (BrakeSample s : allSamples) meanRemaining += s.distanceCovered;
+                meanRemaining /= allSamples.size();
+
+                double sumResidualSq = 0, sumTotalSq = 0;
+                for (BrakeSample s : allSamples) {
+                    double predicted = kLinear * s.velocity + kQuadratic * s.velocity * s.velocity;
+                    sumResidualSq += (s.distanceCovered - predicted) * (s.distanceCovered - predicted);
+                    sumTotalSq += (s.distanceCovered - meanRemaining) * (s.distanceCovered - meanRemaining);
+                }
+                double rSquared = sumTotalSq > 0 ? 1.0 - sumResidualSq / sumTotalSq : 0;
+
+                panel.debug("Adaptive Predictive Braking Results");
+                panel.debug("Samples collected: " + allSamples.size());
+                panel.debug("kLinearBraking: " + String.format("%.4f", kLinear));
+                panel.debug("kQuadraticFriction: " + String.format("%.6f", kQuadratic));
+                panel.debug("Fit R^2: " + String.format("%.3f", rSquared));
+                if (rSquared < 0.9) {
+                    panel.debug("WARNING: R^2 below 0.9, fit quality is poor. Consider rerunning.");
+                }
+                if (kLinear < 0 || kQuadratic < 0) {
+                    panel.debug("WARNING: Negative coefficient detected. Rerun under better conditions.");
+                }
+                panel.debug("Copy to SlipstreamConstants:");
+                panel.debug("  kLinearBraking = " + String.format("%.4f", kLinear));
+                panel.debug("  kQuadraticFriction = " + String.format("%.6f", kQuadratic));
                 panel.update(telemetry);
                 break;
             }
