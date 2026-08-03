@@ -299,6 +299,7 @@ class MaxDecelTest extends OpMode {
     private long lastSampleNs;
     private double measuredCruiseVel;
     private double brakeStartX;
+    private int belowThresholdCount = 0;
     // Old:
     // private final double[] decelMeasurements = new double[NUM_TRIALS];
 
@@ -375,6 +376,7 @@ class MaxDecelTest extends OpMode {
                     brakeStartX = currentX;
                     double brakePower = -direction;
                     setPowers(brakePower, brakePower, brakePower, brakePower);
+                    belowThresholdCount = 0;
                     phaseStartNs = System.nanoTime();
                     phase = Phase.BRAKE;
                 }
@@ -382,9 +384,9 @@ class MaxDecelTest extends OpMode {
             }
             case BRAKE: {
                 long now = System.nanoTime();
-                double sampleDt = (now - lastSampleNs) / 1e9;
-                double v = sampleDt > 0.001 ? (currentX - lastX) / sampleDt : 0;
-                double absV = Math.abs(v);
+                double fieldVx = follower.getVelocity().getXComponent();
+                double fieldVy = follower.getVelocity().getYComponent();
+                double absV = Math.hypot(fieldVx, fieldVy);
                 double distanceCovered = Math.abs(currentX - brakeStartX);
 
                 // Sample if velocity is in usable range
@@ -395,7 +397,9 @@ class MaxDecelTest extends OpMode {
                 lastX = currentX;
                 lastSampleNs = now;
 
-                boolean stopped = absV <= STOPPED_THRESHOLD && elapsed > 0.2;
+                if (absV <= STOPPED_THRESHOLD) belowThresholdCount++;
+                else belowThresholdCount = 0;
+                boolean stopped = belowThresholdCount >= 5 && elapsed > 0.2;
                 boolean brakeTimeout = elapsed > 3.0;
                 if (stopped || brakeTimeout) {
                     stopMotors();
