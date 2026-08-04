@@ -292,7 +292,6 @@ class MaxDecelTest extends OpMode {
     private static final double BRAKE_TIMEOUT_SECONDS = 3.0;
     private static final double STOPPED_THRESHOLD = 1.0;
     private static final double PAUSE_BETWEEN_SECONDS = 1.0;
-
     private enum Phase { ACCEL, BRAKE, PAUSE, DONE }
     private Phase phase = Phase.ACCEL;
     private int currentTrial = 0;

@@ -69,8 +69,8 @@ public class AMPC {  // Version 1.4.0
     public double filteredRatioVx = 1.0;
     public double filteredRatioVy = 1.0;
     public double filteredRatioOmega = 1.0;
-    private static final double K_LINEAR = 0.1;
-    private static final double K_QUADRATIC = 0.001;
+    private static final double K_LINEAR = 0.0791;
+    private static final double K_QUADRATIC = 0.001271;
     public double kLinearScale = 1.0;
     public double kQuadraticScale = 1.0;
     private boolean lastTerminalTriggered = false;
