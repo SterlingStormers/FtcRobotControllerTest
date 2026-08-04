@@ -11,7 +11,7 @@ import com.pedropathing.math.Vector;
  */
 
 @Configurable   //remove before release
-class AMPC {  // Version 1.4.0
+public class AMPC {  // Version 1.4.0
     private final Follower follower;
     private final SlipstreamConfig config;
     private final double baseMaxSpeedForward;

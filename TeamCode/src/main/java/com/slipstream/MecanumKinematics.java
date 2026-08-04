@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
  * @version 1.0, 7/17/2026
  */
 
-class MecanumKinematics {
+public class MecanumKinematics {
     private final DcMotor frontLeftDrive;
     private final DcMotor frontRightDrive;
     private final DcMotor backLeftDrive;

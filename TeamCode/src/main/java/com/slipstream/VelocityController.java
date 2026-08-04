@@ -6,7 +6,7 @@ import com.pedropathing.follower.Follower;
  * @version 1.0, 7/17/2026
  */
 
-class VelocityController {
+public class VelocityController {
     private final Follower follower;
     private final AMPC ampc;
     private final SlipstreamConfig config;
