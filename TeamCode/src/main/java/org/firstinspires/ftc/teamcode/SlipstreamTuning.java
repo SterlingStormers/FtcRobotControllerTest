@@ -460,7 +460,7 @@ class MaxDecelTest extends OpMode {
                 }
                 double det = S1 * S3 - S2 * S2;
                 if (Math.abs(det) < 1e-9) {
-                    panel.debug("ERROR: Fit failed (singular matrix). Rerun test.");
+                    panel.debug("ERROR: Fit failed. Rerun test.");
                     panel.update(telemetry);
                     break;
                 }
