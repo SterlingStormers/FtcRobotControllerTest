@@ -4,23 +4,32 @@ import com.pedropathing.math.Vector;
 import com.pedropathing.paths.Path;
 
 public class PathAnalyzer {
-
     public static class PathAnalysis {
         public double length;
         public double headingChange;
         public double maxCurvature;
-        public boolean isDirectionReversal;
+        public double transitionAlignment;
     }
 
-    public PathAnalysis analyze(Path currentPath, Path previousPath) {
+    public PathAnalysis analyze(Path currentPath, Path nextPath) {
         PathAnalysis result = new PathAnalysis();
 
         result.length = currentPath.length();
         result.headingChange = computeHeadingChange(currentPath);
-        // TODO: max curvature
-        // TODO: direction reversal detection with previousPath
+        result.maxCurvature = computeMaxCurvature(currentPath);
+        result.transitionAlignment = detectTransitionAlignment(currentPath, nextPath);
 
         return result;
+    }
+
+    private double detectTransitionAlignment(Path currentPath, Path nextPath) {
+        if (nextPath == null) return 1.0;
+        Vector currentEnd = currentPath.getTangentVector(1.0);
+        Vector nextStart = nextPath.getTangentVector(0.0);
+        double dot = currentEnd.dot(nextStart);
+        double mag = currentEnd.getMagnitude() * nextStart.getMagnitude();
+        if (mag < 0.001) return 1.0;
+        return dot / mag;
     }
 
     private double computeMaxCurvature(Path path) {

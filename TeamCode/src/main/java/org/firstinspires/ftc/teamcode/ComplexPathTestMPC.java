@@ -1,4 +1,6 @@
 package org.firstinspires.ftc.teamcode;
+import com.pedropathing.paths.Path;
+import com.slipstream.PathAnalyzer;
 import com.slipstream.Slipstream;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.util.Timer;
@@ -62,6 +64,29 @@ public class ComplexPathTestMPC extends OpMode {
         follower.setStartingPose(new Pose(56, 8, Math.toRadians(90)));
 
         paths = new Paths(follower);
+
+        // Test PathAnalyzer
+        PathAnalyzer analyzer = new PathAnalyzer();
+        Path p1 = paths.Path1.getPath(0);
+        Path p2 = paths.Path2.getPath(0);
+        Path p3 = paths.Path3.getPath(0);
+        Path p4 = paths.Path4.getPath(0);
+
+        PathAnalyzer.PathAnalysis a1 = analyzer.analyze(p1, p2);
+        PathAnalyzer.PathAnalysis a2 = analyzer.analyze(p2, p3);
+        PathAnalyzer.PathAnalysis a3 = analyzer.analyze(p3, p4);
+        PathAnalyzer.PathAnalysis a4 = analyzer.analyze(p4, null);
+
+        telemetry.addData("--- PATH ANALYSIS ---", "");
+        telemetry.addData("P1", String.format("len=%.1f hΔ=%.2f curv=%.3f align=%.2f",
+                a1.length, a1.headingChange, a1.maxCurvature, a1.transitionAlignment));
+        telemetry.addData("P2", String.format("len=%.1f hΔ=%.2f curv=%.3f align=%.2f",
+                a2.length, a2.headingChange, a2.maxCurvature, a2.transitionAlignment));
+        telemetry.addData("P3", String.format("len=%.1f hΔ=%.2f curv=%.3f align=%.2f",
+                a3.length, a3.headingChange, a3.maxCurvature, a3.transitionAlignment));
+        telemetry.addData("P4", String.format("len=%.1f hΔ=%.2f curv=%.3f align=%.2f",
+                a4.length, a4.headingChange, a4.maxCurvature, a4.transitionAlignment));
+        telemetry.update();
 
         detectedBall3 = 'U';
         detectedBall2 = 'U';
