@@ -55,6 +55,31 @@ public class PathAnalyzer {
         return maxCurvature;
     }
 
+    public static class Weights {
+        public double progress;
+        public double tangent;
+        public double cross;
+        public double terminal;
+        public double heading;
+    }
+
+    public Weights computeWeights(PathAnalysis analysis) {
+        Weights weight = new Weights();
+        double curve = analysis.maxCurvature;  // raw radians per inch
+        weight.progress = 120 - (curve * 700);   // straight=140, curvy=less
+        weight.tangent = 0.1 + (curve * 6);      // straight=0.1, curvy=more
+        weight.cross = 3 + (curve * 30);         // straight=3, curvy=more
+
+        double headingRate = analysis.headingChange / Math.max(1.0, analysis.length);
+        weight.heading = 20 + (headingRate * 400);
+
+        double reversalIntensity = (1 - analysis.transitionAlignment) / 2;
+        weight.terminal = 10 + (reversalIntensity * 8);
+
+
+
+    }
+
     private double computeHeadingChange(Path path) {
         double startH = path.getPose(0.0).getHeading();
         double endH = path.getPose(1.0).getHeading();
