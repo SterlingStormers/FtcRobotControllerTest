@@ -77,15 +77,19 @@ public class ComplexPathTestMPC extends OpMode {
         PathAnalyzer.PathAnalysis a3 = analyzer.analyze(p3, p4);
         PathAnalyzer.PathAnalysis a4 = analyzer.analyze(p4, null);
 
-        telemetry.addData("--- PATH ANALYSIS ---", "");
-        telemetry.addData("P1", String.format("len=%.1f hΔ=%.2f curv=%.3f align=%.2f",
-                a1.length, a1.headingChange, a1.maxCurvature, a1.transitionAlignment));
-        telemetry.addData("P2", String.format("len=%.1f hΔ=%.2f curv=%.3f align=%.2f",
-                a2.length, a2.headingChange, a2.maxCurvature, a2.transitionAlignment));
-        telemetry.addData("P3", String.format("len=%.1f hΔ=%.2f curv=%.3f align=%.2f",
-                a3.length, a3.headingChange, a3.maxCurvature, a3.transitionAlignment));
-        telemetry.addData("P4", String.format("len=%.1f hΔ=%.2f curv=%.3f align=%.2f",
-                a4.length, a4.headingChange, a4.maxCurvature, a4.transitionAlignment));
+        PathAnalyzer.Weights w1 = analyzer.computeWeights(a1);
+        PathAnalyzer.Weights w2 = analyzer.computeWeights(a2);
+        PathAnalyzer.Weights w3 = analyzer.computeWeights(a3);
+        PathAnalyzer.Weights w4 = analyzer.computeWeights(a4);
+
+        telemetry.addData("P1", String.format("prog=%.0f tan=%.2f cross=%.1f head=%.0f term=%.1f",
+                w1.progress, w1.tangent, w1.cross, w1.heading, w1.terminal));
+        telemetry.addData("P2", String.format("prog=%.0f tan=%.2f cross=%.1f head=%.0f term=%.1f",
+                w2.progress, w2.tangent, w2.cross, w2.heading, w2.terminal));
+        telemetry.addData("P3", String.format("prog=%.0f tan=%.2f cross=%.1f head=%.0f term=%.1f",
+                w3.progress, w3.tangent, w3.cross, w3.heading, w3.terminal));
+        telemetry.addData("P4", String.format("prog=%.0f tan=%.2f cross=%.1f head=%.0f term=%.1f",
+                w4.progress, w4.tangent, w4.cross, w4.heading, w4.terminal));
         telemetry.update();
 
         detectedBall3 = 'U';

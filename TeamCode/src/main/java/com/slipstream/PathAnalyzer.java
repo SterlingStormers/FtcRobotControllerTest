@@ -65,19 +65,17 @@ public class PathAnalyzer {
 
     public Weights computeWeights(PathAnalysis analysis) {
         Weights weight = new Weights();
-        double curve = analysis.maxCurvature;  // raw radians per inch
-        weight.progress = 120 - (curve * 700);   // straight=140, curvy=less
-        weight.tangent = 0.1 + (curve * 6);      // straight=0.1, curvy=more
-        weight.cross = 3 + (curve * 30);         // straight=3, curvy=more
+        double curve = analysis.maxCurvature;
+        weight.progress = 140 - (curve * 700);
+        weight.tangent = 0.1 + (curve * 6);
+        weight.cross = 3 + (curve * 30);
 
         double headingRate = analysis.headingChange / Math.max(1.0, analysis.length);
         weight.heading = 20 + (headingRate * 400);
 
-        double reversalIntensity = (1 - analysis.transitionAlignment) / 2;
-        weight.terminal = 10 + (reversalIntensity * 8);
+        weight.terminal = 14 - (4 * analysis.transitionAlignment);
 
-
-
+        return weight;
     }
 
     private double computeHeadingChange(Path path) {
