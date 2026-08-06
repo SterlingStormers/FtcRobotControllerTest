@@ -1,5 +1,6 @@
 package com.slipstream;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import java.io.File;
@@ -31,6 +32,15 @@ public class Slipstream {
     private long autoStartNs = 0;
     private long pathStartNs = 0;
     private final List<Double> pathDurations = new ArrayList<>();
+    private final PathAnalyzer analyzer = new PathAnalyzer();
+    private final List<PathChain> registeredPaths = new ArrayList<>();
+
+    public void registerPaths(PathChain... paths) {
+        registeredPaths.clear();
+        for (PathChain p : paths) {
+            registeredPaths.add(p);
+        }
+    }
 
     public Slipstream(Follower follower, HardwareMap hardwareMap, SlipstreamConfig config) {
         this.follower = follower;
@@ -97,6 +107,27 @@ public class Slipstream {
         pathStartNs = System.nanoTime();
         lastLoggedChain = newChain;
         nextTThresholdIndex = 0;
+
+        // Look up next path from registered list
+        PathChain nextChain = null;
+        int idx = registeredPaths.indexOf(newChain);
+        if (idx >= 0 && idx + 1 < registeredPaths.size()) {
+            nextChain = registeredPaths.get(idx + 1);
+        }
+
+        // Compute analytical weights for this path
+        Path currentPath = newChain.getPath(0);
+        Path nextPath = (nextChain != null) ? nextChain.getPath(0) : null;
+        PathAnalyzer.PathAnalysis analysis = analyzer.analyze(currentPath, nextPath);
+        PathAnalyzer.Weights weights = analyzer.computeWeights(analysis);
+
+        // Apply weights to AMPC
+        ampc.weightProgress = weights.progress;
+        ampc.weightTangent = weights.tangent;
+        ampc.weightCross = weights.cross;
+        ampc.weightHeading = weights.heading;
+        ampc.weightTerminal = weights.terminal;
+
         logEvent("path_start");
     }
 

@@ -38,12 +38,12 @@ public class AMPC {  // Version 1.4.0
     private static final int HORIZON_STEPS = 5;
     private static final int GRID_HALF = 1;
     private static final double GRID_STEP_FRACTION = 0.2;
-    private static final double WEIGHT_PROGRESS = 140; //80, 100
-    private static final double WEIGHT_CROSS = 3.0;
+    public double weightProgress = 140;
+    public double weightTangent = 0.5;
+    public double weightCross = 3.0;
+    public double weightHeading = 20;
+    public double weightTerminal = 10;
     private static final double WEIGHT_ALONG = 1.0;
-    private static final double WEIGHT_TANGENT = 0.1; //0.1
-    private static final double WEIGHT_HEADING = 20.0; //10
-    private static final double WEIGHT_TERMINAL = 10;
     private static final double PATH_END_TOLERANCE = 1.5;
     private static final double LEARNING_RATE = 0.05;
     public double maxSpeedForward;
@@ -344,7 +344,7 @@ public class AMPC {  // Version 1.4.0
             double vUnitX = startFieldVx / startVMag;
             double vUnitY = startFieldVy / startVMag;
             double alignmentError = 1.0 - (vUnitX * startTX + vUnitY * startTY);
-            tangentAlignmentCost = WEIGHT_TANGENT * alignmentError * startVMag;
+            tangentAlignmentCost = weightTangent * alignmentError * startVMag;
         }
 
         for (int step = 1; step <= HORIZON_STEPS; step++) {
@@ -375,7 +375,7 @@ public class AMPC {  // Version 1.4.0
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
 
             // Progress reward
-            double progressPenalty = WEIGHT_PROGRESS * (1 - predictedT);
+            double progressPenalty = weightProgress * (1 - predictedT);
 
             // Terminal cost (brake before overshoot)
             // Hybrid: use arc length remaining when far from end, Euclidean when close
@@ -391,11 +391,11 @@ public class AMPC {  // Version 1.4.0
             }
             double stepTerminalCost = 0;
             if (brakeDist > distToEnd) {
-                stepTerminalCost = WEIGHT_TERMINAL * (brakeDist - distToEnd);
+                stepTerminalCost = weightTerminal * (brakeDist - distToEnd);
                 terminalTriggered = true;
             }
 
-            totalCost += (WEIGHT_CROSS * crossTrack) + (WEIGHT_ALONG * alongTrack) + (WEIGHT_HEADING * headingError) + progressPenalty + tangentAlignmentCost + stepTerminalCost;
+            totalCost += (weightCross* crossTrack) + (WEIGHT_ALONG * alongTrack) + (weightHeading * headingError) + progressPenalty + tangentAlignmentCost + stepTerminalCost;
         }
 
         return totalCost;
