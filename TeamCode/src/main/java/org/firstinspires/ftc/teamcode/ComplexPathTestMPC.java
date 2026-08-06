@@ -60,11 +60,11 @@ public class ComplexPathTestMPC extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         slip = new Slipstream(follower, hardwareMap, new SlipstreamConstants());
-        slip.registerPaths(paths.Path1, paths.Path2, paths.Path3, paths.Path4);
         slip.useSlipstream = true;
         follower.setStartingPose(new Pose(56, 8, Math.toRadians(90)));
-
         paths = new Paths(follower);
+        slip.registerPaths(paths.Path1, paths.Path2, paths.Path3, paths.Path4);
+
 
 //        // Test PathAnalyzer
 //        PathAnalyzer analyzer = new PathAnalyzer();
