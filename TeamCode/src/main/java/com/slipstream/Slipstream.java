@@ -152,11 +152,12 @@ public class Slipstream {
                         target.getY() - actual.getY()
                 );
 
-                android.util.Log.i("Slipstream", "Path " + pathIndex + " done: miss=" +
-                        String.format("%.2f", endpointMiss) + " crossMax=" +
-                        String.format("%.2f", crossTrackMax) + " headMax=" +
-                        String.format("%.3f", headingErrorMax) + " time=" +
-                        String.format("%.2f", duration));
+                try {
+                    logWriter.println(String.format("path_metrics,%.2f,%d,%.2f,%.2f,%.3f,%.2f", (System.nanoTime() - autoStartNs) / 1e9, pathIndex, endpointMiss, crossTrackMax, headingErrorMax, duration));
+                    logWriter.flush();
+                } catch (Exception e) {
+                    android.util.Log.e("Slipstream", "Failed to write path_metrics", e);
+                }
             }
 
             logEvent("path_end");
