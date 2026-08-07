@@ -69,6 +69,12 @@ public class AMPC {  // Version 1.4.0
     public double filteredRatioVx = 1.0;
     public double filteredRatioVy = 1.0;
     public double filteredRatioOmega = 1.0;
+    public double progressScale = 1.0;
+    public double tangentScale = 1.0;
+    public double crossScale = 1.0;
+    public double headingScale = 1.0;
+    public double terminalScale = 1.0;
+    public boolean tuningMode = false;
     private static final double K_LINEAR = 0.0791;
     private static final double K_QUADRATIC = 0.001271;
     public double kLinearScale = 1.0;
@@ -346,7 +352,7 @@ public class AMPC {  // Version 1.4.0
             double vUnitX = startFieldVx / startVMag;
             double vUnitY = startFieldVy / startVMag;
             double alignmentError = 1.0 - (vUnitX * startTX + vUnitY * startTY);
-            tangentAlignmentCost = weightTangent * alignmentError * startVMag;
+            tangentAlignmentCost = weightTangent * tangentScale * alignmentError * startVMag;
         }
 
         for (int step = 1; step <= HORIZON_STEPS; step++) {
@@ -377,7 +383,7 @@ public class AMPC {  // Version 1.4.0
             double headingError = Math.abs(wrapAngle(pathPointAtT.getHeading() - predictedHeading));
 
             // Progress reward
-            double progressPenalty = weightProgress * (1 - predictedT);
+            double progressPenalty = weightProgress * progressScale * (1 - predictedT);
 
             // Terminal cost (brake before overshoot)
             // Hybrid: use arc length remaining when far from end, Euclidean when close
@@ -393,11 +399,11 @@ public class AMPC {  // Version 1.4.0
             }
             double stepTerminalCost = 0;
             if (brakeDist > distToEnd) {
-                stepTerminalCost = weightTerminal * (brakeDist - distToEnd);
+                stepTerminalCost = weightTerminal * terminalScale * (brakeDist - distToEnd);
                 terminalTriggered = true;
             }
 
-            totalCost += (weightCross* crossTrack) + (WEIGHT_ALONG * alongTrack) + (weightHeading * headingError) + progressPenalty + tangentAlignmentCost + stepTerminalCost;
+            totalCost += (weightCross * crossScale * crossTrack) + (WEIGHT_ALONG * alongTrack) + (weightHeading * headingScale * headingError) + progressPenalty + tangentAlignmentCost + stepTerminalCost;
         }
 
         return totalCost;
