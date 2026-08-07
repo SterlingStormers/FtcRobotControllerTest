@@ -287,50 +287,35 @@ class MaxTurnRateTest extends OpMode {
  */
 
 class MaxDecelTest extends OpMode {
-    private static final double[] POWER_FACTORS = {1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3};
-    private static final double DRIVE_TIME_SECONDS = 1.0;
-    private static final double BRAKE_TIMEOUT_SECONDS = 3.0;
-    private static final double STOPPED_THRESHOLD = 1.0;
-    private static final double PAUSE_BETWEEN_SECONDS = 1.0;
+    public static double ACCEL_TIME_SECONDS = 1.5;
+    public static double PAUSE_BETWEEN_SECONDS = 1.5;
+    public static int NUM_TRIALS = 3;
+    public static double STOPPED_THRESHOLD = 1.0;
     private enum Phase { ACCEL, BRAKE, PAUSE, DONE }
     private Phase phase = Phase.ACCEL;
     private int currentTrial = 0;
     private double direction = 1.0;
     private long phaseStartNs;
-    private int belowThresholdCount = 0;
+    private double cruiseVelSum = 0;
+    private int cruiseVelCount = 0;
+    private double lastX;
+    private long lastSampleNs;
     private double measuredCruiseVel;
-    private double brakeStartX, brakeStartY;
-    private SlipstreamConstants config;
-    private AMPC ampc;
-    private VelocityController controller;
-    private MecanumKinematics kinematics;
-
-    private static class TrialResult {
-        double peakVelocity;
-        double brakingDistance;
-        TrialResult(double v, double d) { peakVelocity = v; brakingDistance = d; }
-    }
-
-    private final java.util.List<TrialResult> trialResults = new java.util.ArrayList<>();
+    private double brakeStartX;
+    private final double[] decelMeasurements = new double[NUM_TRIALS];
     private boolean stopping = false;
 
     @Override
-    public void init() {
-        config = new SlipstreamConstants();
-        ampc = new AMPC(follower, config);
-        controller = new VelocityController(follower, ampc, config);
-        kinematics = new MecanumKinematics(hardwareMap, ampc, controller, config);
-    }
+    public void init() {}
 
     @Override
     public void init_loop() {
-        panel.debug("Max Decel Test - Adaptive Predictive Braking Calibration");
-        panel.debug("Runs " + POWER_FACTORS.length + " trials at varied peak speeds.");
-        panel.debug("Drives via VelocityController, then brakes via VelocityController.");
-        panel.debug("Trials alternate forward/reverse.");
-        panel.debug("Results -> kLinearBraking, kQuadraticFriction in SlipstreamConstants.");
-        panel.debug("IMPORTANT: Fully charged battery. 5+ feet clearance both directions.");
-        panel.debug("If you tune PIDF later, rerun this test.");
+        panel.debug("Max Decel Test");
+        panel.debug("Runs " + NUM_TRIALS + " trials alternating forward/reverse.");
+        panel.debug("Accelerates for " + ACCEL_TIME_SECONDS + " seconds, then actively brakes at full reverse power.");
+        panel.debug("Result -> SlipstreamConstants.maxDecel");
+        panel.debug("IMPORTANT: Use a fully charged battery for accurate results.");
+        panel.debug("Ensure at least 5 feet of clearance in both directions.");
         panel.debug("B on gamepad 1: stop");
         panel.update(telemetry);
         follower.updatePose();
@@ -339,7 +324,6 @@ class MaxDecelTest extends OpMode {
     @Override
     public void start() {
         follower.updatePose();
-        controller.reset();
         currentTrial = 0;
         phase = Phase.ACCEL;
         beginAccel();
@@ -348,88 +332,70 @@ class MaxDecelTest extends OpMode {
     private void beginAccel() {
         direction = (currentTrial % 2 == 0) ? 1.0 : -1.0;
         phaseStartNs = System.nanoTime();
-        belowThresholdCount = 0;
-        controller.reset();
-    }
-
-    private void commandStop() {
-        ampc.desiredVx = 0;
-        ampc.desiredVy = 0;
-        ampc.desiredOmega = 0;
-        controller.velocity();
-        kinematics.drive();
+        cruiseVelSum = 0;
+        cruiseVelCount = 0;
+        lastX = follower.getPose().getX();
+        lastSampleNs = phaseStartNs;
     }
 
     @Override
     public void loop() {
-        if (stopping) { commandStop(); return; }
-        if (gamepad1.bWasPressed()) { commandStop(); stopping = true; return; }
+        if (stopping) { stopMotors(); return; }
+        if (gamepad1.bWasPressed()) { stopMotors(); stopping = true; return; }
 
         follower.updatePose();
         double elapsed = (System.nanoTime() - phaseStartNs) / 1e9;
-
-        double fieldVx = follower.getVelocity().getXComponent();
-        double fieldVy = follower.getVelocity().getYComponent();
-        double absV = Math.hypot(fieldVx, fieldVy);
+        double currentX = follower.getPose().getX();
 
         switch (phase) {
             case ACCEL: {
-                if (currentTrial >= POWER_FACTORS.length) {
-                    phase = Phase.DONE;
-                    break;
+                double power = direction;
+                setPowers(power, power, power, power);
+                long now = System.nanoTime();
+                double sampleDt = (now - lastSampleNs) / 1e9;
+                if (sampleDt > 0.02) {
+                    double v = (currentX - lastX) / sampleDt;
+                    if (elapsed > ACCEL_TIME_SECONDS - 0.3) {
+                        cruiseVelSum += Math.abs(v);
+                        cruiseVelCount++;
+                    }
+                    lastX = currentX;
+                    lastSampleNs = now;
                 }
-                double powerFactor = POWER_FACTORS[currentTrial];
-                double targetVx = direction * powerFactor * config.maxSpeedForward;
-
-                ampc.desiredVx = targetVx;
-                ampc.desiredVy = 0;
-                ampc.desiredOmega = 0;
-                controller.velocity();
-                kinematics.drive();
-
-                if (elapsed >= DRIVE_TIME_SECONDS) {
-                    measuredCruiseVel = absV;
-                    brakeStartX = follower.getPose().getX();
-                    brakeStartY = follower.getPose().getY();
+                if (elapsed >= ACCEL_TIME_SECONDS) {
+                    measuredCruiseVel = cruiseVelCount > 0 ? cruiseVelSum / cruiseVelCount : 0;
+                    brakeStartX = currentX;
+                    double brakePower = -direction;
+                    setPowers(brakePower, brakePower, brakePower, brakePower);
                     phaseStartNs = System.nanoTime();
                     phase = Phase.BRAKE;
                 }
                 break;
             }
-
             case BRAKE: {
-                ampc.desiredVx = 0;
-                ampc.desiredVy = 0;
-                ampc.desiredOmega = 0;
-                controller.velocity();
-                kinematics.drive();
-
-                if (absV <= STOPPED_THRESHOLD) belowThresholdCount++;
-                else belowThresholdCount = 0;
-
-                boolean stopped = belowThresholdCount >= 5 && elapsed > 0.2;
-                boolean brakeTimeout = elapsed > BRAKE_TIMEOUT_SECONDS;
-
+                long now = System.nanoTime();
+                double sampleDt = (now - lastSampleNs) / 1e9;
+                double v = sampleDt > 0.001 ? (currentX - lastX) / sampleDt : 0;
+                lastX = currentX;
+                lastSampleNs = now;
+                boolean stopped = Math.abs(v) <= STOPPED_THRESHOLD && elapsed > 0.2;
+                boolean brakeTimeout = elapsed > 3.0;
                 if (stopped || brakeTimeout) {
-                    double dx = follower.getPose().getX() - brakeStartX;
-                    double dy = follower.getPose().getY() - brakeStartY;
-                    double brakingDistance = Math.hypot(dx, dy);
-
-                    if (brakingDistance > 0.1 && measuredCruiseVel > 3.0) {
-                        trialResults.add(new TrialResult(measuredCruiseVel, brakingDistance));
+                    stopMotors();
+                    double brakeDist = Math.abs(currentX - brakeStartX);
+                    if (brakeDist > 0.1) {
+                        decelMeasurements[currentTrial] = (measuredCruiseVel * measuredCruiseVel) / (2 * brakeDist);
                     }
-
                     currentTrial++;
                     phaseStartNs = System.nanoTime();
                     phase = Phase.PAUSE;
                 }
                 break;
             }
-
             case PAUSE: {
-                commandStop();
+                stopMotors();
                 if (elapsed >= PAUSE_BETWEEN_SECONDS) {
-                    if (currentTrial >= POWER_FACTORS.length) {
+                    if (currentTrial >= NUM_TRIALS) {
                         phase = Phase.DONE;
                     } else {
                         beginAccel();
@@ -438,72 +404,254 @@ class MaxDecelTest extends OpMode {
                 }
                 break;
             }
-
             case DONE: {
-                commandStop();
-
-                if (trialResults.size() < 3) {
-                    panel.debug("ERROR: Only " + trialResults.size() + " valid trials. Rerun test.");
-                    panel.update(telemetry);
-                    break;
+                stopMotors();
+                double min = decelMeasurements[0], max = decelMeasurements[0], sum = 0;
+                for (double d : decelMeasurements) {
+                    min = Math.min(min, d);
+                    max = Math.max(max, d);
+                    sum += d;
                 }
-
-                double S1 = 0, S2 = 0, S3 = 0, T1 = 0, T2 = 0;
-                for (TrialResult r : trialResults) {
-                    double v = r.peakVelocity;
-                    double v2 = v * v;
-                    S1 += v2;
-                    S2 += v * v2;
-                    S3 += v2 * v2;
-                    T1 += v * r.brakingDistance;
-                    T2 += v2 * r.brakingDistance;
+                double mean = sum / decelMeasurements.length;
+                double recommended = min * 0.95;
+                panel.debug("Max Decel Results");
+                for (int i = 0; i < decelMeasurements.length; i++) {
+                    panel.debug("Trial " + (i + 1) + ": " + decelMeasurements[i] + " in/s^2");
                 }
-                double det = S1 * S3 - S2 * S2;
-                if (Math.abs(det) < 1e-9) {
-                    panel.debug("ERROR: Fit failed. Rerun test.");
-                    panel.update(telemetry);
-                    break;
-                }
-                double kLinear = (T1 * S3 - T2 * S2) / det;
-                double kQuadratic = (S1 * T2 - S2 * T1) / det;
-
-                double meanDist = 0;
-                for (TrialResult r : trialResults) meanDist += r.brakingDistance;
-                meanDist /= trialResults.size();
-
-                double sumResidualSq = 0, sumTotalSq = 0;
-                for (TrialResult r : trialResults) {
-                    double predicted = kLinear * r.peakVelocity + kQuadratic * r.peakVelocity * r.peakVelocity;
-                    sumResidualSq += (r.brakingDistance - predicted) * (r.brakingDistance - predicted);
-                    sumTotalSq += (r.brakingDistance - meanDist) * (r.brakingDistance - meanDist);
-                }
-                double rSquared = sumTotalSq > 0 ? 1.0 - sumResidualSq / sumTotalSq : 0;
-
-                panel.debug("Adaptive Predictive Braking Results");
-                panel.debug("Trials collected: " + trialResults.size());
-                for (int i = 0; i < trialResults.size(); i++) {
-                    TrialResult r = trialResults.get(i);
-                    panel.debug(String.format("Trial %d: v=%.2f in/s, d=%.2f in", i, r.peakVelocity, r.brakingDistance));
-                }
-                panel.debug("kLinearBraking: " + String.format("%.4f", kLinear));
-                panel.debug("kQuadraticFriction: " + String.format("%.6f", kQuadratic));
-                panel.debug("Fit R^2: " + String.format("%.3f", rSquared));
-                if (rSquared < 0.9) panel.debug("WARNING: R^2 below 0.9, fit quality is poor.");
-                if (kLinear < 0 || kQuadratic < 0) panel.debug("WARNING: Negative coefficient detected.");
-                panel.debug("Copy to SlipstreamConstants:");
-                panel.debug("  kLinearBraking = " + String.format("%.4f", kLinear));
-                panel.debug("  kQuadraticFriction = " + String.format("%.6f", kQuadratic));
+                panel.debug("Min: " + min);
+                panel.debug("Max: " + max);
+                panel.debug("Mean: " + mean);
+                panel.debug("Recommended maxDecel: " + recommended);
+                panel.debug("Copy recommended value to SlipstreamConstants.maxDecel");
                 panel.update(telemetry);
                 break;
             }
         }
 
-        panel.debug("Phase: " + phase + " Trial: " + (currentTrial + 1) + "/" + POWER_FACTORS.length);
+        panel.debug("Phase: " + phase + " Trial: " + (currentTrial + 1) + "/" + NUM_TRIALS);
         panel.debug("Direction: " + (direction > 0 ? "FORWARD" : "REVERSE"));
-        panel.debug("Speed: " + String.format("%.2f", absV));
         panel.update(telemetry);
     }
 }
+
+//class MaxDecelTest extends OpMode {
+//    private static final double[] POWER_FACTORS = {1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3};
+//    private static final double DRIVE_TIME_SECONDS = 1.0;
+//    private static final double BRAKE_TIMEOUT_SECONDS = 3.0;
+//    private static final double STOPPED_THRESHOLD = 1.0;
+//    private static final double PAUSE_BETWEEN_SECONDS = 1.0;
+//    private enum Phase { ACCEL, BRAKE, PAUSE, DONE }
+//    private Phase phase = Phase.ACCEL;
+//    private int currentTrial = 0;
+//    private double direction = 1.0;
+//    private long phaseStartNs;
+//    private int belowThresholdCount = 0;
+//    private double measuredCruiseVel;
+//    private double brakeStartX, brakeStartY;
+//    private SlipstreamConstants config;
+//    private AMPC ampc;
+//    private VelocityController controller;
+//    private MecanumKinematics kinematics;
+//
+//    private static class TrialResult {
+//        double peakVelocity;
+//        double brakingDistance;
+//        TrialResult(double v, double d) { peakVelocity = v; brakingDistance = d; }
+//    }
+//
+//    private final java.util.List<TrialResult> trialResults = new java.util.ArrayList<>();
+//    private boolean stopping = false;
+//
+//    @Override
+//    public void init() {
+//        config = new SlipstreamConstants();
+//        ampc = new AMPC(follower, config);
+//        controller = new VelocityController(follower, ampc, config);
+//        kinematics = new MecanumKinematics(hardwareMap, ampc, controller, config);
+//    }
+//
+//    @Override
+//    public void init_loop() {
+//        panel.debug("Max Decel Test - Adaptive Predictive Braking Calibration");
+//        panel.debug("Runs " + POWER_FACTORS.length + " trials at varied peak speeds.");
+//        panel.debug("Drives via VelocityController, then brakes via VelocityController.");
+//        panel.debug("Trials alternate forward/reverse.");
+//        panel.debug("Results -> kLinearBraking, kQuadraticFriction in SlipstreamConstants.");
+//        panel.debug("IMPORTANT: Fully charged battery. 5+ feet clearance both directions.");
+//        panel.debug("If you tune PIDF later, rerun this test.");
+//        panel.debug("B on gamepad 1: stop");
+//        panel.update(telemetry);
+//        follower.updatePose();
+//    }
+//
+//    @Override
+//    public void start() {
+//        follower.updatePose();
+//        controller.reset();
+//        currentTrial = 0;
+//        phase = Phase.ACCEL;
+//        beginAccel();
+//    }
+//
+//    private void beginAccel() {
+//        direction = (currentTrial % 2 == 0) ? 1.0 : -1.0;
+//        phaseStartNs = System.nanoTime();
+//        belowThresholdCount = 0;
+//        controller.reset();
+//    }
+//
+//    private void commandStop() {
+//        ampc.desiredVx = 0;
+//        ampc.desiredVy = 0;
+//        ampc.desiredOmega = 0;
+//        controller.velocity();
+//        kinematics.drive();
+//    }
+//
+//    @Override
+//    public void loop() {
+//        if (stopping) { commandStop(); return; }
+//        if (gamepad1.bWasPressed()) { commandStop(); stopping = true; return; }
+//
+//        follower.updatePose();
+//        double elapsed = (System.nanoTime() - phaseStartNs) / 1e9;
+//
+//        double fieldVx = follower.getVelocity().getXComponent();
+//        double fieldVy = follower.getVelocity().getYComponent();
+//        double absV = Math.hypot(fieldVx, fieldVy);
+//
+//        switch (phase) {
+//            case ACCEL: {
+//                if (currentTrial >= POWER_FACTORS.length) {
+//                    phase = Phase.DONE;
+//                    break;
+//                }
+//                double powerFactor = POWER_FACTORS[currentTrial];
+//                double targetVx = direction * powerFactor * config.maxSpeedForward;
+//
+//                ampc.desiredVx = targetVx;
+//                ampc.desiredVy = 0;
+//                ampc.desiredOmega = 0;
+//                controller.velocity();
+//                kinematics.drive();
+//
+//                if (elapsed >= DRIVE_TIME_SECONDS) {
+//                    measuredCruiseVel = absV;
+//                    brakeStartX = follower.getPose().getX();
+//                    brakeStartY = follower.getPose().getY();
+//                    phaseStartNs = System.nanoTime();
+//                    phase = Phase.BRAKE;
+//                }
+//                break;
+//            }
+//
+//            case BRAKE: {
+//                ampc.desiredVx = 0;
+//                ampc.desiredVy = 0;
+//                ampc.desiredOmega = 0;
+//                controller.velocity();
+//                kinematics.drive();
+//
+//                if (absV <= STOPPED_THRESHOLD) belowThresholdCount++;
+//                else belowThresholdCount = 0;
+//
+//                boolean stopped = belowThresholdCount >= 5 && elapsed > 0.2;
+//                boolean brakeTimeout = elapsed > BRAKE_TIMEOUT_SECONDS;
+//
+//                if (stopped || brakeTimeout) {
+//                    double dx = follower.getPose().getX() - brakeStartX;
+//                    double dy = follower.getPose().getY() - brakeStartY;
+//                    double brakingDistance = Math.hypot(dx, dy);
+//
+//                    if (brakingDistance > 0.1 && measuredCruiseVel > 3.0) {
+//                        trialResults.add(new TrialResult(measuredCruiseVel, brakingDistance));
+//                    }
+//
+//                    currentTrial++;
+//                    phaseStartNs = System.nanoTime();
+//                    phase = Phase.PAUSE;
+//                }
+//                break;
+//            }
+//
+//            case PAUSE: {
+//                commandStop();
+//                if (elapsed >= PAUSE_BETWEEN_SECONDS) {
+//                    if (currentTrial >= POWER_FACTORS.length) {
+//                        phase = Phase.DONE;
+//                    } else {
+//                        beginAccel();
+//                        phase = Phase.ACCEL;
+//                    }
+//                }
+//                break;
+//            }
+//
+//            case DONE: {
+//                commandStop();
+//
+//                if (trialResults.size() < 3) {
+//                    panel.debug("ERROR: Only " + trialResults.size() + " valid trials. Rerun test.");
+//                    panel.update(telemetry);
+//                    break;
+//                }
+//
+//                double S1 = 0, S2 = 0, S3 = 0, T1 = 0, T2 = 0;
+//                for (TrialResult r : trialResults) {
+//                    double v = r.peakVelocity;
+//                    double v2 = v * v;
+//                    S1 += v2;
+//                    S2 += v * v2;
+//                    S3 += v2 * v2;
+//                    T1 += v * r.brakingDistance;
+//                    T2 += v2 * r.brakingDistance;
+//                }
+//                double det = S1 * S3 - S2 * S2;
+//                if (Math.abs(det) < 1e-9) {
+//                    panel.debug("ERROR: Fit failed. Rerun test.");
+//                    panel.update(telemetry);
+//                    break;
+//                }
+//                double kLinear = (T1 * S3 - T2 * S2) / det;
+//                double kQuadratic = (S1 * T2 - S2 * T1) / det;
+//
+//                double meanDist = 0;
+//                for (TrialResult r : trialResults) meanDist += r.brakingDistance;
+//                meanDist /= trialResults.size();
+//
+//                double sumResidualSq = 0, sumTotalSq = 0;
+//                for (TrialResult r : trialResults) {
+//                    double predicted = kLinear * r.peakVelocity + kQuadratic * r.peakVelocity * r.peakVelocity;
+//                    sumResidualSq += (r.brakingDistance - predicted) * (r.brakingDistance - predicted);
+//                    sumTotalSq += (r.brakingDistance - meanDist) * (r.brakingDistance - meanDist);
+//                }
+//                double rSquared = sumTotalSq > 0 ? 1.0 - sumResidualSq / sumTotalSq : 0;
+//
+//                panel.debug("Adaptive Predictive Braking Results");
+//                panel.debug("Trials collected: " + trialResults.size());
+//                for (int i = 0; i < trialResults.size(); i++) {
+//                    TrialResult r = trialResults.get(i);
+//                    panel.debug(String.format("Trial %d: v=%.2f in/s, d=%.2f in", i, r.peakVelocity, r.brakingDistance));
+//                }
+//                panel.debug("kLinearBraking: " + String.format("%.4f", kLinear));
+//                panel.debug("kQuadraticFriction: " + String.format("%.6f", kQuadratic));
+//                panel.debug("Fit R^2: " + String.format("%.3f", rSquared));
+//                if (rSquared < 0.9) panel.debug("WARNING: R^2 below 0.9, fit quality is poor.");
+//                if (kLinear < 0 || kQuadratic < 0) panel.debug("WARNING: Negative coefficient detected.");
+//                panel.debug("Copy to SlipstreamConstants:");
+//                panel.debug("  kLinearBraking = " + String.format("%.4f", kLinear));
+//                panel.debug("  kQuadraticFriction = " + String.format("%.6f", kQuadratic));
+//                panel.update(telemetry);
+//                break;
+//            }
+//        }
+//
+//        panel.debug("Phase: " + phase + " Trial: " + (currentTrial + 1) + "/" + POWER_FACTORS.length);
+//        panel.debug("Direction: " + (direction > 0 ? "FORWARD" : "REVERSE"));
+//        panel.debug("Speed: " + String.format("%.2f", absV));
+//        panel.update(telemetry);
+//    }
+//}
 
 /**
  * Alternates between +TARGET and -TARGET forward velocity every SWITCH_INTERVAL seconds.

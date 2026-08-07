@@ -132,37 +132,37 @@ public class AMPC {  // Version 1.4.0
         maxSpeedStrafe = baseMaxSpeedStrafe * clampedVy;
         maxTurnRateRad = baseMaxTurnRate * clampedOmega;
 
-        // Adaptive predictive braking SysID
-        double actualSpeed = Math.hypot(actualVx, actualVy);
-        Pose currentPose = follower.getPose();
-
-        if (terminalTriggered && !lastTerminalTriggered) {
-            brakeStartX = currentPose.getX();
-            brakeStartY = currentPose.getY();
-            brakeStartSpeed = actualSpeed;
-        }
-
-        if (lastTerminalTriggered && actualSpeed <= BRAKE_END_SPEED_THRESHOLD) {
-            double actualBrakeDist = Math.hypot(currentPose.getX() - brakeStartX, currentPose.getY() - brakeStartY);
-
-            if (actualBrakeDist > 0.5) {
-                double linearContribution = kLinearScale * K_LINEAR * brakeStartSpeed;
-                double quadraticContribution = kQuadraticScale * K_QUADRATIC * brakeStartSpeed * brakeStartSpeed;
-                double totalPredicted = linearContribution + quadraticContribution;
-
-                double linearWeight = linearContribution / totalPredicted;
-                double quadraticWeight = quadraticContribution / totalPredicted;
-                double ratio = actualBrakeDist / totalPredicted;
-
-                kLinearScale += BRAKE_LEARNING_RATE * linearWeight * (ratio - 1.0);
-                kQuadraticScale += BRAKE_LEARNING_RATE * quadraticWeight * (ratio - 1.0);
-
-                kLinearScale = Math.max(BRAKE_SCALE_MIN, Math.min(BRAKE_SCALE_MAX, kLinearScale));
-                kQuadraticScale = Math.max(BRAKE_SCALE_MIN, Math.min(BRAKE_SCALE_MAX, kQuadraticScale));
-            }
-        }
-
-        lastTerminalTriggered = terminalTriggered;
+//        // Adaptive predictive braking SysID
+//        double actualSpeed = Math.hypot(actualVx, actualVy);
+//        Pose currentPose = follower.getPose();
+//
+//        if (terminalTriggered && !lastTerminalTriggered) {
+//            brakeStartX = currentPose.getX();
+//            brakeStartY = currentPose.getY();
+//            brakeStartSpeed = actualSpeed;
+//        }
+//
+//        if (lastTerminalTriggered && actualSpeed <= BRAKE_END_SPEED_THRESHOLD) {
+//            double actualBrakeDist = Math.hypot(currentPose.getX() - brakeStartX, currentPose.getY() - brakeStartY);
+//
+//            if (actualBrakeDist > 0.5) {
+//                double linearContribution = kLinearScale * K_LINEAR * brakeStartSpeed;
+//                double quadraticContribution = kQuadraticScale * K_QUADRATIC * brakeStartSpeed * brakeStartSpeed;
+//                double totalPredicted = linearContribution + quadraticContribution;
+//
+//                double linearWeight = linearContribution / totalPredicted;
+//                double quadraticWeight = quadraticContribution / totalPredicted;
+//                double ratio = actualBrakeDist / totalPredicted;
+//
+//                kLinearScale += BRAKE_LEARNING_RATE * linearWeight * (ratio - 1.0);
+//                kQuadraticScale += BRAKE_LEARNING_RATE * quadraticWeight * (ratio - 1.0);
+//
+//                kLinearScale = Math.max(BRAKE_SCALE_MIN, Math.min(BRAKE_SCALE_MAX, kLinearScale));
+//                kQuadraticScale = Math.max(BRAKE_SCALE_MIN, Math.min(BRAKE_SCALE_MAX, kQuadraticScale));
+//            }
+//        }
+//
+//        lastTerminalTriggered = terminalTriggered;
     }
 
     public boolean isPathComplete() {
@@ -316,7 +316,9 @@ public class AMPC {  // Version 1.4.0
         double tAdvancePerStep = (Math.max(0, alongPathSpeed) * STEP_DT) / pathLengthInches;
 
         double speed = Math.sqrt((vx * vx) + (vy * vy));
-        double brakeDist = (kLinearScale * K_LINEAR * speed) + (kQuadraticScale * K_QUADRATIC * speed * speed);
+        double brakeDist = (speed * speed) / (2.0 * config.maxDecel);
+
+//        (kLinearScale * K_LINEAR * speed) + (kQuadraticScale * K_QUADRATIC * speed * speed);
 
         double totalCost = 0;
         terminalTriggered = false;
