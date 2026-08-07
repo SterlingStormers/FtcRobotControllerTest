@@ -1,7 +1,7 @@
 package com.slipstream;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import java.io.File;
@@ -24,6 +24,7 @@ public class Slipstream {
     public SlipstreamConfig config;
     public boolean useSlipstream = true;
     private static final String LOG_PATH = "/sdcard/Slipstream/telemetry_log.csv";
+    private static final double SAMPLE_START_T = 0.15;  // ignore first 15% of path (inherited error)
     private PrintWriter logWriter;
     private boolean logInitialized = false;
     private int pathIndex = -1;
@@ -35,9 +36,14 @@ public class Slipstream {
     private final List<Double> pathDurations = new ArrayList<>();
     private final PathAnalyzer analyzer = new PathAnalyzer();
     private final List<PathChain> registeredPaths = new ArrayList<>();
+
+    // Per-path tracking (reset on path change)
     private double crossTrackMax = 0;
+    private double crossTrackSum = 0;
+    private int crossTrackSamples = 0;
     private double headingErrorMax = 0;
-    private long pathTrackStartNs = 0;
+    private double headingErrorSum = 0;
+    private int headingErrorSamples = 0;
 
     public void registerPaths(PathChain... paths) {
         registeredPaths.clear();
@@ -85,10 +91,11 @@ public class Slipstream {
             controller.velocity();
             kinematics.drive();
 
-            // Track path following metrics
-            if (ampc.getActivePath() != null) {
-                com.pedropathing.geometry.Pose robotPose = follower.getPose();
-                com.pedropathing.geometry.Pose pathPoint = ampc.getActivePath().getPath(0).getPose(ampc.currentT);
+            // Sample per-path metrics only after robot has moved into this path
+            // (skips first 15% to avoid inherited error from previous path endpoint)
+            if (ampc.getActivePath() != null && ampc.currentT > SAMPLE_START_T) {
+                Pose robotPose = follower.getPose();
+                Pose pathPoint = ampc.getActivePath().getPath(0).getPose(ampc.currentT);
                 Vector tangent = ampc.getActivePath().getPath(0).getTangentVector(ampc.currentT);
                 double tanMag = tangent.getMagnitude();
                 double tX = tanMag > 0.001 ? tangent.getXComponent() / tanMag : 1.0;
@@ -96,10 +103,15 @@ public class Slipstream {
                 double dx = robotPose.getX() - pathPoint.getX();
                 double dy = robotPose.getY() - pathPoint.getY();
                 double crossTrack = Math.abs(-dx * tY + dy * tX);
+
                 crossTrackMax = Math.max(crossTrackMax, crossTrack);
+                crossTrackSum += crossTrack;
+                crossTrackSamples++;
 
                 double headingError = Math.abs(wrapAngle(pathPoint.getHeading() - robotPose.getHeading()));
                 headingErrorMax = Math.max(headingErrorMax, headingError);
+                headingErrorSum += headingError;
+                headingErrorSamples++;
             }
 
             logProgress();
@@ -137,6 +149,14 @@ public class Slipstream {
         }
 
         logEvent("path_start");
+
+        // Reset per-path metrics
+        crossTrackMax = 0;
+        crossTrackSum = 0;
+        crossTrackSamples = 0;
+        headingErrorMax = 0;
+        headingErrorSum = 0;
+        headingErrorSamples = 0;
     }
 
     private void onPathComplete() {
@@ -144,16 +164,28 @@ public class Slipstream {
             double duration = (System.nanoTime() - pathStartNs) / 1e9;
             pathDurations.add(duration);
 
-            if (lastLoggedChain != null) {
-                com.pedropathing.geometry.Pose target = lastLoggedChain.getPath(0).getPose(1.0);
-                com.pedropathing.geometry.Pose actual = follower.getPose();
+            if (lastLoggedChain != null && logInitialized) {
+                Pose target = lastLoggedChain.getPath(0).getPose(1.0);
+                Pose actual = follower.getPose();
                 double endpointMiss = Math.hypot(
                         target.getX() - actual.getX(),
                         target.getY() - actual.getY()
                 );
 
+                double crossTrackMean = crossTrackSamples > 0 ? crossTrackSum / crossTrackSamples : 0;
+                double headingErrorMean = headingErrorSamples > 0 ? headingErrorSum / headingErrorSamples : 0;
+
                 try {
-                    logWriter.println(String.format("path_metrics,%.2f,%d,%.2f,%.2f,%.3f,%.2f", (System.nanoTime() - autoStartNs) / 1e9, pathIndex, endpointMiss, crossTrackMax, headingErrorMax, duration));
+                    logWriter.println(String.format("path_metrics,%.2f,%d,%.2f,%.2f,%.2f,%.3f,%.3f,%.2f,%d",
+                            (System.nanoTime() - autoStartNs) / 1e9,
+                            pathIndex,
+                            endpointMiss,
+                            crossTrackMean,
+                            crossTrackMax,
+                            headingErrorMean,
+                            headingErrorMax,
+                            duration,
+                            crossTrackSamples));
                     logWriter.flush();
                 } catch (Exception e) {
                     android.util.Log.e("Slipstream", "Failed to write path_metrics", e);
@@ -188,12 +220,6 @@ public class Slipstream {
         }
     }
 
-    private double wrapAngle(double angle) {
-        while (angle > Math.PI) angle -= 2 * Math.PI;
-        while (angle < -Math.PI) angle += 2 * Math.PI;
-        return angle;
-    }
-
     public void finish() {
         if (!logInitialized) return;
         try {
@@ -209,8 +235,14 @@ public class Slipstream {
             logWriter.flush();
             logWriter.close();
             logInitialized = false;
-        }  catch (Exception e) {
+        } catch (Exception e) {
             android.util.Log.e("Slipstream", "Finish error", e);
         }
+    }
+
+    private double wrapAngle(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
     }
 }
