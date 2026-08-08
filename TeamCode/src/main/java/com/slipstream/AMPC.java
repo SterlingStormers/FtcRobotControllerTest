@@ -87,6 +87,7 @@ public class AMPC {  // Version 1.4.0
     private static final double BRAKE_END_SPEED_THRESHOLD = 3.0;
     private static final double BRAKE_SCALE_MIN = 0.5;
     private static final double BRAKE_SCALE_MAX = 2.0;
+    private final VelocityProfile velocityProfile = new VelocityProfile();
     public AMPC(Follower follower, SlipstreamConfig config) {
         this.config = config;
         this.follower = follower;
@@ -185,6 +186,7 @@ public class AMPC {  // Version 1.4.0
         currentT = 0;
         firstLoop = true;
         pathLengthInches = Math.max(1.0, activePath.length());
+        velocityProfile.compute(activePath.getPath(0), 0, 0, maxSpeedForward, maxSpeedStrafe,config.maxAccel, config.maxDecel);
     }
 
     public void updateClosestT() {

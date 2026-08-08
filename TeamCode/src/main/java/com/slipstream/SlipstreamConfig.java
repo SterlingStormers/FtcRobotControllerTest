@@ -23,6 +23,7 @@ public class SlipstreamConfig {
     public double maxSpeedStrafe = 0.0;
     public double maxTurnRate = 0.0;
     public double maxDecel = 0;
+    public double maxAccel = 220;  // approx 0.9 × maxDecel default
 
     public double vxKp = 0.05;
     public double vxKi = 0.0;

@@ -41,6 +41,7 @@ public class SlipstreamConstants extends SlipstreamConfig {
         maxSpeedStrafe = 45.5;    // Maximum strafe velocity in inches/second. Measure with SlipstreamMaxSpeedStrafeTest.
         maxTurnRate = 4.0;    // Maximum turn velocity in radians/second. Measure with SlipstreamMaxSpeedTurnTest.
         maxDecel = 244;    // Maximum deceleration. Measure with SlipstreamBrakeDecelTest.
+        maxAccel = 220;  // approx 0.9 × maxDecel default gngalang update for release
 
         /**
          * Note: These are stock PIDF values.
