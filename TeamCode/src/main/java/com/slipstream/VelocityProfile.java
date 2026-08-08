@@ -19,7 +19,7 @@ public class VelocityProfile {
             double t = (double) i / SAMPLES;
             double K = computeCurvature(path, t);
             double vCurve = K > 0.001 ? Math.sqrt(FRICTION * GRAVITY / K) : Double.MAX_VALUE;
-            
+            //ask why we need forward pass
         }
 
         // 1. Store pathLength, compute ds
