@@ -9,7 +9,6 @@ import com.pedropathing.paths.Path;
 public class VelocityProfile {
     private static final int SAMPLES = 100;
     private static final double FRICTION = 0.7;
-    private static final double GRAVITY = 386.0;
     private double[] velocities = new double[SAMPLES + 1];
     private double pathLength = 0;
 
@@ -18,7 +17,7 @@ public class VelocityProfile {
         for (int i = 0; i <= SAMPLES; i++) {
             double t = (double) i / SAMPLES;
             double K = computeCurvature(path, t);
-            double vCurve = K > 0.001 ? Math.sqrt(FRICTION * GRAVITY / K) : Double.MAX_VALUE;
+            double vCurve = K > 0.001 ? Math.sqrt(FRICTION * 386 / K) : Double.MAX_VALUE; // 386 gravity on earth
             //ask why we need forward pass
         }
 
