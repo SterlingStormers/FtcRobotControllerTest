@@ -1,7 +1,5 @@
 package com.slipstream;
 
-import static java.lang.Math.sqrt;
-
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.Path;
@@ -12,20 +10,41 @@ public class VelocityProfile {
     private double[] velocities = new double[SAMPLES + 1];
     private double pathLength = 0;
 
-    public void compute(Path path, double startVel, double endVel, double maxSpeedFwd, double maxSpeedStr, double maxAccel, double maxDecel) {
+    public void compute(Path path, double endVel, double maxSpeedFwd, double maxSpeedStr, double maxDecel) {
+        pathLength = path.length();
+        double segmentLength = pathLength / SAMPLES;
+
         double[] vLimit = new double[SAMPLES + 1];
         for (int i = 0; i <= SAMPLES; i++) {
             double t = (double) i / SAMPLES;
+
             double K = computeCurvature(path, t);
-            double vCurve = K > 0.001 ? Math.sqrt(FRICTION * 386 / K) : Double.MAX_VALUE; // 386 gravity on earth
-            //ask why we need forward pass
+            double vCurve = K > 0.001 ? Math.sqrt(FRICTION * 386 / K) : Double.MAX_VALUE;
+
+            Vector tan = path.getTangentVector(t);
+            double tMag = tan.getMagnitude();
+            double tX = tMag > 0.001 ? tan.getXComponent() / tMag : 1.0;
+            double tY = tMag > 0.001 ? tan.getYComponent() / tMag : 0.0;
+            double heading = path.getPose(t).getHeading();
+            double robotVx = tX * Math.cos(heading) + tY * Math.sin(heading);
+            double robotVy = -tX * Math.sin(heading) + tY * Math.cos(heading);
+            double vFwdLim = maxSpeedFwd / Math.max(0.001, Math.abs(robotVx));
+            double vStrLim = maxSpeedStr / Math.max(0.001, Math.abs(robotVy));
+            double vKinematic = Math.min(vFwdLim, vStrLim);
+
+            vLimit[i] = Math.min(vCurve, vKinematic);
         }
 
-        // 1. Store pathLength, compute ds
-        // 2. Loop 1: fill vLimit[] with min(curvature limit, maxSpeed)
-        // 3. Loop 2: forward pass — fill vForward[]
-        // 4. Loop 3: backward pass — fill vBackward[]
-        // 5. Combine: velocities[i] = min(vForward[i], vBackward[i])
+        velocities[SAMPLES] = endVel;
+        for (int l = SAMPLES - 1; l >= 0; l--) {
+            double vDecel = Math.sqrt(velocities[l+1] * velocities[l+1] + 2 * maxDecel * segmentLength);
+            velocities[l] = Math.min(vDecel, vLimit[l]);
+        }
+    }
+
+    public double getMaxSpeedAt(double t) {
+        int sample = Math.max(0, Math.min(SAMPLES, (int) (t * SAMPLES)));
+        return velocities[sample];
     }
 
     private double computeCurvature(Path path, double t) {

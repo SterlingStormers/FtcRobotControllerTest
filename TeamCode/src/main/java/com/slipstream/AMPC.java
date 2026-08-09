@@ -186,7 +186,7 @@ public class AMPC {  // Version 1.4.0
         currentT = 0;
         firstLoop = true;
         pathLengthInches = Math.max(1.0, activePath.length());
-        velocityProfile.compute(activePath.getPath(0), 0, 0, maxSpeedForward, maxSpeedStrafe,config.maxAccel, config.maxDecel);
+        velocityProfile.compute(path.getPath(0), 0, maxSpeedForward, maxSpeedStrafe, config.maxDecel);
     }
 
     public void updateClosestT() {
@@ -291,6 +291,29 @@ public class AMPC {  // Version 1.4.0
             bestVx = 0;
             bestVy = 0;
             bestOmega = 0;
+        }
+
+        double profileSpeed = velocityProfile.getMaxSpeedAt(currentT);
+        Vector currentTangent = activePath.getPath(0).getTangentVector(currentT);
+        double tanMag = currentTangent.getMagnitude();
+        double tX = tanMag > 0.001 ? currentTangent.getXComponent() / tanMag : 1.0;
+        double tY = tanMag > 0.001 ? currentTangent.getYComponent() / tanMag : 0.0;
+
+        double profileFieldVx = profileSpeed * tX;
+        double profileFieldVy = profileSpeed * tY;
+
+        double heading = follower.getPose().getHeading();
+        double profileVx = profileFieldVx * Math.cos(heading) + profileFieldVy * Math.sin(heading);
+        double profileVy = -profileFieldVx * Math.sin(heading) + profileFieldVy * Math.cos(heading);
+
+        double profileOmega = pursuitOmega;
+
+        double profileCost = evaluateCandidates(profileVx, profileVy, profileOmega, robotPose);
+        if (profileCost < bestCost) {
+            bestCost = profileCost;
+            bestVx = profileVx;
+            bestVy = profileVy;
+            bestOmega = profileOmega;
         }
 
         desiredVx = bestVx;
