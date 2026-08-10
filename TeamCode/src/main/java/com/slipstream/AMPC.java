@@ -259,41 +259,41 @@ public class AMPC {  // Version 1.4.0
         double bestVy = lastBestVy;
         double bestOmega = lastBestOmega;
 
-        for (int i = -GRID_HALF; i <= GRID_HALF; i++) {
-            for (int j = -GRID_HALF; j <= GRID_HALF; j++) {
-                for (int k = -GRID_HALF; k <= GRID_HALF; k++) {
-                    double candVx = clamp(lastBestVx + (i * vxStep), -maxSpeedForward, maxSpeedForward);
-                    double candVy = clamp(lastBestVy + (j * vyStep), -maxSpeedStrafe, maxSpeedStrafe);
-                    double candOmega = clamp(lastBestOmega + (k * omegaStep), -maxTurnRateRad, maxTurnRateRad);
-                    velocityProfilePicked = false;
-
-                    double cost = evaluateCandidates(candVx, candVy, candOmega, robotPose);
-                    if (cost < bestCost) {
-                        bestCost = cost;
-                        bestVx = candVx;
-                        bestVy = candVy;
-                        bestOmega = candOmega;
-                    }
-                }
-            }
-        }
+//        for (int i = -GRID_HALF; i <= GRID_HALF; i++) {
+//            for (int j = -GRID_HALF; j <= GRID_HALF; j++) {
+//                for (int k = -GRID_HALF; k <= GRID_HALF; k++) {
+//                    double candVx = clamp(lastBestVx + (i * vxStep), -maxSpeedForward, maxSpeedForward);
+//                    double candVy = clamp(lastBestVy + (j * vyStep), -maxSpeedStrafe, maxSpeedStrafe);
+//                    double candOmega = clamp(lastBestOmega + (k * omegaStep), -maxTurnRateRad, maxTurnRateRad);
+//                    velocityProfilePicked = false;
+//
+//                    double cost = evaluateCandidates(candVx, candVy, candOmega, robotPose);
+//                    if (cost < bestCost) {
+//                        bestCost = cost;
+//                        bestVx = candVx;
+//                        bestVy = candVy;
+//                        bestOmega = candOmega;
+//                    }
+//                }
+//            }
+//        }
 
         computePurePursuit(robotPose);
         double ppCost = evaluateCandidates(pursuitVx, pursuitVy, pursuitOmega, robotPose);
-        if (ppCost < bestCost) {
-            bestCost = ppCost;
-            bestVx = pursuitVx;
-            bestVy = pursuitVy;
-            bestOmega = pursuitOmega;
-        }
-
-        double zeroCost = evaluateCandidates(0, 0, 0, robotPose);
-        if (zeroCost < bestCost) {
-            bestCost = zeroCost;
-            bestVx = 0;
-            bestVy = 0;
-            bestOmega = 0;
-        }
+//        if (ppCost < bestCost) {
+//            bestCost = ppCost;
+//            bestVx = pursuitVx;
+//            bestVy = pursuitVy;
+//            bestOmega = pursuitOmega;
+//        }
+//
+//        double zeroCost = evaluateCandidates(0, 0, 0, robotPose);
+//        if (zeroCost < bestCost) {
+//            bestCost = zeroCost;
+//            bestVx = 0;
+//            bestVy = 0;
+//            bestOmega = 0;
+//        }
 
         double profileSpeed = velocityProfile.getMaxSpeedAt(currentT);
         Vector currentTangent = activePath.getPath(0).getTangentVector(currentT);
