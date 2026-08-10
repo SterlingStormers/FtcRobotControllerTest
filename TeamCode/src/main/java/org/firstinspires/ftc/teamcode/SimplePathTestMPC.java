@@ -15,7 +15,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "Complex Path Test MPC", group = "Autonomous")
+@Autonomous(name = "Simple Path Test MPC", group = "Autonomous")
 @Configurable
 public class SimplePathTestMPC extends OpMode {
 //    public static boolean useSlipstream = true;
