@@ -143,7 +143,7 @@ public class ComplexPathTestMPC extends OpMode {
 //        panelsTelemetry.debug("desired V", "(" + slip.ampc.desiredVx + ", " + slip.ampc.desiredVy + ", " + slip.ampc.desiredOmega + ")");
 //        panelsTelemetry.debug("maxSpeedForward", slip.ampc.maxSpeedForward);
 //        panelsTelemetry.debug("maxSpeedStrafe", slip.ampc.maxSpeedStrafe);
-//        panelsTelemetry.debug("maxTurnRateRad", slip.ampc.maxTurnRateRad);
+        panelsTelemetry.debug("VelocityProfileWon?", slip.ampc.velocityProfilePicked);
         panelsTelemetry.update(telemetry);
     }
 
