@@ -142,6 +142,8 @@ public class SimplePathTestMPC extends OpMode {
 //        panelsTelemetry.debug("maxSpeedForward", slip.ampc.maxSpeedForward);
 //        panelsTelemetry.debug("maxSpeedStrafe", slip.ampc.maxSpeedStrafe);
 //        panelsTelemetry.debug("maxTurnRateRad", slip.ampc.maxTurnRateRad);
+         panelsTelemetry.debug("velocityProfileWon?", slip.ampc.velocityProfilePicked);
+
         panelsTelemetry.update(telemetry);
     }
 

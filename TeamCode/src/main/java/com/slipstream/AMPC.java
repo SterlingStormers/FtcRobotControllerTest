@@ -87,6 +87,7 @@ public class AMPC {  // Version 1.4.0
     private static final double BRAKE_END_SPEED_THRESHOLD = 3.0;
     private static final double BRAKE_SCALE_MIN = 0.5;
     private static final double BRAKE_SCALE_MAX = 2.0;
+    public boolean velocityProfilePicked = false;
     private final VelocityProfile velocityProfile = new VelocityProfile();
     public AMPC(Follower follower, SlipstreamConfig config) {
         this.config = config;
@@ -264,6 +265,7 @@ public class AMPC {  // Version 1.4.0
                     double candVx = clamp(lastBestVx + (i * vxStep), -maxSpeedForward, maxSpeedForward);
                     double candVy = clamp(lastBestVy + (j * vyStep), -maxSpeedStrafe, maxSpeedStrafe);
                     double candOmega = clamp(lastBestOmega + (k * omegaStep), -maxTurnRateRad, maxTurnRateRad);
+                    velocityProfilePicked = false;
 
                     double cost = evaluateCandidates(candVx, candVy, candOmega, robotPose);
                     if (cost < bestCost) {
@@ -310,6 +312,7 @@ public class AMPC {  // Version 1.4.0
 
         double profileCost = evaluateCandidates(profileVx, profileVy, profileOmega, robotPose);
         if (profileCost < bestCost) {
+            velocityProfilePicked = true;
             bestCost = profileCost;
             bestVx = profileVx;
             bestVy = profileVy;
