@@ -213,7 +213,7 @@ public class Slipstream {
             double actualVx = controller != null ? controller.actualVx : 0;
             double actualVy = controller != null ? controller.actualVy : 0;
             double actualOmega = controller != null ? controller.actualOmega : 0;
-            logWriter.println(String.format("%s,%.3f,%d,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.3f,%.3f,%.3f", event, time, pathIndex, ampc.currentT, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), ampc.desiredVx, ampc.desiredVy, ampc.desiredOmega, actualVx, actualVy, actualOmega, ampc.sysIDRatioVx, ampc.sysIDRatioVy, ampc.sysIDRatioOmega));
+            logWriter.println(String.format("%s,%.3f,%d,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.3f,%.3f,%.3f", event, time, pathIndex, ampc.currentT, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), ampc.desiredVx, ampc.desiredVy, ampc.desiredOmega, actualVx, actualVy, actualOmega, ampc.sysIDRatioVx, ampc.sysIDRatioVy, ampc.sysIDRatioOmega, ampc.velocityProfilePicked));
             logWriter.flush();
         } catch (Exception e) {
             android.util.Log.e("Slipstream", "Logging error", e);
