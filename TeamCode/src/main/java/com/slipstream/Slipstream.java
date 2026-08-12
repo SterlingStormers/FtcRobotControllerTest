@@ -44,6 +44,7 @@ public class Slipstream {
     private double headingErrorMax = 0;
     private double headingErrorSum = 0;
     private int headingErrorSamples = 0;
+    private boolean lastProfileWon = false;
 
     public void registerPaths(PathChain... paths) {
         registeredPaths.clear();
@@ -66,7 +67,7 @@ public class Slipstream {
             File dir = new File("/sdcard/Slipstream/");
             if (!dir.exists()) dir.mkdirs();
             logWriter = new PrintWriter(new FileWriter(LOG_PATH, false));
-            logWriter.println("event,time_s,pathIndex,pathT,x,y,heading,desiredVx,desiredVy,desiredOmega,actualVx,actualVy,actualOmega,sysidVx,sysidVy,sysidOmega");
+            logWriter.println("event,time_s,pathIndex,pathT,x,y,heading,desiredVx,desiredVy,desiredOmega,actualVx,actualVy,actualOmega,sysidVx,sysidVy,sysidOmega,profileWon");
             logWriter.println("config,maxFwd=" + config.maxSpeedForward + ",maxStrafe=" + config.maxSpeedStrafe + ",maxTurn=" + config.maxTurnRate + ",maxDecel=" + config.maxDecel);
             logWriter.flush();
             logInitialized = true;
@@ -90,6 +91,11 @@ public class Slipstream {
             ampc.update();
             controller.velocity();
             kinematics.drive();
+
+            if (ampc.velocityProfilePicked != lastProfileWon) {
+                logWriter.println(String.format("profile_flip,%.3f,%d,%.3f,%b", (System.nanoTime() - autoStartNs) / 1e9, pathIndex, ampc.currentT, ampc.velocityProfileWon));
+                lastProfileWon = ampc.velocityProfileWon;
+            }
 
             // Sample per-path metrics only after robot has moved into this path
             // (skips first 15% to avoid inherited error from previous path endpoint)
@@ -167,25 +173,13 @@ public class Slipstream {
             if (lastLoggedChain != null && logInitialized) {
                 Pose target = lastLoggedChain.getPath(0).getPose(1.0);
                 Pose actual = follower.getPose();
-                double endpointMiss = Math.hypot(
-                        target.getX() - actual.getX(),
-                        target.getY() - actual.getY()
-                );
+                double endpointMiss = Math.hypot(target.getX() - actual.getX(), target.getY() - actual.getY());
 
                 double crossTrackMean = crossTrackSamples > 0 ? crossTrackSum / crossTrackSamples : 0;
                 double headingErrorMean = headingErrorSamples > 0 ? headingErrorSum / headingErrorSamples : 0;
 
                 try {
-                    logWriter.println(String.format("path_metrics,%.2f,%d,%.2f,%.2f,%.2f,%.3f,%.3f,%.2f,%d",
-                            (System.nanoTime() - autoStartNs) / 1e9,
-                            pathIndex,
-                            endpointMiss,
-                            crossTrackMean,
-                            crossTrackMax,
-                            headingErrorMean,
-                            headingErrorMax,
-                            duration,
-                            crossTrackSamples));
+                    logWriter.println(String.format("path_metrics,%.2f,%d,%.2f,%.2f,%.2f,%.3f,%.3f,%.2f,%d, %b", (System.nanoTime() - autoStartNs) / 1e9, pathIndex, endpointMiss, crossTrackMean, crossTrackMax, headingErrorMean, headingErrorMax, duration, crossTrackSamples));
                     logWriter.flush();
                 } catch (Exception e) {
                     android.util.Log.e("Slipstream", "Failed to write path_metrics", e);
