@@ -93,8 +93,8 @@ public class Slipstream {
             kinematics.drive();
 
             if (ampc.velocityProfilePicked != lastProfileWon) {
-                logWriter.println(String.format("profile_flip,%.3f,%d,%.3f,%b", (System.nanoTime() - autoStartNs) / 1e9, pathIndex, ampc.currentT, ampc.velocityProfileWon));
-                lastProfileWon = ampc.velocityProfileWon;
+                logWriter.println(String.format("profile_flip,%.3f,%d,%.3f,%b", (System.nanoTime() - autoStartNs) / 1e9, pathIndex, ampc.currentT, ampc.velocityProfilePicked));
+                lastProfileWon = ampc.velocityProfilePicked;
             }
 
             // Sample per-path metrics only after robot has moved into this path
