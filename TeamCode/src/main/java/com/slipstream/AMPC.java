@@ -319,6 +319,27 @@ public class AMPC {  // Version 1.4.0
             bestOmega = profileOmega;
         }
 
+        double speed = Math.hypot(bestVx, bestVy);
+        double distToEnd = (1.0 - currentT) * pathLengthInches;
+        double brakeDist = (speed * speed) / (2.0 * config.maxDecel);
+        boolean brakingPhase = brakeDist > distToEnd || currentT > 0.85;
+
+        if (brakingPhase) {
+            profileSpeed = velocityProfile.getMaxSpeedAt(currentT);
+            currentTangent = activePath.getPath(0).getTangentVector(currentT);
+            tanMag = currentTangent.getMagnitude();
+            tX = tanMag > 0.001 ? currentTangent.getXComponent() / tanMag : 1.0;
+            tY = tanMag > 0.001 ? currentTangent.getYComponent() / tanMag : 0.0;
+
+            profileFieldVx = profileSpeed * tX;
+            profileFieldVy = profileSpeed * tY;
+            heading = follower.getPose().getHeading();
+
+            bestVx = profileFieldVx * Math.cos(heading) + profileFieldVy * Math.sin(heading);
+            bestVy = -profileFieldVx * Math.sin(heading) + profileFieldVy * Math.cos(heading);
+            velocityProfilePicked = true;
+        }
+
 
         desiredVx = bestVx;
         desiredVy = bestVy;
@@ -414,25 +435,25 @@ public class AMPC {  // Version 1.4.0
             // Progress reward
             double progressPenalty = weightProgress * progressScale * (1 - predictedT);
 
-            // Terminal cost (brake before overshoot)
-            // Hybrid: use arc length remaining when far from end, Euclidean when close
-            double euclidToEnd = Math.sqrt((endPose.getX() - predictedX) * (endPose.getX() - predictedX) + (endPose.getY() - predictedY) * (endPose.getY() - predictedY));
-            double arcToEnd = pathLengthInches * (1.0 - predictedT);
-            double distToEnd;
-            if (predictedT < 0.70) { //0.85
-                distToEnd = euclidToEnd;  // accurate
-            } else if (predictedT < 0.90) { // 0.95, 0.92
-                distToEnd = arcToEnd; // accurate close
-            } else {
-                distToEnd = euclidToEnd; // switch back near endpoint to avoid stall
-            }
-            double stepTerminalCost = 0;
-            if (brakeDist > distToEnd) {
-                stepTerminalCost = weightTerminal * terminalScale * (brakeDist - distToEnd);
-                terminalTriggered = true;
-            }
+//            // Terminal cost (brake before overshoot)
+//            // Hybrid: use arc length remaining when far from end, Euclidean when close
+//            double euclidToEnd = Math.sqrt((endPose.getX() - predictedX) * (endPose.getX() - predictedX) + (endPose.getY() - predictedY) * (endPose.getY() - predictedY));
+//            double arcToEnd = pathLengthInches * (1.0 - predictedT);
+//            double distToEnd;
+//            if (predictedT < 0.70) { //0.85
+//                distToEnd = euclidToEnd;  // accurate
+//            } else if (predictedT < 0.90) { // 0.95, 0.92
+//                distToEnd = arcToEnd; // accurate close
+//            } else {
+//                distToEnd = euclidToEnd; // switch back near endpoint to avoid stall
+//            }
+//            double stepTerminalCost = 0;
+//            if (brakeDist > distToEnd) {
+//                stepTerminalCost = weightTerminal * terminalScale * (brakeDist - distToEnd);
+//                terminalTriggered = true;
+//            }
 
-            totalCost += (weightCross * crossScale * crossTrack) + (WEIGHT_ALONG * alongTrack) + (weightHeading * headingScale * headingError) + progressPenalty + tangentAlignmentCost + stepTerminalCost;
+            totalCost += (weightCross * crossScale * crossTrack) + (WEIGHT_ALONG * alongTrack) + (weightHeading * headingScale * headingError) + progressPenalty + tangentAlignmentCost /*+ stepTerminalCost*/;
         }
 
         return totalCost;
