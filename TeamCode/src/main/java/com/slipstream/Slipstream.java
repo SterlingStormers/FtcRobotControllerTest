@@ -18,7 +18,8 @@ import java.util.List;
 
 public class Slipstream {
     public Follower follower;
-    public AMPC ampc;
+//    public AMPC ampc;
+    public DynamicVelocityProfile profile;
     public VelocityController controller;
     public MecanumKinematics kinematics;
     public SlipstreamConfig config;
@@ -56,9 +57,9 @@ public class Slipstream {
     public Slipstream(Follower follower, HardwareMap hardwareMap, SlipstreamConfig config) {
         this.follower = follower;
         this.config = config;
-        ampc = new AMPC(follower, config);
-        controller = new VelocityController(follower, ampc, config);
-        kinematics = new MecanumKinematics(hardwareMap, ampc, controller, config);
+        profile = new DynamicVelocityProfile(follower, config);
+        controller = new VelocityController(follower, profile, config);
+        kinematics = new MecanumKinematics(hardwareMap, profile, controller, config);
         initLogging();
     }
 
@@ -83,26 +84,26 @@ public class Slipstream {
             follower.updatePose();
 
             PathChain currentChain = follower.getCurrentPathChain();
-            if (currentChain != null && currentChain != ampc.getActivePath()) {
-                ampc.setActivePath(currentChain);
+            if (currentChain != null && currentChain != profile.getActivePath()) {
+                profile.setActivePath(currentChain);
                 onPathChange(currentChain);
             }
 
-            ampc.update();
+            profile.update();
             controller.velocity();
             kinematics.drive();
 
-            if (ampc.velocityProfilePicked != lastProfileWon) {
-                logWriter.println(String.format("profile_flip,%.3f,%d,%.3f,%b", (System.nanoTime() - autoStartNs) / 1e9, pathIndex, ampc.currentT, ampc.velocityProfilePicked));
-                lastProfileWon = ampc.velocityProfilePicked;
+            if (profile.velocityProfilePicked != lastProfileWon) {
+                logWriter.println(String.format("profile_flip,%.3f,%d,%.3f,%b", (System.nanoTime() - autoStartNs) / 1e9, pathIndex, profile.currentT, profile.velocityProfilePicked));
+                lastProfileWon = profile.velocityProfilePicked;
             }
 
             // Sample per-path metrics only after robot has moved into this path
             // (skips first 15% to avoid inherited error from previous path endpoint)
-            if (ampc.getActivePath() != null && ampc.currentT > SAMPLE_START_T) {
+            if (profile.getActivePath() != null && profile.currentT > SAMPLE_START_T) {
                 Pose robotPose = follower.getPose();
-                Pose pathPoint = ampc.getActivePath().getPath(0).getPose(ampc.currentT);
-                Vector tangent = ampc.getActivePath().getPath(0).getTangentVector(ampc.currentT);
+                Pose pathPoint = profile.getActivePath().getPath(0).getPose(profile.currentT);
+                Vector tangent = profile.getActivePath().getPath(0).getTangentVector(profile.currentT);
                 double tanMag = tangent.getMagnitude();
                 double tX = tanMag > 0.001 ? tangent.getXComponent() / tanMag : 1.0;
                 double tY = tanMag > 0.001 ? tangent.getYComponent() / tanMag : 0.0;
@@ -192,8 +193,8 @@ public class Slipstream {
     }
 
     private void logProgress() {
-        if (!logInitialized || ampc.getActivePath() == null) return;
-        double currentT = ampc.currentT;
+        if (!logInitialized || profile.getActivePath() == null) return;
+        double currentT = profile.currentT;
         while (nextTThresholdIndex < loggedTThresholds.length && currentT >= loggedTThresholds[nextTThresholdIndex]) {
             logEvent("progress");
             nextTThresholdIndex++;
@@ -207,7 +208,7 @@ public class Slipstream {
             double actualVx = controller != null ? controller.actualVx : 0;
             double actualVy = controller != null ? controller.actualVy : 0;
             double actualOmega = controller != null ? controller.actualOmega : 0;
-            logWriter.println(String.format("%s,%.3f,%d,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.3f,%.3f,%.3f", event, time, pathIndex, ampc.currentT, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), ampc.desiredVx, ampc.desiredVy, ampc.desiredOmega, actualVx, actualVy, actualOmega, ampc.sysIDRatioVx, ampc.sysIDRatioVy, ampc.sysIDRatioOmega, ampc.velocityProfilePicked));
+            logWriter.println(String.format("%s,%.3f,%d,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.2f,%.2f,%.3f,%.3f,%.3f,%.3f", event, time, pathIndex, profile.currentT, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), profile.desiredVx, profile.desiredVy, profile.desiredOmega, actualVx, actualVy, actualOmega, profile.sysIDRatioVx, profile.sysIDRatioVy, profile.sysIDRatioOmega, profile.velocityProfilePicked));
             logWriter.flush();
         } catch (Exception e) {
             android.util.Log.e("Slipstream", "Logging error", e);
