@@ -65,7 +65,6 @@ public class DynamicVelocityProfile {
             }
         }
 
-
         double fineMin = Math.max(tMin, bestT - FINE_WINDOW);
         double fineMax = Math.min(tMax, bestT + FINE_WINDOW);
         double fineStep = (fineMax - fineMin) / T_FINE_STEPS;
@@ -96,4 +95,5 @@ public class DynamicVelocityProfile {
         // TODO: compute direction (tangent + cross-track blend)
         // TODO: assign desiredVx, desiredVy, desiredOmega
     }
+
 }
