@@ -83,6 +83,17 @@ public class DynamicVelocityProfile {
         currentT = bestT;
     }
 
+    public void backwardPass() {
+        double[] speeds = new double[15];
+        double aheadT = currentT + 15;
+        for (int i = 0; i < 15; i++) {
+            speeds[i] = 
+
+
+        }
+
+    }
+
     public void update() {
         if (activePath == null) {
             desiredVx = 0;
