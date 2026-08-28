@@ -87,7 +87,7 @@ public class DynamicVelocityProfile {
         double[] speeds = new double[15];
         double aheadT = currentT + 15;
         for (int i = 0; i < 15; i++) {
-            speeds[i] = 
+            speeds[i] =
 
 
         }
