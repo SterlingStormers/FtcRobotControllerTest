@@ -84,14 +84,27 @@ public class DynamicVelocityProfile {
     }
 
     public void backwardPass() {
-        double[] speeds = new double[15];
-        double aheadT = currentT + 15;
-        for (int i = 0; i < 15; i++) {
-            speeds[i] =
-                    follower.get
+        double t = currentT;
+
+        int spaces = (int) Math.round((1.0 - t) * 100);
+        double[] samples = new double[spaces + 1];
+
+        for (int i = spaces; i >= 0; i--) {
+            samples[i] = 1.0 - (i / 100.0); //need decimal .0
+            double aheadT = samples[i];
+            double solveT = samples[i-1];
+            Pose poseAtAheadT = activePath.getPath(0).getPose(aheadT);
+            double aheadX = poseAtAheadT.getX();
+            double aheadY = poseAtAheadT.getY();
+            Pose poseAtSolveT = activePath.getPath(0).getPose(solveT);
+            double solveX = poseAtSolveT.getX();
+            double solveY = poseAtSolveT.getY();
+            double distance = Math.hypot(aheadX - solveX, aheadY - solveY);
 
 
         }
+
+
 
     }
 
