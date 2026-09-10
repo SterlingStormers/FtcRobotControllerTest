@@ -88,6 +88,7 @@ public class DynamicVelocityProfile {
         double aheadT = currentT + 15;
         for (int i = 0; i < 15; i++) {
             speeds[i] =
+                    follower.get
 
 
         }
