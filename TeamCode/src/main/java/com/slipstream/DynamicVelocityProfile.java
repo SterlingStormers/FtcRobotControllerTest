@@ -102,6 +102,7 @@ public class DynamicVelocityProfile {
             double distance = Math.hypot(aheadX - solveX, aheadY - solveY);
 
 
+
         }
 
 
